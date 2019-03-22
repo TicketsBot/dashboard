@@ -1,0 +1,27 @@
+[server]
+host="0.0.0.0:3000"
+baseUrl="http://localhost:3000"
+mainSite="https://ticketsbot.net"
+  [server.ratelimit]
+  window=10
+  max=600
+  [server.session]
+  database="session"
+
+[oauth]
+id=1
+secret="secret"
+
+[mariadb]
+host="127.0.0.1"
+username="root"
+password="root"
+database="tickets"
+threads=5
+
+[bot]
+key=""
+httpServers=[]
+
+[redis]
+uri="redis://:pwd@127.0.0.1:6379/0"
