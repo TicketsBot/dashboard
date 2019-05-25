@@ -1,23 +1,24 @@
 <div class="container">
     <div class="row">
         <div class="col s12">
-            {{#if isNotAdmin}}
+            {{#empty}}
                 <p class="center-align" style="padding-top: 50px; font-size: 16px">
                     You are not the admin of any guilds that the bot is in. Click below to invite the bot:
                     <br />
                     <a href="https://invite.ticketsbot.net">Invite</a>
                 </p>
-            {{else}}
+            {{/empty}}
+            {{^empty}}
                 <p class="center-align" style="padding-top: 50px; font-size: 16px">
                     Select a server to manage below
                 </p>
 
                 <ul class="collection">
-                    {{#each guilds}}
-                        <li class="collection-item"><a href="{{baseUrl}}/manage/{{id}}/settings">{{name}}</a></li>
-                    {{/each}}
+                    {{#servers}}
+                        <li class="collection-item"><a href="{{baseUrl}}/manage/{{serverid}}/settings">{{servername}}</a></li>
+                    {{/servers}}
                 </ul>
-            {{/if}}
+            {{/empty}}
         </div>
     </div>
 </div>

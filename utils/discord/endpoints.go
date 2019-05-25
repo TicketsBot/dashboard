@@ -3,6 +3,7 @@ package discord
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/TicketsBot/GoPanel/config"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/pasztorpisti/qs"
 	"github.com/pkg/errors"
@@ -13,11 +14,15 @@ import (
 
 type RequestType string
 type ContentType string
+type AuthorizationType string
 
 const(
 	GET RequestType = "GET"
 	POST RequestType = "POST"
 	PATCH RequestType = "PATCH"
+
+	BEARER AuthorizationType = "Bearer"
+	BOT AuthorizationType = "BOT"
 
 	ApplicationJson ContentType = "application/json"
 	ApplicationFormUrlEncoded ContentType = "application/x-www-form-urlencoded"
@@ -27,6 +32,7 @@ const(
 
 type Endpoint struct {
 	RequestType RequestType
+	AuthorizationType AuthorizationType
 	Endpoint string
 }
 
@@ -65,7 +71,7 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 	if contentType != nil {
 		req.Header.Set("Content-Type", string(*contentType))
 	}
-	req.Header.Set("User-Agent", "DiscordBot (https://github.com/TicketsBot/GoPanel 1.0.0)")
+	req.Header.Set("User-Agent", "DiscordBot (https://github.com/TicketsBot/GoPanel, 1.0.0)")
 
 	// Auth
 	accessToken := store.Get("access_token").(string)
@@ -86,7 +92,11 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 
 		accessToken = res.AccessToken
 	}
-	req.Header.Set("Authorization", "Bearer " + accessToken)
+
+	switch e.AuthorizationType{
+	case BEARER: req.Header.Set("Authorization", "Bearer " + accessToken)
+	case BOT: req.Header.Set("Authorization", "Bot " + config.Conf.Bot.Token)
+	}
 
 	client := &http.Client{}
 	client.Timeout = 3 * time.Second

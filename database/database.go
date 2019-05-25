@@ -8,7 +8,7 @@ import (
 )
 
 var(
-	database **gorm.DB
+	Database gorm.DB
 )
 
 func ConnectToDatabase() {
@@ -27,5 +27,5 @@ func ConnectToDatabase() {
 	db.DB().SetMaxOpenConns(config.Conf.MariaDB.Threads)
 	db.DB().SetMaxIdleConns(0)
 
-	database = &db
+	Database = *db
 }

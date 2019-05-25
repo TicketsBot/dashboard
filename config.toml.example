@@ -21,6 +21,9 @@ password="ryan"
 database="tickets"
 threads=5
 
+[bot]
+token=""
+
 [redis]
 host="127.0.0.1"
 port=6379

@@ -59,7 +59,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {{#each logs}}
+                {{#logs}}
                     {{{baseUrl}}}
                     <tr>
                         <td>{{TICKETID}}</td>
@@ -67,7 +67,7 @@
                         <td>{{USERID}}</td>
                         <td><a href="{{baseUrl}}/logs/{{UUID}}">{{UUID}}</a></td>
                     </tr>
-                {{/each}}
+                {{/logs}}
                 </tbody>
             </table>
         </div>
@@ -77,11 +77,12 @@
         <div class="col s12 center-align">
             <p class="center-align">Pages</p>
             <ul class="pagination center-align">
-                {{#if isPageOne}}
+                {{#isPageOne}}
                     <li class="disabled"><a href="#"><i class="material-icons">chevron_left</i></a></li>
-                {{else}}
+                {{/isPageOne}}
+                {{^isPageOne}}
                     <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/{{previousPage}}"><i class="material-icons">chevron_left</i></a></li>
-                {{/if}}
+                {{/isPageOne}}
                 <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/{{nextPage}}"><i class="material-icons">chevron_right</i></a></li>
             </ul>
         </div>

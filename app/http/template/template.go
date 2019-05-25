@@ -2,26 +2,63 @@ package template
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/hoisie/mustache"
 )
 
-type Template struct {
-	Layout Layout
-	Content string
+type Layout struct {
+	compiled *mustache.Template
 }
 
-func LoadTemplate(layout Layout, name string) Template {
-	content, err := utils.ReadFile(fmt.Sprintf("./public/templates/views/%s.mustache", name)); if err != nil {
+type Template struct {
+	compiled *mustache.Template
+	Layout Layout
+}
+
+var(
+	LayoutMain Layout
+
+	TemplateIndex    Template
+	TemplateLogs     Template
+	TemplateSettings Template
+)
+
+func (t *Template) Render(context ...interface{}) string {
+	return t.compiled.RenderInLayout(t.Layout.compiled, context[0])
+}
+
+func LoadLayouts() {
+	LayoutMain = Layout{
+		compiled: loadLayout("main"),
+	}
+}
+
+func LoadTemplates() {
+	TemplateIndex = Template{
+		compiled: loadTemplate("index"),
+		Layout: LayoutMain,
+	}
+	TemplateLogs = Template{
+		compiled: loadTemplate("logs"),
+		Layout: LayoutMain,
+	}
+	TemplateSettings = Template{
+		compiled: loadTemplate("settings"),
+		Layout: LayoutMain,
+	}
+}
+
+func loadLayout(name string) *mustache.Template {
+	tmpl, err := mustache.ParseFile(fmt.Sprintf("./public/templates/layouts/%s.mustache", name)); if err != nil {
 		panic(err)
 	}
 
-	return Template{
-		Layout: layout,
-		Content: content,
-	}
+	return tmpl
 }
 
-func (t *Template) Render(context ...interface{}) string {
-	return mustache.RenderInLayout(t.Content, t.Layout.Content, context)
+func loadTemplate(name string) *mustache.Template {
+	tmpl, err := mustache.ParseFile(fmt.Sprintf("./public/templates/views/%s.mustache", name)); if err != nil {
+		panic(err)
+	}
+
+	return tmpl
 }

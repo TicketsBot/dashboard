@@ -1,16 +1,15 @@
 <script>
-
     document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('select');
         var instances = M.FormSelect.init(elems, {});
     });
 
-        {{#if invalidPrefix}}
-        M.toast({html: 'Prefixes must be between 1 and 8 characters'})
-        {{/if}}
-        {{#if invalidMessage}}
-        M.toast({html: 'Welcome messages must be between 1 and 1000 characters'})
-        {{/if}}
+        {{#invalidPrefix}}
+            M.toast({html: 'Prefixes must be between 1 and 8 characters'});
+        {{/invalidPrefix}}
+        {{#invalidMessage}}
+            M.toast({html: 'Welcome messages must be between 1 and 1000 characters'});
+        {{/invalidMessage}}
 </script>
 
 <div class="container">
@@ -53,13 +52,14 @@
             <div class="input-field col s12">
                 <p><b>Channel Category</b></p>
                 <select name="category">
-                    {{#each categories}}
-                        {{#if active}}
-                            <option value="{{id}}" selected>{{name}}</option>
-                        {{else}}
-                            <option value="{{id}}">{{name}}</option>
-                        {{/if}}
-                    {{/each}}
+                    {{#categories}}
+                        {{#active}}
+                            <option value="{{categoryid}}" selected>{{categoryname}}</option>
+                        {{/active}}
+                        {{^active}}
+                            <option value="{{categoryid}}">{{categoryname}}</option>
+                        {{/active}}
+                    {{/categories}}
                 </select>
             </div>
         </div>

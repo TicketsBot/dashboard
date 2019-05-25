@@ -38,3 +38,15 @@ type Guild struct {
 	Description string
 	Banner string
 }
+
+func (g *Guild) GetCategories() []Channel {
+	var categories []Channel
+
+	for _, channel := range g.Channels {
+		if channel.Type == 4 {
+			categories = append(categories, channel)
+		}
+	}
+
+	return categories
+}

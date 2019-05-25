@@ -1,9 +1,15 @@
-package endpoints
+package root
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/user"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
+	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"time"
@@ -35,6 +41,11 @@ func CallbackHandler(ctx *gin.Context) {
 	}
 	defer store.Save()
 
+	if utils.IsLoggedIn(store) {
+		ctx.Redirect(302, config.Conf.Server.BaseUrl)
+		return
+	}
+
 	code := ctx.DefaultQuery("code", "")
 	if code == "" {
 		ctx.String(400, "Discord provided an invalid Oauth2 code")
@@ -58,10 +69,25 @@ func CallbackHandler(ctx *gin.Context) {
 
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)
-
-	// Get Guilds
-	var currentUserGuilds []objects.Guild
-	err = user.CurrentUserGuilds.Request(store, nil, nil, &currentUserGuilds); if err != nil {
-		ctx.String(500, err.Error())
+	if err = store.Save(); err != nil {
+		log.Error(err.Error())
 	}
+
+	ctx.Redirect(302,config.Conf.Server.BaseUrl)
+
+	// Cache guilds because Discord takes like 2 whole seconds to return then
+	go func() {
+		var guilds []objects.Guild
+		err = user.CurrentUserGuilds.Request(store, nil, nil, &guilds); if err != nil {
+			log.Error(err.Error())
+			return
+		}
+
+		marshalled, err := json.Marshal(guilds); if err != nil {
+			log.Error(err.Error())
+			return
+		}
+
+		table.UpdateGuilds(currentUser.Id, base64.StdEncoding.EncodeToString(marshalled))
+	}()
 }

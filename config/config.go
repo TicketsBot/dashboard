@@ -18,6 +18,7 @@ type(
 		Host string
 		BaseUrl string
 		MainSite string
+		CsrfKey string
 		Ratelimit Ratelimit
 		Session Session
 	}
@@ -47,8 +48,7 @@ type(
 	}
 
 	Bot struct {
-		Key string
-		HttpServer []string
+		Token string
 	}
 
 	Redis struct {
