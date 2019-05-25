@@ -6,22 +6,22 @@ mainSite="https://ticketsbot.net"
   window=10
   max=600
   [server.session]
-  database="session"
+  threads=10
+  secret="secret"
 
 [oauth]
-id=1
-secret="secret"
+id=
+secret=""
+redirectUri=""
 
 [mariadb]
 host="127.0.0.1"
-username="root"
-password="root"
+username="ryan"
+password="ryan"
 database="tickets"
 threads=5
 
-[bot]
-key=""
-httpServers=[]
-
 [redis]
-uri="redis://:pwd@127.0.0.1:6379/0"
+host="127.0.0.1"
+port=6379
+password=""

@@ -1,0 +1,84 @@
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems, {});
+    });
+
+        {{#if invalidPrefix}}
+        M.toast({html: 'Prefixes must be between 1 and 8 characters'})
+        {{/if}}
+        {{#if invalidMessage}}
+        M.toast({html: 'Welcome messages must be between 1 and 1000 characters'})
+        {{/if}}
+</script>
+
+<div class="container">
+    <div class="row">
+        <div class="col s12">
+            <ul class="pagination center-align" style="padding-top: 50px">
+                <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+                <li class="active indigo darken-1"><a href="#!">Settings</a></li>
+                <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/1">Logs</a></li>
+                <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/1"><i class="material-icons">chevron_right</i></a></li>
+            </ul>
+        </div>
+    </div>
+    <form class="col s12" action="/manage/{{guildId}}/settings" method="get">
+        <div class="row">
+            <div class="input-field col s12">
+                <p><b>Prefix</b></p>
+                <input id="prefix" name="prefix" type="text" class="validate" value="{{prefix}}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-field col s12">
+                <p><b>Welcome Message</b></p>
+                <textarea id="welcomeMessage" name="welcomeMessage" class="materialize-textarea">{{welcomeMessage}}</textarea>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-field col s12">
+                <p><b>Ticket Limit</b></p>
+                <p class="range-field">
+                    <input type="range" id="ticketlimit" name="ticketlimit" min="1" max="10" value="{{ticketLimit}}" />
+                </p>
+                <p id="output">Limit: -1</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="input-field col s12">
+                <p><b>Channel Category</b></p>
+                <select name="category">
+                    {{#each categories}}
+                        {{#if active}}
+                            <option value="{{id}}" selected>{{name}}</option>
+                        {{else}}
+                            <option value="{{id}}">{{name}}</option>
+                        {{/if}}
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12 center-align">
+                <button class="btn waves-effect waves-light indigo darken-1" type="submit" name="action">Save
+                    <i class="material-icons right">send</i>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    var slider = document.getElementById("ticketlimit");
+    var output = document.getElementById("output");
+    output.innerHTML = "Limit: " + slider.value;
+    slider.oninput = () => {
+        output.innerHTML = "Limit: " + slider.value;
+    }
+</script>

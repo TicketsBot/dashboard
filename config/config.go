@@ -9,6 +9,7 @@ type(
 	Config struct {
 		Server Server
 		Oauth Oauth
+		MariaDB MariaDB
 		Bot Bot
 		Redis Redis
 	}
@@ -27,12 +28,14 @@ type(
 	}
 
 	Session struct {
-		Database string
+		Threads int
+		Secret string
 	}
 
 	Oauth struct {
 		Id int64
 		Secret string
+		RedirectUri string
 	}
 
 	MariaDB struct {
@@ -49,7 +52,9 @@ type(
 	}
 
 	Redis struct {
-		Uri string
+		Host string
+		Port int
+		Password string
 	}
 )
 
