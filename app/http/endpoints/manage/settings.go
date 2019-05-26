@@ -3,7 +3,6 @@ package manage
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
@@ -54,9 +53,12 @@ func SettingsHandler(ctx *gin.Context) {
 			return
 		}
 
+		// Get CSRF token
+		csrfCorrect := ctx.Query("csrf") == store.Get("csrf").(string)
+
 		// Get prefix
 		prefix := ctx.Query("prefix")
-		if prefix == "" {
+		if prefix == "" || len(prefix) > 8 || !csrfCorrect {
 			prefix = table.GetPrefix(guildId)
 		} else {
 			table.UpdatePrefix(guildId, prefix)
@@ -64,7 +66,7 @@ func SettingsHandler(ctx *gin.Context) {
 
 		// Get welcome message
 		welcomeMessage := ctx.Query("welcomeMessage")
-		if welcomeMessage == "" {
+		if welcomeMessage == "" || len(welcomeMessage) > 1000 || !csrfCorrect {
 			welcomeMessage = table.GetWelcomeMessage(guildId)
 		} else {
 			table.UpdateWelcomeMessage(guildId, welcomeMessage)
@@ -80,8 +82,13 @@ func SettingsHandler(ctx *gin.Context) {
 		}
 
 		// Update limit, or get current limit if user input is invalid
-		if limitStr == "" || !utils.IsInt(limitStr) {
+		invalidTicketLimit := false
+		if limitStr == "" || !utils.IsInt(limitStr) || limit > 10 || limit < 1 || !csrfCorrect {
 			limit = table.GetTicketLimit(guildId)
+
+			if limitStr != "" { // User wasn't setting anything
+				invalidTicketLimit = true
+			}
 		} else {
 			table.UpdateTicketLimit(guildId, limit)
 		}
@@ -120,7 +127,9 @@ func SettingsHandler(ctx *gin.Context) {
 					if err != nil {
 						log.Error(err.Error())
 					} else {
-						table.UpdateGuilds(userIdStr, base64.StdEncoding.EncodeToString(marshalled))
+						if csrfCorrect {
+							table.UpdateGuilds(userIdStr, base64.StdEncoding.EncodeToString(marshalled))
+						}
 					}
 				}
 			}
@@ -144,7 +153,7 @@ func SettingsHandler(ctx *gin.Context) {
 		}
 
 		// Update category, or get current category if user input is invalid
-		if categoryStr == "" || !utils.IsInt(categoryStr) || !utils.Contains(categoryIds, categoryStr) {
+		if categoryStr == "" || !utils.IsInt(categoryStr) || !utils.Contains(categoryIds, categoryStr) || !csrfCorrect {
 			category = table.GetChannelCategory(guildId)
 		} else {
 			table.UpdateChannelCategory(guildId, category)
@@ -175,7 +184,7 @@ func SettingsHandler(ctx *gin.Context) {
 			archiveChannel, _ = strconv.ParseInt(archiveChannelStr, 10, 64)
 		}
 
-		if archiveChannelStr == "" || !utils.IsInt(archiveChannelStr) || !utils.Contains(channelIds, archiveChannelStr)  {
+		if archiveChannelStr == "" || !utils.IsInt(archiveChannelStr) || !utils.Contains(channelIds, archiveChannelStr) || !csrfCorrect {
 			archiveChannel = table.GetArchiveChannel(guildId)
 		} else {
 			table.UpdateArchiveChannel(guildId, archiveChannel)
@@ -184,9 +193,6 @@ func SettingsHandler(ctx *gin.Context) {
 		// Format channels for templating
 		var formattedChannels []map[string]interface{}
 		for _, c := range guild.Channels {
-			if c.Id == strconv.Itoa(int(archiveChannel)) {
-				fmt.Println(c.Name)
-			}
 			if c.Type == 0 {
 				formattedChannels = append(formattedChannels, map[string]interface{}{
 					"channelid": c.Id,
@@ -199,11 +205,16 @@ func SettingsHandler(ctx *gin.Context) {
 		utils.Respond(ctx, template.TemplateSettings.Render(map[string]interface{}{
 			"name":           store.Get("name").(string),
 			"guildId":        guildIdStr,
+			"avatar": store.Get("avatar").(string),
 			"prefix":         prefix,
 			"welcomeMessage": welcomeMessage,
 			"ticketLimit":    limit,
 			"categories":     formattedCategories,
 			"channels": formattedChannels,
+			"invalidPrefix": len(ctx.Query("prefix")) > 8,
+			"invalidWelcomeMessage": len(ctx.Query("welcomeMessage")) > 1000,
+			"invalidTicketLimit": invalidTicketLimit,
+			"csrf": store.Get("csrf").(string),
 		}))
 	} else {
 		ctx.Redirect(302, "/login")

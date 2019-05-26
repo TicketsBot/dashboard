@@ -37,6 +37,18 @@
         background-size: cover;
         border-radius: 50%;
       }
+
+      .nav-link {
+        color: white !important;
+      }
+
+      .filterCard {
+        cursor: pointer;
+      }
+
+      .table td, .table th {
+        text-align: center;
+      }
     </style>
 
     <!-- Bootstrap -->
@@ -83,7 +95,21 @@
           </ul>
         </div>
       </div>
+
       <div class="main-panel">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/manage/{{guildId}}/settings">Settings</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/manage/{{guildId}}/logs/page/1">Logs</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
         {{{content}}}
       </div>
     </div>

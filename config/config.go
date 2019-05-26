@@ -18,7 +18,6 @@ type (
 		Host      string
 		BaseUrl   string
 		MainSite  string
-		CsrfKey   string
 		Ratelimit Ratelimit
 		Session   Session
 	}

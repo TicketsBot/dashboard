@@ -55,6 +55,8 @@ func IndexHandler(ctx *gin.Context) {
 			"baseurl": config.Conf.Server.BaseUrl,
 			"servers": servers,
 			"empty":   len(servers) == 0,
+			"isIndex": true,
+			"avatar": store.Get("avatar").(string),
 		}))
 	} else {
 		ctx.Redirect(302, "/login")

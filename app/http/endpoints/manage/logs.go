@@ -98,6 +98,7 @@ func LogsHandler(ctx *gin.Context) {
 			utils.Respond(ctx, template.TemplateLogs.Render(map[string]interface{}{
 			"name":    store.Get("name").(string),
 			"guildId": guildIdStr,
+			"avatar": store.Get("avatar").(string),
 			"baseUrl": config.Conf.Server.BaseUrl,
 			"isPageOne": page == 1,
 			"previousPage": page - 1,

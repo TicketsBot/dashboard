@@ -3,6 +3,7 @@ package root
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -69,8 +70,11 @@ func CallbackHandler(ctx *gin.Context) {
 		return
 	}
 
+	store.Set("csrf", utils.RandStringRunes(32))
+
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)
+	store.Set("avatar", fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.webp", currentUser.Id, currentUser.Avatar))
 	if err = store.Save(); err != nil {
 		log.Error(err.Error())
 	}

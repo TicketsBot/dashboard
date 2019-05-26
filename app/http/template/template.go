@@ -16,6 +16,7 @@ type Template struct {
 
 var (
 	LayoutMain Layout
+	LayoutManage Layout
 
 	TemplateIndex    Template
 	TemplateLogs     Template
@@ -30,6 +31,9 @@ func LoadLayouts() {
 	LayoutMain = Layout{
 		compiled: loadLayout("main"),
 	}
+	LayoutManage = Layout{
+		compiled: loadLayout("manage"),
+	}
 }
 
 func LoadTemplates() {
@@ -39,11 +43,11 @@ func LoadTemplates() {
 	}
 	TemplateLogs = Template{
 		compiled: loadTemplate("logs"),
-		Layout:   LayoutMain,
+		Layout:   LayoutManage,
 	}
 	TemplateSettings = Template{
 		compiled: loadTemplate("settings"),
-		Layout:   LayoutMain,
+		Layout:   LayoutManage,
 	}
 }
 
