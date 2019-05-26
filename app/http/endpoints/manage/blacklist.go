@@ -1,6 +1,7 @@
 package manage
 
 import (
+	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
@@ -11,7 +12,7 @@ import (
 	"strconv"
 )
 
-func LogsHandler(ctx *gin.Context) {
+func BlacklistHandler(ctx *gin.Context) {
 	store := sessions.Default(ctx)
 	if store == nil {
 		return
@@ -34,15 +35,6 @@ func LogsHandler(ctx *gin.Context) {
 			return
 		}
 
-		pageStr := ctx.Param("page")
-		page := 1
-		i, err := strconv.Atoi(pageStr)
-		if err == nil {
-			if i > 0 {
-				page = i
-			}
-		}
-
 		// Get object for selected guild
 		var guild objects.Guild
 		for _, g := range table.GetGuilds(userIdStr) {
@@ -58,55 +50,23 @@ func LogsHandler(ctx *gin.Context) {
 			return
 		}
 
-		pageLimit := 30
+		curid, err := strconv.ParseInt("210105426849562625", 10, 64)
+		table.RemoveBlacklist(guildId, curid)
+		fmt.Println(table.IsBlacklisted(guildId, curid))
 
-		// Get logs
-		// Get user ID from URL
-		var filteredUserId int64
-		if utils.IsInt(ctx.Query("userid")) {
-			filteredUserId, _ = strconv.ParseInt(ctx.Query("userid"), 10, 64)
-		}
+		//blacklistedUsers := table.GetBlacklistNodes(guildId)
+		//var blacklisted []map[string]interface{}
+		//for _, node := range blacklistedUsers {
 
-		// Get ticket ID from URL
-		var ticketId int
-		if utils.IsInt(ctx.Query("ticketid")) {
-			ticketId, _ = strconv.Atoi(ctx.Query("ticketid"))
-		}
+		//}
 
-		// Get username from URL
-		username := ctx.Query("username")
+		fmt.Println(len(guild.Members))
 
-		// Get logs from DB
-		logs := table.GetFilteredTicketArchives(guildId, filteredUserId, username, ticketId)
-
-		// Select 30 logs + format them
-		var formattedLogs []map[string]interface{}
-		for i := (page - 1) * pageLimit; i < (page - 1) * pageLimit + pageLimit; i++ {
-			if i >= len(logs) {
-				break
-			}
-
-			log := logs[i]
-			formattedLogs = append(formattedLogs, map[string]interface{}{
-				"ticketid":  log.TicketId,
-				"userid": log.User,
-				"username": log.Username,
-				"uuid": log.Uuid,
-			})
-		}
-
-		utils.Respond(ctx, template.TemplateLogs.Render(map[string]interface{}{
+		utils.Respond(ctx, template.TemplateBlacklist.Render(map[string]interface{}{
 			"name":    store.Get("name").(string),
 			"guildId": guildIdStr,
 			"avatar": store.Get("avatar").(string),
 			"baseUrl": config.Conf.Server.BaseUrl,
-			"isPageOne": page == 1,
-			"previousPage": page - 1,
-			"nextPage": page + 1,
-			"logs": formattedLogs,
-			"page": page,
 		}))
-	} else {
-		ctx.Redirect(302, "/login")
 	}
 }
