@@ -104,6 +104,7 @@ func LogsHandler(ctx *gin.Context) {
 			"previousPage": page - 1,
 			"nextPage": page + 1,
 			"logs": formattedLogs,
+			"page": page,
 		}))
 	} else {
 		ctx.Redirect(302, "/login")

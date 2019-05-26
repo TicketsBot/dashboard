@@ -74,6 +74,23 @@
                 {{/logs}}
                 </tbody>
               </table>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <ul class="pagination justify-content-center">
+                    {{#isPageOne}}
+                      <li class="disabled"><a href="#"><i class="fas fa-chevron-left"></i></a></li>
+                    {{/isPageOne}}
+                    {{^isPageOne}}
+                      <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/{{previousPage}}"><i class="fas fa-chevron-left"></i></a></li>
+                    {{/isPageOne}}
+
+                    <p class="center-align" style="padding-left: 10px; padding-right: 10px;">Page {{page}}</p>
+
+                    <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/{{nextPage}}"><i class="fas fa-chevron-right"></i></a></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -81,98 +98,3 @@
     </div>
   </div>
 </div>
-
-
-<!--<div class="container">
-    <div class="row">
-        <div class="col s12">
-            <ul class="pagination center-align" style="padding-top: 50px">
-                <li class="waves-effect"><a href="#"><i class="material-icons">chevron_left</i></a></li>
-                <li class="waves-effect"><a href="/manage/{{guildId}}/settings">Settings</a></li>
-                <li class="active indigo darken-1"><a href="#">Logs</a></li>
-                <li class="disabled"><a href="#"><i class="material-icons">chevron_right</i></a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="row">
-        <ul class="collapsible">
-            <li>
-                <div class="collapsible-header"><i class="material-icons">search</i>Filter Logs</div>
-                <div class="collapsible-body">
-                    <div class="container" style="width: 100%">
-                        <div class="row">
-                            <form class="col s12" action="/manage/{{guildId}}/logs/page/1" method="get">
-                                <div class="row">
-                                    <div class="input-field col s6">
-                                        <input placeholder="Ticket ID" name="ticketid" id="ticketid" type="text" class="validate">
-                                        <label for="ticketid">Ticket ID</label>
-                                    </div>
-                                    <div class="input-field col s6">
-                                        <input placeholder="Username" name="username" id="username" type="text" class="validate">
-                                        <label for="username">Username</label>
-                                    </div>
-                                </div>
-                                <div class="row center-align">
-                                    <div class="input-field col s6 center-align">
-                                        <input placeholder="User ID" name="userid" id="userid" type="text" class="validate">
-                                        <label for="userid">User ID</label>
-                                    </div>
-                                </div>
-                                <div class="row center-align">
-                                    <button class="btn waves-effect waves-light center-align indigo darken-1" type="submit" name="action">Search
-                                        <i class="material-icons right">search</i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </li>
-        </ul>
-    </div>
-
-    <div class="row">
-        <div class="col s12">
-            <table class="striped centered">
-                <thead>
-                <tr>
-                    <th>Ticket ID</th>
-                    <th>User</th>
-                    <th>User ID</th>
-                    <th>Log URL</th>
-                </tr>
-                </thead>
-                <tbody>
-                {{#logs}}
-                    <tr>
-                        <td>{{ticketid}}</td>
-                        <td>{{username}}</td>
-                        <td>{{userid}}</td>
-                        <td><a href="{{baseUrl}}/manage/{{guildId}}/logs/view/{{uuid}}">{{uuid}}</a></td>
-                    </tr>
-                {{/logs}}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="row center-align">
-        <div class="col s12 center-align">
-            <p class="center-align">Pages</p>
-            <ul class="pagination center-align">
-                {{#isPageOne}}
-                    <li class="disabled"><a href="#"><i class="material-icons">chevron_left</i></a></li>
-                {{/isPageOne}}
-                {{^isPageOne}}
-                    <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/{{previousPage}}"><i class="material-icons">chevron_left</i></a></li>
-                {{/isPageOne}}
-                <li class="waves-effect"><a href="/manage/{{guildId}}/logs/page/{{nextPage}}"><i class="material-icons">chevron_right</i></a></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<script>
-    M.AutoInit();
-</script>-->
