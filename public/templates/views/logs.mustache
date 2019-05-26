@@ -60,12 +60,11 @@
                 </thead>
                 <tbody>
                 {{#logs}}
-                    {{{baseUrl}}}
                     <tr>
-                        <td>{{TICKETID}}</td>
-                        <td>{{USERNAME}}</td>
-                        <td>{{USERID}}</td>
-                        <td><a href="{{baseUrl}}/logs/{{UUID}}">{{UUID}}</a></td>
+                        <td>{{ticketid}}</td>
+                        <td>{{username}}</td>
+                        <td>{{userid}}</td>
+                        <td><a href="{{baseUrl}}/manage/{{guildId}}/logs/view/{{uuid}}">{{uuid}}</a></td>
                     </tr>
                 {{/logs}}
                 </tbody>

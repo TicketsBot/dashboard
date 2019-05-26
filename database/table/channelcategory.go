@@ -5,7 +5,7 @@ import (
 )
 
 type ChannelCategory struct {
-	GuildId int64 `gorm:"column:GUILDID"`
+	GuildId  int64 `gorm:"column:GUILDID"`
 	Category int64 `gorm:"column:CATEGORYID"`
 }
 

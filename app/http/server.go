@@ -53,6 +53,9 @@ func StartServer() {
 	// /manage/:id/logs/page/:page
 	router.GET("/manage/:id/logs/page/:page", manage.LogsHandler)
 
+	// /manage/:id/logs/view/:uuid
+	router.GET("/manage/:id/logs/view/:uuid", manage.LogViewHandler)
+
 	if err := router.Run(config.Conf.Server.Host); err != nil {
 		panic(err)
 	}

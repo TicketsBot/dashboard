@@ -7,8 +7,8 @@ import (
 
 func GetGuildChannels(id int) discord.Endpoint {
 	return discord.Endpoint{
-		RequestType: discord.GET,
+		RequestType:       discord.GET,
 		AuthorizationType: discord.BOT,
-		Endpoint: fmt.Sprintf("/guilds/%d/channels", id),
+		Endpoint:          fmt.Sprintf("/guilds/%d/channels", id),
 	}
 }

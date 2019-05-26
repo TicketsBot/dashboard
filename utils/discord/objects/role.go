@@ -1,12 +1,12 @@
 package objects
 
 type Role struct {
-	Id string
-	Name string
-	Color int
-	Hoist bool
-	Position int
+	Id          string
+	Name        string
+	Color       int
+	Hoist       bool
+	Position    int
 	Permissions int
-	Managed bool
+	Managed     bool
 	Mentionable bool
 }

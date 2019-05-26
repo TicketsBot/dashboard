@@ -2,7 +2,7 @@ package objects
 
 type Asset struct {
 	LargeImage string
-	LargeText string
+	LargeText  string
 	SmallImage string
-	SmallText string
+	SmallText  string
 }

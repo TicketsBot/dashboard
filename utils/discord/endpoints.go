@@ -16,24 +16,24 @@ type RequestType string
 type ContentType string
 type AuthorizationType string
 
-const(
-	GET RequestType = "GET"
-	POST RequestType = "POST"
+const (
+	GET   RequestType = "GET"
+	POST  RequestType = "POST"
 	PATCH RequestType = "PATCH"
 
 	BEARER AuthorizationType = "Bearer"
-	BOT AuthorizationType = "BOT"
+	BOT    AuthorizationType = "BOT"
 
-	ApplicationJson ContentType = "application/json"
+	ApplicationJson           ContentType = "application/json"
 	ApplicationFormUrlEncoded ContentType = "application/x-www-form-urlencoded"
 
 	BASE_URL = "https://discordapp.com/api/v6"
 )
 
 type Endpoint struct {
-	RequestType RequestType
+	RequestType       RequestType
 	AuthorizationType AuthorizationType
-	Endpoint string
+	Endpoint          string
 }
 
 func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}) error {
@@ -48,12 +48,14 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 		// Encode body
 		var encoded []byte
 		if *contentType == ApplicationJson {
-			raw, err := json.Marshal(body); if err != nil {
+			raw, err := json.Marshal(body)
+			if err != nil {
 				return err
 			}
 			encoded = raw
 		} else if *contentType == ApplicationFormUrlEncoded {
-			str, err := qs.Marshal(body); if err != nil {
+			str, err := qs.Marshal(body)
+			if err != nil {
 				return err
 			}
 			encoded = []byte(str)
@@ -80,33 +82,38 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 
 	// Check if needs refresh
 	if (time.Now().UnixNano() / int64(time.Second)) > int64(expiry) {
-		res, err := RefreshToken(refreshToken); if err != nil {
+		res, err := RefreshToken(refreshToken)
+		if err != nil {
 			store.Clear()
 			_ = store.Save()
 			return errors.New("Please login again!")
 		}
 
 		store.Set("access_token", res.AccessToken)
-		store.Set("expiry", (time.Now().UnixNano() / int64(time.Second)) + int64(res.ExpiresIn))
+		store.Set("expiry", (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn))
 		store.Set("refresh_token", res.RefreshToken)
 
 		accessToken = res.AccessToken
 	}
 
-	switch e.AuthorizationType{
-	case BEARER: req.Header.Set("Authorization", "Bearer " + accessToken)
-	case BOT: req.Header.Set("Authorization", "Bot " + config.Conf.Bot.Token)
+	switch e.AuthorizationType {
+	case BEARER:
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+	case BOT:
+		req.Header.Set("Authorization", "Bot "+config.Conf.Bot.Token)
 	}
 
 	client := &http.Client{}
 	client.Timeout = 3 * time.Second
 
-	res, err := client.Do(req); if err != nil {
+	res, err := client.Do(req)
+	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
 
-	content, err := ioutil.ReadAll(res.Body); if err != nil {
+	content, err := ioutil.ReadAll(res.Body)
+	if err != nil {
 		return err
 	}
 

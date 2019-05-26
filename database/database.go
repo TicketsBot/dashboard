@@ -7,7 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var(
+var (
 	Database gorm.DB
 )
 
@@ -18,9 +18,10 @@ func ConnectToDatabase() {
 		config.Conf.MariaDB.Password,
 		config.Conf.MariaDB.Host,
 		config.Conf.MariaDB.Database,
-		)
+	)
 
-	db, err := gorm.Open("mysql", uri); if err != nil {
+	db, err := gorm.Open("mysql", uri)
+	if err != nil {
 		panic(err)
 	}
 

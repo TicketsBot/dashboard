@@ -15,22 +15,22 @@ import (
 	"time"
 )
 
-type(
+type (
 	TokenData struct {
-		ClientId string `qs:"client_id"`
+		ClientId     string `qs:"client_id"`
 		ClientSecret string `qs:"client_secret"`
-		GrantType string `qs:"grant_type"`
-		Code string `qs:"code"`
-		RedirectUri string `qs:"redirect_uri"`
-		Scope string `qs:"scope"`
+		GrantType    string `qs:"grant_type"`
+		Code         string `qs:"code"`
+		RedirectUri  string `qs:"redirect_uri"`
+		Scope        string `qs:"scope"`
 	}
 
 	TokenResponse struct {
-		AccessToken string `json:"access_token"`
-		TokenType string `json:"token_type"`
-		ExpiresIn int `json:"expires_in"`
+		AccessToken  string `json:"access_token"`
+		TokenType    string `json:"token_type"`
+		ExpiresIn    int    `json:"expires_in"`
 		RefreshToken string `json:"refresh_token"`
-		Scope string `json:"scope"`
+		Scope        string `json:"scope"`
 	}
 )
 
@@ -52,17 +52,19 @@ func CallbackHandler(ctx *gin.Context) {
 		return
 	}
 
-	res, err := discord.AccessToken(code); if err != nil {
+	res, err := discord.AccessToken(code)
+	if err != nil {
 		ctx.String(500, err.Error())
 	}
 
 	store.Set("access_token", res.AccessToken)
 	store.Set("refresh_token", res.RefreshToken)
-	store.Set("expiry", (time.Now().UnixNano() / int64(time.Second)) + int64(res.ExpiresIn))
+	store.Set("expiry", (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn))
 
 	// Get ID + name
 	var currentUser objects.User
-	err = user.CurrentUser.Request(store, nil, nil, &currentUser); if err != nil {
+	err = user.CurrentUser.Request(store, nil, nil, &currentUser)
+	if err != nil {
 		ctx.String(500, err.Error())
 		return
 	}
@@ -73,17 +75,19 @@ func CallbackHandler(ctx *gin.Context) {
 		log.Error(err.Error())
 	}
 
-	ctx.Redirect(302,config.Conf.Server.BaseUrl)
+	ctx.Redirect(302, config.Conf.Server.BaseUrl)
 
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
 		var guilds []objects.Guild
-		err = user.CurrentUserGuilds.Request(store, nil, nil, &guilds); if err != nil {
+		err = user.CurrentUserGuilds.Request(store, nil, nil, &guilds)
+		if err != nil {
 			log.Error(err.Error())
 			return
 		}
 
-		marshalled, err := json.Marshal(guilds); if err != nil {
+		marshalled, err := json.Marshal(guilds)
+		if err != nil {
 			log.Error(err.Error())
 			return
 		}

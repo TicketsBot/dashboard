@@ -3,10 +3,10 @@ package table
 import "github.com/TicketsBot/GoPanel/database"
 
 type PermissionNode struct {
-	GuildId int64 `gorm:"column:GUILDID"`
-	UserId int64 `gorm:"column:USERID"`
-	IsSupport bool `gorm:"column:ISSUPPORT"`
-	IsAdmin bool `gorm:"column:ISADMIN"`
+	GuildId   int64 `gorm:"column:GUILDID"`
+	UserId    int64 `gorm:"column:USERID"`
+	IsSupport bool  `gorm:"column:ISSUPPORT"`
+	IsAdmin   bool  `gorm:"column:ISADMIN"`
 }
 
 func (PermissionNode) TableName() string {

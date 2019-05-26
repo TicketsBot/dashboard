@@ -1,6 +1,6 @@
 package objects
 
 type Party struct {
-	Id string
+	Id   string
 	Size []int
 }

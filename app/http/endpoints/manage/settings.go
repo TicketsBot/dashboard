@@ -3,6 +3,7 @@ package manage
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
@@ -24,14 +25,16 @@ func SettingsHandler(ctx *gin.Context) {
 
 	if utils.IsLoggedIn(store) {
 		userIdStr := store.Get("userid").(string)
-		userId, err := utils.GetUserId(store); if err != nil {
+		userId, err := utils.GetUserId(store)
+		if err != nil {
 			ctx.String(500, err.Error())
 			return
 		}
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64); if err != nil {
+		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
 		}
@@ -83,11 +86,8 @@ func SettingsHandler(ctx *gin.Context) {
 			table.UpdateTicketLimit(guildId, limit)
 		}
 
-		// Get a list of actual category IDs
-		categories := guild.GetCategories()
-
 		// /users/@me/guilds doesn't return channels, so we have to get them for the specific guild
-		if len(categories) == 0 {
+		if len(guild.Channels) == 0 {
 			var channels []objects.Channel
 			endpoint := guildendpoint.GetGuildChannels(int(guildId))
 			err = endpoint.Request(store, nil, nil, &channels)
@@ -96,7 +96,6 @@ func SettingsHandler(ctx *gin.Context) {
 				// Not in guild
 			} else {
 				guild.Channels = channels
-				categories = guild.GetCategories()
 
 				// Update cache of categories now that we have them
 				guilds := table.GetGuilds(userIdStr)
@@ -117,7 +116,8 @@ func SettingsHandler(ctx *gin.Context) {
 					// Insert updated guild
 					guilds = utils.Insert(guilds, index, guild)
 
-					marshalled, err := json.Marshal(guilds); if err != nil {
+					marshalled, err := json.Marshal(guilds)
+					if err != nil {
 						log.Error(err.Error())
 					} else {
 						table.UpdateGuilds(userIdStr, base64.StdEncoding.EncodeToString(marshalled))
@@ -126,6 +126,10 @@ func SettingsHandler(ctx *gin.Context) {
 			}
 		}
 
+		// Get a list of actual category IDs
+		categories := guild.GetCategories()
+
+		// Convert to category IDs
 		var categoryIds []string
 		for _, c := range categories {
 			categoryIds = append(categoryIds, c.Id)
@@ -149,19 +153,57 @@ func SettingsHandler(ctx *gin.Context) {
 		var formattedCategories []map[string]interface{}
 		for _, c := range categories {
 			formattedCategories = append(formattedCategories, map[string]interface{}{
-				"categoryid": c.Id,
+				"categoryid":   c.Id,
 				"categoryname": c.Name,
-				"active": c.Id == strconv.Itoa(int(category)),
+				"active":  c.Id == strconv.Itoa(int(category)),
 			})
 		}
 
+		// Archive channel
+		// Create a list of IDs
+		var channelIds []string
+		for _, c := range guild.Channels {
+			channelIds = append(channelIds, c.Id)
+		}
+
+		// Update or get current archive channel if blank or invalid
+		var archiveChannel int64
+		archiveChannelStr := ctx.Query("archivechannel")
+
+		// Verify category ID is an int and set default category ID
+		if utils.IsInt(archiveChannelStr) {
+			archiveChannel, _ = strconv.ParseInt(archiveChannelStr, 10, 64)
+		}
+
+		if archiveChannelStr == "" || !utils.IsInt(archiveChannelStr) || !utils.Contains(channelIds, archiveChannelStr)  {
+			archiveChannel = table.GetArchiveChannel(guildId)
+		} else {
+			table.UpdateArchiveChannel(guildId, archiveChannel)
+		}
+
+		// Format channels for templating
+		var formattedChannels []map[string]interface{}
+		for _, c := range guild.Channels {
+			if c.Id == strconv.Itoa(int(archiveChannel)) {
+				fmt.Println(c.Name)
+			}
+			if c.Type == 0 {
+				formattedChannels = append(formattedChannels, map[string]interface{}{
+					"channelid": c.Id,
+					"channelname": c.Name,
+					"active": c.Id == strconv.Itoa(int(archiveChannel)),
+				})
+			}
+		}
+
 		utils.Respond(ctx, template.TemplateSettings.Render(map[string]interface{}{
-			"name": store.Get("name").(string),
-			"guildId": guildIdStr,
-			"prefix": prefix,
+			"name":           store.Get("name").(string),
+			"guildId":        guildIdStr,
+			"prefix":         prefix,
 			"welcomeMessage": welcomeMessage,
-			"ticketLimit": limit,
-			"categories": formattedCategories,
+			"ticketLimit":    limit,
+			"categories":     formattedCategories,
+			"channels": formattedChannels,
 		}))
 	} else {
 		ctx.Redirect(302, "/login")

@@ -22,7 +22,7 @@ func Contains(s interface{}, elem interface{}) bool {
 	return false
 }
 
-func Insert(slice []objects.Guild, index int , value objects.Guild) []objects.Guild {
+func Insert(slice []objects.Guild, index int, value objects.Guild) []objects.Guild {
 	// Grow the slice by one element.
 	slice = slice[0 : len(slice)+1]
 	// Use copy to move the upper part of the slice out of the way and open a hole.

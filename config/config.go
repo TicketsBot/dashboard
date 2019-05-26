@@ -5,46 +5,46 @@ import (
 	"io/ioutil"
 )
 
-type(
+type (
 	Config struct {
-		Server Server
-		Oauth Oauth
+		Server  Server
+		Oauth   Oauth
 		MariaDB MariaDB
-		Bot Bot
-		Redis Redis
+		Bot     Bot
+		Redis   Redis
 	}
 
 	Server struct {
-		Host string
-		BaseUrl string
-		MainSite string
-		CsrfKey string
+		Host      string
+		BaseUrl   string
+		MainSite  string
+		CsrfKey   string
 		Ratelimit Ratelimit
-		Session Session
+		Session   Session
 	}
 
 	Ratelimit struct {
 		Window int
-		Max int
+		Max    int
 	}
 
 	Session struct {
 		Threads int
-		Secret string
+		Secret  string
 	}
 
 	Oauth struct {
-		Id int64
-		Secret string
+		Id          int64
+		Secret      string
 		RedirectUri string
 	}
 
 	MariaDB struct {
-		Host string
+		Host     string
 		Username string
 		Password string
 		Database string
-		Threads int
+		Threads  int
 	}
 
 	Bot struct {
@@ -52,22 +52,24 @@ type(
 	}
 
 	Redis struct {
-		Host string
-		Port int
+		Host     string
+		Port     int
 		Password string
 	}
 )
 
-var(
+var (
 	Conf Config
 )
 
 func LoadConfig() {
-	raw, err := ioutil.ReadFile("config.toml"); if err != nil {
+	raw, err := ioutil.ReadFile("config.toml")
+	if err != nil {
 		panic(err)
 	}
 
-	_, err = toml.Decode(string(raw), &Conf); if err != nil {
+	_, err = toml.Decode(string(raw), &Conf)
+	if err != nil {
 		panic(err)
 	}
 }

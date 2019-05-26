@@ -5,8 +5,8 @@ import (
 )
 
 type Prefix struct {
-	GuildId int64 `gorm:"column:GUILDID"`
-	Prefix string `gorm:"column:PREFIX;type:varchar(8)"`
+	GuildId int64  `gorm:"column:GUILDID"`
+	Prefix  string `gorm:"column:PREFIX;type:varchar(8)"`
 }
 
 func (Prefix) TableName() string {
@@ -18,7 +18,7 @@ func UpdatePrefix(guildId int64, prefix string) {
 }
 
 func GetPrefix(guildId int64) string {
-	prefix := Prefix{Prefix:"t!"}
+	prefix := Prefix{Prefix: "t!"}
 	database.Database.Where(&Prefix{GuildId: guildId}).First(&prefix)
 
 	return prefix.Prefix

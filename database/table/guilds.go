@@ -24,7 +24,8 @@ func UpdateGuilds(userId string, guilds string) {
 func GetGuilds(userId string) []objects.Guild {
 	var cache GuildCache
 	database.Database.Where(&GuildCache{UserId: userId}).First(&cache)
-	decoded, err := base64.StdEncoding.DecodeString(cache.Guilds); if err != nil {
+	decoded, err := base64.StdEncoding.DecodeString(cache.Guilds)
+	if err != nil {
 		return make([]objects.Guild, 0)
 	}
 

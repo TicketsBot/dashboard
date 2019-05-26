@@ -6,7 +6,7 @@ import (
 
 type TicketLimit struct {
 	GuildId int64 `gorm:"column:GUILDID"`
-	Limit int `gorm:"column:TICKETLIMIT"`
+	Limit   int   `gorm:"column:TICKETLIMIT"`
 }
 
 func (TicketLimit) TableName() string {

@@ -11,10 +11,10 @@ type Layout struct {
 
 type Template struct {
 	compiled *mustache.Template
-	Layout Layout
+	Layout   Layout
 }
 
-var(
+var (
 	LayoutMain Layout
 
 	TemplateIndex    Template
@@ -35,20 +35,21 @@ func LoadLayouts() {
 func LoadTemplates() {
 	TemplateIndex = Template{
 		compiled: loadTemplate("index"),
-		Layout: LayoutMain,
+		Layout:   LayoutMain,
 	}
 	TemplateLogs = Template{
 		compiled: loadTemplate("logs"),
-		Layout: LayoutMain,
+		Layout:   LayoutMain,
 	}
 	TemplateSettings = Template{
 		compiled: loadTemplate("settings"),
-		Layout: LayoutMain,
+		Layout:   LayoutMain,
 	}
 }
 
 func loadLayout(name string) *mustache.Template {
-	tmpl, err := mustache.ParseFile(fmt.Sprintf("./public/templates/layouts/%s.mustache", name)); if err != nil {
+	tmpl, err := mustache.ParseFile(fmt.Sprintf("./public/templates/layouts/%s.mustache", name))
+	if err != nil {
 		panic(err)
 	}
 
@@ -56,7 +57,8 @@ func loadLayout(name string) *mustache.Template {
 }
 
 func loadTemplate(name string) *mustache.Template {
-	tmpl, err := mustache.ParseFile(fmt.Sprintf("./public/templates/views/%s.mustache", name)); if err != nil {
+	tmpl, err := mustache.ParseFile(fmt.Sprintf("./public/templates/views/%s.mustache", name))
+	if err != nil {
 		panic(err)
 	}
 

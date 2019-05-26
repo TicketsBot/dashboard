@@ -5,7 +5,7 @@ import (
 )
 
 type WelcomeMessage struct {
-	GuildId int64 `gorm:"column:GUILDID"`
+	GuildId int64  `gorm:"column:GUILDID"`
 	Message string `gorm:"column:MESSAGE;type:text"`
 }
 
@@ -18,7 +18,7 @@ func UpdateWelcomeMessage(guildId int64, message string) {
 }
 
 func GetWelcomeMessage(guildId int64) string {
-	message := WelcomeMessage{Message:"No message specified"}
+	message := WelcomeMessage{Message: "No message specified"}
 	database.Database.Where(&WelcomeMessage{GuildId: guildId}).First(&message)
 
 	return message.Message

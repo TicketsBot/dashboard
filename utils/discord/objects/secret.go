@@ -1,7 +1,7 @@
 package objects
 
 type Secret struct {
-	Join string
+	Join     string
 	Spectate string
-	Match string
+	Match    string
 }

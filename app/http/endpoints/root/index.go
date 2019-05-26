@@ -20,7 +20,8 @@ func IndexHandler(ctx *gin.Context) {
 
 	if utils.IsLoggedIn(store) {
 		userIdStr := store.Get("userid").(string)
-		userId, err := utils.GetUserId(store); if err != nil {
+		userId, err := utils.GetUserId(store)
+		if err != nil {
 			ctx.String(500, err.Error())
 			return
 		}
@@ -28,7 +29,8 @@ func IndexHandler(ctx *gin.Context) {
 		adminGuilds := make([]objects.Guild, 0)
 		adminGuildIds := table.GetAdminGuilds(userId)
 		for _, guild := range table.GetGuilds(userIdStr) {
-			guildId, err := strconv.ParseInt(guild.Id, 10, 64); if err != nil {
+			guildId, err := strconv.ParseInt(guild.Id, 10, 64)
+			if err != nil {
 				ctx.String(500, err.Error())
 				return
 			}
@@ -41,7 +43,7 @@ func IndexHandler(ctx *gin.Context) {
 		var servers []map[string]string
 		for _, server := range adminGuilds {
 			element := map[string]string{
-				"serverid": server.Id,
+				"serverid":   server.Id,
 				"servername": server.Name,
 			}
 
@@ -49,13 +51,12 @@ func IndexHandler(ctx *gin.Context) {
 		}
 
 		utils.Respond(ctx, template.TemplateIndex.Render(map[string]interface{}{
-			"name": store.Get("name").(string),
+			"name":    store.Get("name").(string),
 			"baseurl": config.Conf.Server.BaseUrl,
 			"servers": servers,
-			"empty": len(servers) == 0,
+			"empty":   len(servers) == 0,
 		}))
 	} else {
 		ctx.Redirect(302, "/login")
 	}
 }
-
