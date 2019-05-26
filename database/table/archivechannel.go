@@ -1,7 +1,6 @@
 package table
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 )
 
@@ -15,7 +14,6 @@ func (ArchiveChannel) TableName() string {
 }
 
 func UpdateArchiveChannel(guildId int64, channelId int64) {
-	fmt.Println(channelId)
 	var channel ArchiveChannel
 	database.Database.Where(ArchiveChannel{Guild: guildId}).Assign(ArchiveChannel{Channel: channelId}).FirstOrCreate(&channel)
 }

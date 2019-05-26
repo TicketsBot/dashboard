@@ -93,6 +93,14 @@ func SettingsHandler(ctx *gin.Context) {
 			table.UpdateTicketLimit(guildId, limit)
 		}
 
+		// Ping everyone
+		pingEveryone := table.GetPingEveryone(guildId)
+		pingEveryoneStr := ctx.Query("pingeveryone")
+		if csrfCorrect {
+			pingEveryone = pingEveryoneStr == "on"
+			table.UpdatePingEveryone(guildId, pingEveryone)
+		}
+
 		// /users/@me/guilds doesn't return channels, so we have to get them for the specific guild
 		if len(guild.Channels) == 0 {
 			var channels []objects.Channel
@@ -215,6 +223,7 @@ func SettingsHandler(ctx *gin.Context) {
 			"invalidWelcomeMessage": len(ctx.Query("welcomeMessage")) > 1000,
 			"invalidTicketLimit": invalidTicketLimit,
 			"csrf": store.Get("csrf").(string),
+			"pingEveryone": pingEveryone,
 		}))
 	} else {
 		ctx.Redirect(302, "/login")
