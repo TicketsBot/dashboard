@@ -59,6 +59,9 @@ func StartServer() {
 	// /manage/:id/blacklist
 	router.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 
+	// /manage/:id/blacklist/remove/:user
+	router.GET("/manage/:id/blacklist/remove/:user", manage.BlacklistRemoveHandler)
+
 	if err := router.Run(config.Conf.Server.Host); err != nil {
 		panic(err)
 	}

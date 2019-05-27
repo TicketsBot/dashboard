@@ -1,7 +1,6 @@
 package manage
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
@@ -50,23 +49,63 @@ func BlacklistHandler(ctx *gin.Context) {
 			return
 		}
 
-		curid, err := strconv.ParseInt("210105426849562625", 10, 64)
-		table.RemoveBlacklist(guildId, curid)
-		fmt.Println(table.IsBlacklisted(guildId, curid))
+		blacklistedUsers := table.GetBlacklistNodes(guildId)
 
-		//blacklistedUsers := table.GetBlacklistNodes(guildId)
-		//var blacklisted []map[string]interface{}
-		//for _, node := range blacklistedUsers {
+		var blacklistedIds []int64
+		for _, user := range blacklistedUsers {
+			blacklistedIds = append(blacklistedIds, user.User)
+		}
 
-		//}
+		usernames := table.GetUsernames(blacklistedIds)
 
-		fmt.Println(len(guild.Members))
+		var blacklisted []map[string]interface{}
+		for _, node := range blacklistedUsers {
+			blacklisted = append(blacklisted, map[string]interface{}{
+				"userId": node.User,
+				"username": usernames[node.User],
+			})
+		}
+
+		userNotFound := false
+		isStaff := false
+		if store.Get("csrf").(string) == ctx.Query("csrf") { // CSRF is correct *and* set
+			targetIdStr := ctx.Query("userid")
+			targetId, err := strconv.ParseInt(targetIdStr, 10, 64)
+
+			if err != nil {
+				userNotFound = true
+			} else {
+				// Verify that the user ID is real and in a shared guild
+				username := table.GetUsername(targetId)
+				exists := username != ""
+
+				if exists {
+					if guild.OwnerId == targetIdStr || table.IsSupport(guildId, targetId) { // Prevent users from blacklisting staff
+						isStaff = true
+					} else {
+						if !utils.Contains(blacklistedIds, targetId) { // Prevent duplicates
+							table.AddBlacklist(guildId, targetId)
+							blacklisted = append(blacklisted, map[string]interface{}{
+								"userId": targetIdStr,
+								"username": username,
+							})
+						}
+					}
+				} else {
+					userNotFound = true
+				}
+			}
+		}
 
 		utils.Respond(ctx, template.TemplateBlacklist.Render(map[string]interface{}{
 			"name":    store.Get("name").(string),
 			"guildId": guildIdStr,
+			"csrf": store.Get("csrf").(string),
 			"avatar": store.Get("avatar").(string),
 			"baseUrl": config.Conf.Server.BaseUrl,
+			"blacklisted": blacklisted,
+			"userNotFound": userNotFound,
+			"isStaff": isStaff,
 		}))
 	}
 }

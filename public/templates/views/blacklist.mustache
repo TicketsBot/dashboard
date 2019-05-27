@@ -8,22 +8,59 @@
           </div>
           <div class="card-body">
             <div class="card-body table-responsive">
+              <div id="accordion">
+                <div class="card">
+                  <div class="card-header collapsed filterCard" id="addBlacklistHeader" data-toggle="collapse" data-target="#addBlacklist" aria-expanded="false" aria-controls="addBlacklist">
+                    <span class="align-middle" data-toggle="collapse" data-target="#addBlacklist" aria-expanded="false" aria-controls="addBlacklist">
+                      <i class="fas fa-plus"></i> Add New User
+                    </span>
+                  </div>
+                  <div id="addBlacklist" class="collapse" aria-labelledby="addBlacklistHeader" data-parent="#accordion">
+                    <div class="card-body">
+                      <form>
+                        <div class="row">
+                          <div class="col-md-8 pr-1">
+                            <div class="form-group">
+                              <label>User ID</label>
+                              <input name="userid" type="text" class="form-control" placeholder="User ID">
+                            </div>
+                          </div>
+                          <div class="col-md-4 px-1">
+                            <label></label>
+                            <div class="alert alert-success" role="alert">
+                              Click <a href="https://support.discordapp.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-">here</a> for a guide on how to retreive user IDs.
+                            </div>
+                          </div>
+                        </div>
+
+                        <input name="csrf" type="hidden" value="{{csrf}}">
+                        <div class="row">
+                          <div class="col-md-2">
+                            <div class="form-group">
+                              <button type="submit" class="btn btn-primary mx-auto"><i class="fas fa-paper-plane"></i> Submit</button>
+                            </div>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <table class="table table-hover table-striped">
                 <thead>
                 <tr>
-                  <th>Ticket ID</th>
-                  <th>Username</th>
                   <th>User ID</th>
-                  <th>Log URL</th>
+                  <th>Username</th>
+                  <th>Remove</th>
                 </tr>
                 </thead>
                 <tbody>
                 {{#blacklisted}}
                   <tr>
-                    <td>{{ticketid}}</td>
+                    <td>{{userId}}</td>
                     <td>{{username}}</td>
-                    <td>{{userid}}</td>
-                    <td><a href="{{baseUrl}}/manage/{{guildId}}/logs/view/{{uuid}}">{{uuid}}</a></td>
+                    <td><a href="{{baseUrl}}/manage/{{guildId}}/blacklist/remove/{{userId}}?c={{csrf}}">Remove</a></td>
                   </tr>
                 {{/blacklisted}}
                 </tbody>
@@ -34,4 +71,40 @@
       </div>
     </div>
   </div>
+
+
+  <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+    <div style="position: absolute; right: 10px; min-width: 300px">
+      {{#userNotFound}}
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+          <div class="toast-header">
+            <strong class="mr-auto">Warning</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="toast-body">
+            The user you specified couldn't be found
+          </div>
+        </div>
+      {{/userNotFound}}
+      {{#isStaff}}
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+          <div class="toast-header">
+            <strong class="mr-auto">Warning</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="toast-body">
+            You cannot blacklist a staff member
+          </div>
+        </div>
+      {{/isStaff}}
+    </div>
+  </div>
+
+  <script>
+    $('.toast').toast('show');
+  </script>
 </div>

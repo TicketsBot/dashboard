@@ -25,8 +25,20 @@ func GetAdminGuilds(userId int64) []int64 {
 	return ids
 }
 
+func IsSupport(guildId int64, userId int64) bool {
+	var node PermissionNode
+	database.Database.Where(&PermissionNode{GuildId: guildId, UserId: userId}).Take(&node)
+	return node.IsSupport
+}
+
 func IsAdmin(guildId int64, userId int64) bool {
 	var node PermissionNode
 	database.Database.Where(&PermissionNode{GuildId: guildId, UserId: userId}).Take(&node)
 	return node.IsAdmin
+}
+
+func IsStaff(guildId int64, userId int64) bool {
+	var node PermissionNode
+	database.Database.Where(&PermissionNode{GuildId: guildId, UserId: userId}).Take(&node)
+	return node.IsAdmin || node.IsSupport
 }
