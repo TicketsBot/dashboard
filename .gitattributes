@@ -1,3 +1,9 @@
 public/static/css/animate.min.css linguist-vendored
 public/static/css/bootstrap.min.css linguist-vendored
 public/static/css/light-bootstrap-dashboard.css linguist-vendored
+public/static/js/bootstrap-notify.js linguist-vendored
+public/static/js/bootstrap-select.js linguist-vendored
+public/static/js/bootstrap.min.js linguist-vendored
+public/static/js/chartist.min.js linguist-vendored
+public/static/js/jquery.3.2.1.min.js linguist-vendored
+public/static/js/light-bootstrap-dashboard.js linguist-vendored
