@@ -223,7 +223,7 @@ func SettingsHandler(ctx *gin.Context) {
 
 		// Get panel content
 		panelContent := ctx.Query("panelcontent")
-		if panelContent == "" || len(panelContent) > 255 || !csrfCorrect {
+		if panelContent == "" || len(panelContent) > 2048 || !csrfCorrect {
 			panelContent = panelSettings.Content
 		} else {
 			panelUpdated = true
@@ -232,7 +232,7 @@ func SettingsHandler(ctx *gin.Context) {
 		// Get panel colour
 		var panelColour uint64
 		panelColourHex := ctx.Query("panelcolour")
-		if panelColourHex == "" || len(panelColourHex) > 255 || !csrfCorrect {
+		if panelColourHex == "" || !csrfCorrect {
 			panelColour = uint64(panelSettings.Colour)
 		} else {
 			panelUpdated = true
