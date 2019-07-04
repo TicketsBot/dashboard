@@ -210,6 +210,39 @@ func SettingsHandler(ctx *gin.Context) {
 			}
 		}
 
+		panelSettings := table.GetPanelSettings(guildId)
+		panelUpdated := false
+
+		// Get panel title
+		panelTitle := ctx.Query("paneltitle")
+		if panelTitle == "" || len(panelTitle) > 255 || !csrfCorrect {
+			panelTitle = panelSettings.Title
+		} else {
+			panelUpdated = true
+		}
+
+		// Get panel content
+		panelContent := ctx.Query("panelcontent")
+		if panelContent == "" || len(panelContent) > 255 || !csrfCorrect {
+			panelContent = panelSettings.Content
+		} else {
+			panelUpdated = true
+		}
+
+		// Get panel colour
+		var panelColour uint64
+		panelColourHex := ctx.Query("panelcolour")
+		if panelColourHex == "" || len(panelColourHex) > 255 || !csrfCorrect {
+			panelColour = uint64(panelSettings.Colour)
+		} else {
+			panelUpdated = true
+			panelColour, err = strconv.ParseUint(panelColourHex, 16, 32)
+		}
+
+		if panelUpdated {
+			go table.UpdatePanelSettings(guildId, panelTitle, panelContent, int(panelColour))
+		}
+
 		utils.Respond(ctx, template.TemplateSettings.Render(map[string]interface{}{
 			"name":           store.Get("name").(string),
 			"guildId":        guildIdStr,
@@ -224,6 +257,9 @@ func SettingsHandler(ctx *gin.Context) {
 			"invalidTicketLimit": invalidTicketLimit,
 			"csrf": store.Get("csrf").(string),
 			"pingEveryone": pingEveryone,
+			"paneltitle": panelTitle,
+			"panelcontent": panelContent,
+			"panelcolour": strconv.FormatInt(int64(panelColour), 16),
 		}))
 	} else {
 		ctx.Redirect(302, "/login")

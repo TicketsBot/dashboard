@@ -22,6 +22,8 @@ var (
 	TemplateLogs     Template
 	TemplateSettings Template
 	TemplateBlacklist Template
+	TemplateTicketList Template
+	TemplateTicketView Template
 )
 
 func (t *Template) Render(context ...interface{}) string {
@@ -52,6 +54,14 @@ func LoadTemplates() {
 	}
 	TemplateBlacklist = Template{
 		compiled: loadTemplate("blacklist"),
+		Layout:   LayoutManage,
+	}
+	TemplateTicketList = Template{
+		compiled: loadTemplate("ticketlist"),
+		Layout:   LayoutManage,
+	}
+	TemplateTicketView = Template{
+		compiled: loadTemplate("ticketview"),
 		Layout:   LayoutManage,
 	}
 }

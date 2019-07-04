@@ -1,0 +1,42 @@
+<div class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title">Ticket List</h4>
+          </div>
+          <div class="card-body">
+            <div class="card-body table-responsive">
+              <table class="table table-hover table-striped">
+                <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>User</th>
+                  <th>Additional Members</th>
+                  <th>View</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#tickets}}
+                  <tr>
+                    <td>{{ticketId}}</td>
+                    <td>{{username}}#{{discrim}}</td>
+                    <td>{{#members}}{{username}}#{{discrim}}{{sep}}{{/members}}</td>
+                    <!--<td><a class="btn btn-primary btn-sm" role="button" href="/manage/{{guildId}}/tickets/view/{{uuid}}">View</a></td>-->
+                    <td>Coming soon</td>
+                  </tr>
+                {{/tickets}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $('.toast').toast('show');
+  </script>
+</div>

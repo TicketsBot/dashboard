@@ -56,44 +56,42 @@ func BlacklistHandler(ctx *gin.Context) {
 			blacklistedIds = append(blacklistedIds, user.User)
 		}
 
-		usernames := table.GetUsernames(blacklistedIds)
+		nodes := table.GetUserNodes(blacklistedIds)
 
 		var blacklisted []map[string]interface{}
-		for _, node := range blacklistedUsers {
+		for _, node := range nodes {
 			blacklisted = append(blacklisted, map[string]interface{}{
-				"userId": node.User,
-				"username": usernames[node.User],
+				"userId": node.Id,
+				"username": utils.Base64Decode(node.Name),
+				"discrim": node.Discriminator,
 			})
 		}
 
 		userNotFound := false
 		isStaff := false
 		if store.Get("csrf").(string) == ctx.Query("csrf") { // CSRF is correct *and* set
-			targetIdStr := ctx.Query("userid")
-			targetId, err := strconv.ParseInt(targetIdStr, 10, 64)
+			username := ctx.Query("username")
+			discrim := ctx.Query("discrim")
 
-			if err != nil {
-				userNotFound = true
-			} else {
-				// Verify that the user ID is real and in a shared guild
-				username := table.GetUsername(targetId)
-				exists := username != ""
+			// Verify that the user ID is real and in a shared guild
+			targetId := table.GetUserId(username, discrim)
+			exists := targetId != 0
 
-				if exists {
-					if guild.OwnerId == targetIdStr || table.IsSupport(guildId, targetId) { // Prevent users from blacklisting staff
-						isStaff = true
-					} else {
-						if !utils.Contains(blacklistedIds, targetId) { // Prevent duplicates
-							table.AddBlacklist(guildId, targetId)
-							blacklisted = append(blacklisted, map[string]interface{}{
-								"userId": targetIdStr,
-								"username": username,
-							})
-						}
-					}
+			if exists {
+				if guild.OwnerId == strconv.Itoa(int(targetId)) || table.IsStaff(guildId, targetId) { // Prevent users from blacklisting staff
+					isStaff = true
 				} else {
-					userNotFound = true
+					if !utils.Contains(blacklistedIds, targetId) { // Prevent duplicates
+						table.AddBlacklist(guildId, targetId)
+						blacklisted = append(blacklisted, map[string]interface{}{
+							"userId": targetId,
+							"username": username,
+							"discrim": discrim,
+						})
+					}
 				}
+			} else {
+				userNotFound = true
 			}
 		}
 

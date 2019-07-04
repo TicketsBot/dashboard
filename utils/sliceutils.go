@@ -32,3 +32,11 @@ func Insert(slice []objects.Guild, index int, value objects.Guild) []objects.Gui
 	// Return the result.
 	return slice
 }
+
+func Reverse(slice []objects.Message) []objects.Message {
+	for i := len(slice)/2-1; i >= 0; i-- {
+		opp := len(slice)-1-i
+		slice[i], slice[opp] = slice[opp], slice[i]
+	}
+	return slice
+}

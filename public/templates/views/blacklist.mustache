@@ -19,16 +19,19 @@
                     <div class="card-body">
                       <form>
                         <div class="row">
-                          <div class="col-md-8 pr-1">
+                          <div class="col-md-3 pr-1">
                             <div class="form-group">
-                              <label>User ID</label>
-                              <input name="userid" type="text" class="form-control" placeholder="User ID">
+                              <label>Username</label>
+                              <input name="username" type="text" class="form-control" placeholder="Username">
                             </div>
                           </div>
-                          <div class="col-md-4 px-1">
-                            <label></label>
-                            <div class="alert alert-success" role="alert">
-                              Click <a href="https://support.discordapp.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-">here</a> for a guide on how to retreive user IDs.
+                          <div class="col-md-1 px-1">
+                            <label>Discriminator</label>
+                            <div class="input-group mb-3">
+                              <div class="input-group-prepend">
+                                <div class="input-group-text">#</div>
+                              </div>
+                              <input name="discrim" type="text" class="form-control" placeholder="0000">
                             </div>
                           </div>
                         </div>
@@ -51,7 +54,7 @@
                 <thead>
                 <tr>
                   <th>User ID</th>
-                  <th>Username</th>
+                  <th>Username#Discrim</th>
                   <th>Remove</th>
                 </tr>
                 </thead>
@@ -59,7 +62,7 @@
                 {{#blacklisted}}
                   <tr>
                     <td>{{userId}}</td>
-                    <td>{{username}}</td>
+                    <td>{{username}}#{{discrim}}</td>
                     <td><a href="{{baseUrl}}/manage/{{guildId}}/blacklist/remove/{{userId}}?c={{csrf}}">Remove</a></td>
                   </tr>
                 {{/blacklisted}}

@@ -68,6 +68,28 @@
                 </div>
               </div>
 
+              <div class="row">
+                <div class="col-md-3 pr-1">
+                  <label>Panel Title</label>
+                  <input name="paneltitle" type="text" class="form-control" placeholder="Open A Ticket" value="{{paneltitle}}">
+                </div>
+
+                <div class="col-md-6 pr-1">
+                  <label>Panel Content</label>
+                  <input name="panelcontent" type="text" class="form-control" placeholder="React with :envelope_with_arrow: to open a ticket" value="{{panelcontent}}">
+                </div>
+
+                <div class="col-md-3 pr-1">
+                  <label>Panel Colour (Hex)</label>
+                  <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                      <div class="input-group-text">#</div>
+                    </div>
+                    <input name="panelcolour" type="text" class="form-control" placeholder="23A31A" value="{{panelcolour}}">
+                  </div>
+                </div>
+              </div>
+
               <input name="csrf" type="hidden" value="{{csrf}}">
               <div class="row">
                 <div class="col-md-1 pr-1">
