@@ -81,7 +81,7 @@ func TicketListHandler(ctx *gin.Context) {
 						}
 
 						membersFormatted = append(membersFormatted, map[string]interface{}{
-							"username": utils.Base64Decode(nodes[memberId].Name),
+							"username": nodes[memberId].Name,
 							"discrim": nodes[memberId].Discriminator,
 							"sep": separator,
 						})
