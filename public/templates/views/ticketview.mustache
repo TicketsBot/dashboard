@@ -3,21 +3,30 @@
     <div class="row">
       <div class="col-md-12">
         <div class="card">
-          <div class="card-header">
-            <h4 class="card-title">Ticket List</h4>
-          </div>
           <div class="card-body">
             <div class="discord-container">
               <div class="channel-header">
                 <span class="channel-name">#ticket-{{ticketId}}</span>
               </div>
-              <div class="message-container">
-                <div class="message">
-
-                </div>
+              <div id="message-container">
+                {{#messages}}
+                  <div class="message">
+                    <b>{{username}}</b>
+                    {{content}}
+                  </div>
+                {{/messages}}
               </div>
               <div class="input-container">
-
+                <form action="javascript:sendMessage()">
+                  {{#premium}}
+                    <input type="text" class="form-control message-input" id="message" name="message"
+                           placeholder="Message #ticket-{{ticketId}}">
+                  {{/premium}}
+                  {{^premium}}
+                    <input type="text" class="form-control message-input" id="message" name="message"
+                           placeholder="Premium users get live messages and can respond through webchat" disabled>
+                  {{/premium}}
+                </form>
               </div>
             </div>
           </div>
@@ -48,3 +57,52 @@
     </script>
   </div>
 </div>
+
+<script>
+  // Scroll to bottom
+  container.scrollTop = container.scrollHeight;
+</script>
+
+{{#premium}}
+  <script>
+    ws = new WebSocket("ws://localhost:3001/webchat");
+
+    ws.onopen = (evt) => {
+      ws.send(JSON.stringify({
+        "type": "auth",
+        "data": {
+          "guild": "{{guildId}}",
+          "ticket": "{{ticketId}}"
+        }
+      }));
+    };
+
+    ws.onmessage = (evt) => {
+      let data = JSON.parse(evt.data);
+
+      let container = document.getElementById("message-container");
+
+      let element = document.createElement("div");
+      element.className = "message";
+      element.innerHTML = `
+      <b>${data.username}</b>
+      ${data.content}
+    `;
+
+      container.appendChild(element);
+
+      // Scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    };
+
+    function sendMessage() {
+      let msg = document.getElementById("message").value;
+      document.getElementById("message").value = "";
+
+      ws.send(JSON.stringify({
+        "type": "send",
+        "data": msg
+      }))
+    }
+  </script>
+{{/premium}}

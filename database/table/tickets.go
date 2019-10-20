@@ -29,8 +29,14 @@ func GetOpenTickets(guild int64) []Ticket {
 	return tickets
 }
 
-func GetTicket(uuid string) Ticket {
+func GetTicket(uuid string, ch chan Ticket) {
 	var ticket Ticket
 	database.Database.Where(&Ticket{Uuid: uuid}).First(&ticket)
-	return ticket
+	ch <- ticket
+}
+
+func GetTicketById(guild int64, id int, ch chan Ticket) {
+	var ticket Ticket
+	database.Database.Where(&Ticket{Guild: guild, TicketId: id}).First(&ticket)
+	ch <- ticket
 }

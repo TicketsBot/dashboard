@@ -2,7 +2,6 @@ package table
 
 import (
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
 )
 
 type UsernameNode struct {
@@ -16,10 +15,10 @@ func (UsernameNode) TableName() string {
 	return "usernames"
 }
 
-func GetUsername(id int64) string {
+func GetUsername(id int64, ch chan string) {
 	node := UsernameNode{Name: "Unknown"}
 	database.Database.Where(&UsernameNode{Id: id}).First(&node)
-	return utils.Base64Decode(node.Name)
+	ch <- node.Name
 }
 
 func GetUserNodes(ids []int64) []UsernameNode {
@@ -30,6 +29,6 @@ func GetUserNodes(ids []int64) []UsernameNode {
 
 func GetUserId(name, discrim string) int64 {
 	var node UsernameNode
-	database.Database.Where(&UsernameNode{Name: utils.Base64Encode(name), Discriminator: discrim}).First(&node)
+	database.Database.Where(&UsernameNode{Name: name, Discriminator: discrim}).First(&node)
 	return node.Id
 }

@@ -10,8 +10,12 @@ import (
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"regexp"
 	"strconv"
+	"strings"
 )
+
+var MentionRegex, _ = regexp.Compile("<@(\\d+)>")
 
 func TicketViewHandler(ctx *gin.Context) {
 	store := sessions.Default(ctx)
@@ -53,7 +57,9 @@ func TicketViewHandler(ctx *gin.Context) {
 
 		// Get ticket UUID from URL and verify it exists
 		uuid := ctx.Param("uuid")
-		ticket := table.GetTicket(uuid)
+		ticketChan := make(chan table.Ticket)
+		go table.GetTicket(uuid, ticketChan)
+		ticket := <-ticketChan
 		exists := ticket != table.Ticket{}
 
 		// If invalid ticket UUID, take user to ticket list
@@ -77,11 +83,30 @@ func TicketViewHandler(ctx *gin.Context) {
 		// Format messages, exclude unneeded data
 		var messagesFormatted []map[string]interface{}
 		for _, message := range utils.Reverse(messages) {
+			content := message.Content
+
+			// Format mentions properly
+			match := MentionRegex.FindAllStringSubmatch(content, -1)
+			for _, mention := range match {
+				if len(mention) >= 2 {
+					mentionedId, err := strconv.ParseInt(mention[1], 10, 64); if err != nil {
+						continue
+					}
+
+					ch := make(chan string)
+					go table.GetUsername(mentionedId, ch)
+					content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", <-ch))
+				}
+			}
+
 			messagesFormatted = append(messagesFormatted, map[string]interface{}{
 				"username": message.Author.Username,
-				"content": message.Content,
+				"content": content,
 			})
 		}
+
+		premium := make(chan bool)
+		go utils.IsPremiumGuild(store, guildIdStr, premium)
 
 		utils.Respond(ctx, template.TemplateTicketView.Render(map[string]interface{}{
 			"name":    store.Get("name").(string),
@@ -93,6 +118,8 @@ func TicketViewHandler(ctx *gin.Context) {
 			"error": errorMessage,
 			"messages": messagesFormatted,
 			"ticketId": ticket.TicketId,
+			"include_mock": true,
+			"premium": <-premium,
 		}))
 	}
 }

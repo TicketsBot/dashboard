@@ -48,12 +48,15 @@ type (
 
 	Bot struct {
 		Token string
+		PremiumLookupProxyUrl string `toml:"premium-lookup-proxy-url"`
+		PremiumLookupProxyKey string `toml:"premium-lookup-proxy-key"`
 	}
 
 	Redis struct {
 		Host     string
 		Port     int
 		Password string
+		Threads  int
 	}
 )
 

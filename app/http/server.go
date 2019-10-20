@@ -66,7 +66,12 @@ func StartServer() {
 	router.GET("/manage/:id/tickets", manage.TicketListHandler)
 
 	// /manage/:id/tickets/view/:uuid
-	//router.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
+	router.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
+
+	// POST /manage/:id/tickets/view/:uuid
+	router.POST("/manage/:id/tickets/view/:uuid", manage.SendMessage)
+
+	router.GET("/webchat", manage.WebChatWs)
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {
 		panic(err)

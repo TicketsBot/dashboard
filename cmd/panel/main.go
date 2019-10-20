@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/TicketsBot/GoPanel/app/http"
+	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"math/rand"
@@ -13,5 +14,9 @@ func main() {
 
 	config.LoadConfig()
 	database.ConnectToDatabase()
+
+	cache.Client = cache.NewRedisClient()
+	go cache.Client.ListenForMessages()
+
 	http.StartServer()
 }
