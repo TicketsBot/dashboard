@@ -65,7 +65,7 @@
 
 {{#premium}}
   <script>
-    ws = new WebSocket("ws://localhost:3001/webchat");
+    ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
 
     ws.onopen = (evt) => {
       ws.send(JSON.stringify({
