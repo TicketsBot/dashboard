@@ -243,6 +243,17 @@ func SettingsHandler(ctx *gin.Context) {
 			go table.UpdatePanelSettings(guildId, panelTitle, panelContent, int(panelColour))
 		}
 
+		// Users can close
+		usersCanCloseChan := make(chan bool)
+		go table.IsUserCanClose(guildId, usersCanCloseChan)
+		usersCanClose := <-usersCanCloseChan
+
+		usersCanCloseStr := ctx.Query("userscanclose")
+		if csrfCorrect {
+			usersCanClose = usersCanCloseStr == "on"
+			table.SetUserCanClose(guildId, usersCanClose)
+		}
+
 		utils.Respond(ctx, template.TemplateSettings.Render(map[string]interface{}{
 			"name":           store.Get("name").(string),
 			"guildId":        guildIdStr,
@@ -260,6 +271,7 @@ func SettingsHandler(ctx *gin.Context) {
 			"paneltitle": panelTitle,
 			"panelcontent": panelContent,
 			"panelcolour": strconv.FormatInt(int64(panelColour), 16),
+			"usersCanClose": usersCanClose,
 		}))
 	} else {
 		ctx.Redirect(302, "/login")
