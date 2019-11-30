@@ -28,5 +28,8 @@ func ConnectToDatabase() {
 	db.DB().SetMaxOpenConns(config.Conf.MariaDB.Threads)
 	db.DB().SetMaxIdleConns(0)
 
+	db.Set("gorm:table_options", "charset=utf8mb4")
+	db.BlockGlobalUpdate(true)
+
 	Database = *db
 }
