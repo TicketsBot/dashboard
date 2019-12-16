@@ -1,3 +1,5 @@
+admins=["217617036749176833"]
+
 [server]
 host="0.0.0.0:3000"
 baseUrl="http://localhost:3000"

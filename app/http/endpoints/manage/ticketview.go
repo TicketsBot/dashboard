@@ -50,7 +50,7 @@ func TicketViewHandler(ctx *gin.Context) {
 		}
 
 		// Verify the user has permissions to be here
-		if !guild.Owner && !table.IsAdmin(guildId, userId) {
+		if !utils.Contains(config.Conf.Admins, userIdStr) && !guild.Owner && !table.IsAdmin(guildId, userId) {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
 		}

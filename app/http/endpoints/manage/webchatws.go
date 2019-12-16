@@ -2,6 +2,7 @@ package manage
 
 import (
 	"fmt"
+	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
@@ -131,7 +132,7 @@ func WebChatWs(ctx *gin.Context) {
 				}
 
 				// Verify the user has permissions to be here
-				if !guild.Owner && !table.IsAdmin(guildIdParsed, userId) {
+				if !utils.Contains(config.Conf.Admins, userIdStr) && !guild.Owner && !table.IsAdmin(guildIdParsed, userId) {
 					fmt.Println(err.Error())
 					conn.Close()
 					return

@@ -7,6 +7,7 @@ import (
 
 type (
 	Config struct {
+		Admins []string
 		Server  Server
 		Oauth   Oauth
 		MariaDB MariaDB
