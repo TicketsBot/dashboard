@@ -36,7 +36,7 @@ type Endpoint struct {
 	Endpoint          string
 }
 
-func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}) error {
+func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}, rawResponse *chan string) error {
 	url := BASE_URL + e.Endpoint
 
 	// Create req
@@ -115,6 +115,10 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 	content, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return err
+	}
+
+	if rawResponse != nil {
+		*rawResponse<-string(content)
 	}
 
 	return json.Unmarshal(content, response)

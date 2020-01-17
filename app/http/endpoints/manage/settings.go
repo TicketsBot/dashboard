@@ -105,7 +105,7 @@ func SettingsHandler(ctx *gin.Context) {
 		if len(guild.Channels) == 0 {
 			var channels []objects.Channel
 			endpoint := guildendpoint.GetGuildChannels(int(guildId))
-			err = endpoint.Request(store, nil, nil, &channels)
+			err = endpoint.Request(store, nil, nil, &channels, nil)
 
 			if err != nil {
 				// Not in guild

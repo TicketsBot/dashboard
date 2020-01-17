@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	redis "github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/guild"
@@ -45,12 +46,23 @@ func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
 		ch<-true
 	} else {
 		// Get guild object
-		var g objects.Guild
-		endpoint := guild.GetGuild(int(guildId))
-		go endpoint.Request(store, nil, nil, &g)
+		guildChan := make(chan *objects.Guild)
+		go redis.Client.GetGuildByID(guildIdRaw, guildChan)
+		g := <-guildChan
+
+		ownerIdRaw := ""
+		if g == nil {
+			var g objects.Guild
+			endpoint := guild.GetGuild(int(guildId))
+
+			endpoint.Request(store, nil, nil, &g, nil)
+
+			ownerIdRaw = g.OwnerId
+			go redis.Client.StoreGuild(g)
+		}
 
 		// Lookup votes
-		ownerId, err := strconv.ParseInt(g.OwnerId, 10, 64); if err != nil {
+		ownerId, err := strconv.ParseInt(ownerIdRaw, 10, 64); if err != nil {
 			fmt.Println(err.Error())
 			ch <- false
 			return
@@ -73,7 +85,7 @@ func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
 			Timeout: time.Second * 3,
 		}
 
-		url := fmt.Sprintf("%s/ispremium?key=%s&id=%s", config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey, g.OwnerId)
+		url := fmt.Sprintf("%s/ispremium?key=%s&id=%s", config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey, ownerIdRaw)
 		req, err := http.NewRequest("GET", url, nil)
 
 		res, err := client.Do(req); if err != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -64,7 +65,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	// Get ID + name
 	var currentUser objects.User
-	err = user.CurrentUser.Request(store, nil, nil, &currentUser)
+	err = user.CurrentUser.Request(store, nil, nil, &currentUser, nil)
 	if err != nil {
 		ctx.String(500, err.Error())
 		return
@@ -84,10 +85,14 @@ func CallbackHandler(ctx *gin.Context) {
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
 		var guilds []objects.Guild
-		err = user.CurrentUserGuilds.Request(store, nil, nil, &guilds)
+		err = user.CurrentUserGuilds.Request(store, nil, nil, &guilds, nil)
 		if err != nil {
 			log.Error(err.Error())
 			return
+		}
+		
+		for _, guild := range guilds {
+			go cache.Client.StoreGuild(guild)
 		}
 
 		marshalled, err := json.Marshal(guilds)

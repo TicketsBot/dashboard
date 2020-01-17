@@ -169,7 +169,7 @@ func WebChatWs(ctx *gin.Context) {
 					endpoint := channel.CreateMessage(int(ticket.Channel))
 					err = endpoint.Request(store, &contentType, channel.CreateMessageBody{
 						Content: content,
-					}, nil)
+					}, nil, nil)
 				}
 			}
 		}

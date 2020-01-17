@@ -75,7 +75,7 @@ func TicketViewHandler(ctx *gin.Context) {
 		var errorMessage string
 
 		endpoint := channel.GetChannelMessages(int(ticket.Channel))
-		if err = endpoint.Request(store, nil, nil, &messages); err != nil {
+		if err = endpoint.Request(store, nil, nil, &messages, nil); err != nil {
 			isError = true
 			errorMessage = err.Error()
 		}
