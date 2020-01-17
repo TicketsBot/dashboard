@@ -69,7 +69,7 @@ func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
 		}
 
 		hasVoted := make(chan bool)
-		table.HasVoted(ownerId, hasVoted)
+		go table.HasVoted(ownerId, hasVoted)
 		if <-hasVoted {
 			ch <- true
 
