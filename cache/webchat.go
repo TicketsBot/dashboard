@@ -3,7 +3,6 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
 )
 
 type TicketMessage struct {
@@ -13,7 +12,7 @@ type TicketMessage struct {
 	Content  string `json:"content"`
 }
 
-func (c *RedisClient) ListenForMessages() {
+func (c *RedisClient) ListenForMessages(message chan TicketMessage) {
 	pubsub := c.Subscribe("tickets:webchat:inboundmessage")
 
 	for {
@@ -28,14 +27,6 @@ func (c *RedisClient) ListenForMessages() {
 			continue
 		}
 
-		manage.SocketsLock.Lock()
-		for _, socket := range manage.Sockets {
-			if socket.Guild == decoded.GuildId && socket.Ticket == decoded.TicketId {
-				if err := socket.Ws.WriteJSON(decoded); err != nil {
-					fmt.Println(err.Error())
-				}
-			}
-		}
-		manage.SocketsLock.Unlock()
+		message<-decoded
 	}
 }
