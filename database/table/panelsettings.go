@@ -25,6 +25,30 @@ func UpdatePanelSettings(guildId int64, title string, content string, colour int
 	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
 }
 
+func UpdatePanelTitle(guildId int64, title string) {
+	settings := PanelSettings{
+		Title: title,
+	}
+
+	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
+}
+
+func UpdatePanelContent(guildId int64, content string) {
+	settings := PanelSettings{
+		Content: content,
+	}
+
+	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
+}
+
+func UpdatePanelColour(guildId int64, colour int) {
+	settings := PanelSettings{
+		Colour: colour,
+	}
+
+	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
+}
+
 func GetPanelSettings(guildId int64) PanelSettings {
 	settings := PanelSettings{
 		Title: "Open A Ticket",

@@ -41,15 +41,3 @@ type Guild struct {
 	PremiumSubscriptionCount    int    `json:"premium_subscription_count"`
 	PreferredLocale             string `json:"preferred_locale"`
 }
-
-func (g *Guild) GetCategories() []Channel {
-	var categories []Channel
-
-	for _, channel := range g.Channels {
-		if channel.Type == 4 {
-			categories = append(categories, channel)
-		}
-	}
-
-	return categories
-}

@@ -41,6 +41,7 @@ func StartServer() {
 	router.GET("/logout", root.LogoutHandler)
 
 	router.GET("/manage/:id/settings", manage.SettingsHandler)
+	router.POST("/manage/:id/settings", manage.UpdateSettingsHandler)
 
 	router.GET("/manage/:id/logs/page/:page", manage.LogsHandler)
 	router.GET("/manage/:id/logs/view/:uuid", manage.LogViewHandler)
