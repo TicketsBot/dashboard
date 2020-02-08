@@ -1,0 +1,33 @@
+{{define "sidebar"}}
+  <div class="sidebar" data-color="orange" data-image="/assets/img/sidebar-2.jpg">
+    <div class="sidebar-wrapper">
+      <div class="logo">
+        <a href="https://ticketsbot.net" class="simple-text">
+          TicketsBot
+        </a>
+      </div>
+
+      <ul class="nav">
+        <li class="nav-item sidebar-bottom">
+          <a href="/">
+            <i class="fas fa-server"></i>
+            <p>Servers</p>
+          </a>
+        </li>
+
+        <li class="nav-item sidebar-bottom" style="bottom: 60px">
+          <a href="/logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <p>Logout</p>
+          </a>
+        </li>
+        <li class="nav-item sidebar-bottom" style="bottom: 10px">
+          <a href="#">
+            <i class="avatar"></i>
+            <p>{{.name}}</p>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+{{end}}

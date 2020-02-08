@@ -1,7 +1,6 @@
 package root
 
 import (
-	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -40,24 +39,14 @@ func IndexHandler(ctx *gin.Context) {
 			}
 		}
 
-		var servers []map[string]string
-		for _, server := range adminGuilds {
-			element := map[string]string{
-				"serverid":   server.Id,
-				"servername": server.Name,
-			}
-
-			servers = append(servers, element)
-		}
-
-		utils.Respond(ctx, template.TemplateIndex.Render(map[string]interface{}{
+		ctx.HTML(200, "main/index", gin.H{
 			"name":    store.Get("name").(string),
 			"baseurl": config.Conf.Server.BaseUrl,
-			"servers": servers,
-			"empty":   len(servers) == 0,
+			"servers": adminGuilds,
+			"empty":   len(adminGuilds) == 0,
 			"isIndex": true,
 			"avatar": store.Get("avatar").(string),
-		}))
+		})
 	} else {
 		ctx.Redirect(302, "/login")
 	}

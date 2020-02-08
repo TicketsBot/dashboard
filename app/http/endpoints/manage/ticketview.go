@@ -2,7 +2,6 @@ package manage
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -108,7 +107,7 @@ func TicketViewHandler(ctx *gin.Context) {
 		premium := make(chan bool)
 		go utils.IsPremiumGuild(store, guildIdStr, premium)
 
-		utils.Respond(ctx, template.TemplateTicketView.Render(map[string]interface{}{
+		ctx.HTML(200, "manage/ticketview", gin.H{
 			"name":    store.Get("name").(string),
 			"guildId": guildIdStr,
 			"csrf": store.Get("csrf").(string),
@@ -120,6 +119,6 @@ func TicketViewHandler(ctx *gin.Context) {
 			"ticketId": ticket.TicketId,
 			"include_mock": true,
 			"premium": <-premium,
-		}))
+		})
 	}
 }

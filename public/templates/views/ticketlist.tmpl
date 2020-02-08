@@ -1,3 +1,4 @@
+{{define "content"}}
 <div class="content">
   <div class="container-fluid">
     <div class="row">
@@ -10,22 +11,22 @@
             <div class="card-body table-responsive">
               <table class="table table-hover table-striped">
                 <thead>
-                <tr>
-                  <th>Ticket ID</th>
-                  <th>User</th>
-                  <th>Additional Members</th>
-                  <th>View</th>
-                </tr>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>User</th>
+                    <th>Additional Members</th>
+                    <th>View</th>
+                  </tr>
                 </thead>
                 <tbody>
-                {{#tickets}}
+                {{range .tickets}}
                   <tr>
-                    <td>{{ticketId}}</td>
-                    <td>{{username}}#{{discrim}}</td>
-                    <td>{{#members}}{{username}}#{{discrim}}{{sep}}{{/members}}</td>
-                    <td><a class="btn btn-primary btn-sm" role="button" href="/manage/{{guildId}}/tickets/view/{{uuid}}">View</a></td>
+                    <td>{{.ticketId}}</td>
+                    <td>{{.username}}#{{.discrim}}</td>
+                    <td>{{range .members}}{{.username}}#{{.discrim}}{{.sep}}{{end}}</td>
+                    <td><a class="btn btn-primary btn-sm" role="button" href="/manage/{{$.guildId}}/tickets/view/{{.uuid}}">View</a></td>
                   </tr>
-                {{/tickets}}
+                {{end}}
                 </tbody>
               </table>
             </div>
@@ -39,3 +40,4 @@
     $('.toast').toast('show');
   </script>
 </div>
+{{end}}

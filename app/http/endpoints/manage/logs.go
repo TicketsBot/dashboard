@@ -1,7 +1,6 @@
 package manage
 
 import (
-	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -95,7 +94,7 @@ func LogsHandler(ctx *gin.Context) {
 			})
 		}
 
-		utils.Respond(ctx, template.TemplateLogs.Render(map[string]interface{}{
+		ctx.HTML(200, "manage/logs",gin.H{
 			"name":    store.Get("name").(string),
 			"guildId": guildIdStr,
 			"avatar": store.Get("avatar").(string),
@@ -105,7 +104,7 @@ func LogsHandler(ctx *gin.Context) {
 			"nextPage": page + 1,
 			"logs": formattedLogs,
 			"page": page,
-		}))
+		})
 	} else {
 		ctx.Redirect(302, "/login")
 	}

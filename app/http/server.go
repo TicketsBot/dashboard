@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
-	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
+	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -14,10 +14,6 @@ import (
 
 func StartServer() {
 	log.Println("Starting HTTP server")
-
-	// Compile templates
-	template.LoadLayouts()
-	template.LoadTemplates()
 
 	router := gin.Default()
 
@@ -35,45 +31,65 @@ func StartServer() {
 	// Handle static asset requests
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
-	// Root
+	// Register templates
+	router.HTMLRender = createRenderer()
+
 	router.GET("/", root.IndexHandler)
 
-	// /login
 	router.GET("/login", root.LoginHandler)
-
-	// /callback
 	router.GET("/callback", root.CallbackHandler)
-
-	// /logout
 	router.GET("/logout", root.LogoutHandler)
 
-	// /manage/:id/settings
 	router.GET("/manage/:id/settings", manage.SettingsHandler)
 
-	// /manage/:id/logs/page/:page
 	router.GET("/manage/:id/logs/page/:page", manage.LogsHandler)
-
-	// /manage/:id/logs/view/:uuid
 	router.GET("/manage/:id/logs/view/:uuid", manage.LogViewHandler)
 
-	// /manage/:id/blacklist
 	router.GET("/manage/:id/blacklist", manage.BlacklistHandler)
-
-	// /manage/:id/blacklist/remove/:user
 	router.GET("/manage/:id/blacklist/remove/:user", manage.BlacklistRemoveHandler)
 
-	// /manage/:id/tickets
 	router.GET("/manage/:id/tickets", manage.TicketListHandler)
-
-	// /manage/:id/tickets/view/:uuid
 	router.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
-
-	// POST /manage/:id/tickets/view/:uuid
 	router.POST("/manage/:id/tickets/view/:uuid", manage.SendMessage)
-
 	router.GET("/webchat", manage.WebChatWs)
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {
 		panic(err)
 	}
 }
+
+func createRenderer() multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+
+	r = addMainTemplate(r, "index")
+
+	r = addManageTemplate(r, "blacklist")
+	r = addManageTemplate(r, "logs")
+	r = addManageTemplate(r, "settings")
+	r = addManageTemplate(r, "ticketlist")
+	r = addManageTemplate(r, "ticketview")
+
+	return r
+}
+
+func addMainTemplate(renderer multitemplate.Renderer, name string) multitemplate.Renderer {
+	renderer.AddFromFiles(fmt.Sprintf("main/%s", name),
+		"./public/templates/layouts/main.tmpl",
+		"./public/templates/includes/head.tmpl",
+		"./public/templates/includes/sidebar.tmpl",
+		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
+		)
+	return renderer
+}
+
+func addManageTemplate(renderer multitemplate.Renderer, name string) multitemplate.Renderer {
+	renderer.AddFromFiles(fmt.Sprintf("manage/%s", name),
+		"./public/templates/layouts/manage.tmpl",
+		"./public/templates/includes/head.tmpl",
+		"./public/templates/includes/sidebar.tmpl",
+		"./public/templates/includes/navbar.tmpl",
+		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
+	)
+	return renderer
+}
+

@@ -3,7 +3,6 @@ package manage
 import (
 	"encoding/base64"
 	"encoding/json"
-	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -254,7 +253,7 @@ func SettingsHandler(ctx *gin.Context) {
 			table.SetUserCanClose(guildId, usersCanClose)
 		}
 
-		utils.Respond(ctx, template.TemplateSettings.Render(map[string]interface{}{
+		ctx.HTML(200, "manage/settings", gin.H{
 			"name":           store.Get("name").(string),
 			"guildId":        guildIdStr,
 			"avatar": store.Get("avatar").(string),
@@ -272,7 +271,7 @@ func SettingsHandler(ctx *gin.Context) {
 			"panelcontent": panelContent,
 			"panelcolour": strconv.FormatInt(int64(panelColour), 16),
 			"usersCanClose": usersCanClose,
-		}))
+		})
 	} else {
 		ctx.Redirect(302, "/login")
 	}

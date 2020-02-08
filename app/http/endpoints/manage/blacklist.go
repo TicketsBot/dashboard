@@ -1,7 +1,6 @@
 package manage
 
 import (
-	"github.com/TicketsBot/GoPanel/app/http/template"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -95,7 +94,7 @@ func BlacklistHandler(ctx *gin.Context) {
 			}
 		}
 
-		utils.Respond(ctx, template.TemplateBlacklist.Render(map[string]interface{}{
+		ctx.HTML(200, "manage/blacklist", gin.H{
 			"name":    store.Get("name").(string),
 			"guildId": guildIdStr,
 			"csrf": store.Get("csrf").(string),
@@ -104,6 +103,6 @@ func BlacklistHandler(ctx *gin.Context) {
 			"blacklisted": blacklisted,
 			"userNotFound": userNotFound,
 			"isStaff": isStaff,
-		}))
+		})
 	}
 }
