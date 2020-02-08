@@ -16,15 +16,6 @@ body {
     width: 100%;
 }
 
-.avatar {
-    background: url("{{.avatar}}?size=32");
-    width: 28px;
-    height: 29px;
-    display: block;
-    background-size: cover;
-    border-radius: 50%;
-}
-
 .nav-link {
     color: white !important;
 }
