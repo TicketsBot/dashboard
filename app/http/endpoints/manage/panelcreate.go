@@ -110,14 +110,14 @@ func PanelCreateHandler(ctx *gin.Context) {
 		}
 
 		// Validate category
-		categoryStr := ctx.PostForm("category")
+		categoryStr := ctx.PostForm("categories")
 		categoryId, err := strconv.ParseInt(categoryStr, 10, 64); if err != nil {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?validCategory=false", guildId))
 			return
 		}
 
 		validCategory := make(chan bool)
-		go validateCategory(guildId, categoryId, validChannel)
+		go validateCategory(guildId, categoryId, validCategory)
 		if !<-validCategory {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?validCategory=false", guildId))
 			return
