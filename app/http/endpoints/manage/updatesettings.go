@@ -125,30 +125,23 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 			table.UpdateArchiveChannel(guildId, parsed)
 		}
 
-		// Get panel title
-		panelTitle := ctx.PostForm("paneltitle")
-		if panelTitle != "" && len(panelTitle) <= 255 {
-			table.UpdatePanelTitle(guildId, panelTitle)
-		}
-
-		// Get panel content
-		panelContent := ctx.PostForm("panelcontent")
-		if panelContent != "" || len(panelContent) <= 2048 {
-			table.UpdatePanelContent(guildId, panelContent)
-		}
-
-		// Get panel colour
-		panelColourHex := ctx.PostForm("panelcolour")
-		if panelColourHex != "" {
-			panelColour, err := strconv.ParseUint(panelColourHex, 16, 32)
-			if err == nil {
-				table.UpdatePanelColour(guildId, int(panelColour))
-			}
-		}
-
 		// Users can close
 		usersCanClose := ctx.PostForm("userscanclose") == "on"
 		table.SetUserCanClose(guildId, usersCanClose)
+
+		// Get naming scheme
+		namingScheme := table.NamingScheme(ctx.PostForm("namingscheme"))
+		isValidScheme := false
+		for _, validNamingScheme := range table.Schemes {
+			if validNamingScheme == namingScheme {
+				isValidScheme = true
+				break
+			}
+		}
+
+		if isValidScheme {
+			go table.SetTicketNamingScheme(guildId, namingScheme)
+		}
 
 		ctx.Redirect(302, fmt.Sprintf("/manage/%d/settings?validPrefix=%t&validWelcomeMessage=%t&validTicketLimit=%t", guildId, prefixValid, welcomeMessageValid, ticketLimitValid))
 	} else {

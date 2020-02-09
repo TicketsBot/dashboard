@@ -56,6 +56,10 @@ func SettingsHandler(ctx *gin.Context) {
 		archiveChannel := table.GetArchiveChannel(guildId)
 		categoryId := table.GetChannelCategory(guildId)
 
+		namingSchemeChan := make(chan table.NamingScheme)
+		go table.GetTicketNamingScheme(guildId, namingSchemeChan)
+		namingScheme := <-namingSchemeChan
+
 		// /users/@me/guilds doesn't return channels, so we have to get them for the specific guild
 		channelsChan := make(chan []table.Channel)
 		go table.GetCachedChannelsByGuild(guildId, channelsChan)
@@ -104,6 +108,7 @@ func SettingsHandler(ctx *gin.Context) {
 			"panelcontent": panelSettings.Content,
 			"panelcolour": strconv.FormatInt(int64(panelSettings.Colour), 16),
 			"usersCanClose": usersCanClose,
+			"namingScheme": string(namingScheme),
 		})
 	} else {
 		ctx.Redirect(302, "/login")

@@ -78,31 +78,18 @@
                   </div>
                 </div>
 
-                <div class="row">
-                  <h4>Default Panel Settings</h4>
+                <label>Ticket Naming Scheme</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="namingscheme" id="naming-by-id" value="id" {{if eq .namingScheme "id"}}checked{{end}}>
+                  <label class="form-check-label" for="naming-by-id">
+                    Ticket ID
+                  </label>
                 </div>
-
-                <div class="row">
-
-                  <div class="col-md-3 pr-1">
-                    <label>Panel Title</label>
-                    <input name="paneltitle" type="text" class="form-control" placeholder="Open A Ticket" value="{{.paneltitle}}">
-                  </div>
-
-                  <div class="col-md-6 pr-1">
-                    <label>Panel Content</label>
-                    <input name="panelcontent" type="text" class="form-control" placeholder="React with :envelope_with_arrow: to open a ticket" value="{{.panelcontent}}">
-                  </div>
-
-                  <div class="col-md-3 pr-1">
-                    <label>Panel Colour (Hex)</label>
-                    <div class="input-group mb-3">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">#</div>
-                      </div>
-                      <input name="panelcolour" type="text" class="form-control" placeholder="23A31A" value="{{.panelcolour}}">
-                    </div>
-                  </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="namingscheme" id="naming-by-username" value="username" {{if eq .namingScheme "username"}}checked{{end}}>
+                  <label class="form-check-label" for="naming-by-username">
+                    Username
+                  </label>
                 </div>
 
                 <input name="csrf" type="hidden" value="{{.csrf}}">
@@ -157,7 +144,7 @@
                 </button>
               </div>
               <div class="toast-body">
-                The ticketLimit you specified was invalid
+                The ticket limit you specified was invalid
               </div>
             </div>
           {{end}}
