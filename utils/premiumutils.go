@@ -61,8 +61,9 @@ func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
 			go redis.Client.StoreGuild(g)
 		}
 
+		// TODO: Find a  way to stop people using votes to exploit panels
 		// Lookup votes
-		ownerId, err := strconv.ParseInt(ownerIdRaw, 10, 64); if err != nil {
+		/*ownerId, err := strconv.ParseInt(ownerIdRaw, 10, 64); if err != nil {
 			fmt.Println(err.Error())
 			ch <- false
 			return
@@ -78,7 +79,7 @@ func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
 			}
 
 			return
-		}
+		}*/
 
 		// Lookup Patreon
 		client := &http.Client{
