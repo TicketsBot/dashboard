@@ -1,0 +1,237 @@
+{{define "content"}}
+  <div class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Panels</h4>
+            </div>
+            <div class="card-body">
+              <p>Your panel quota: <b>{{.panelcount}} / {{if .premium}}∞{{else}}1{{end}}</b></p>
+
+                {{if not .premium}}
+                  <p>Note: You can expand your panel quote by purchasing premium</p>
+                {{end}}
+
+              <table class="table table-hover table-striped">
+                <thead>
+                <tr>
+                  <th>Channel</th>
+                  <th>Panel Title</th>
+                  <th>Panel Content</th>
+                  <th>Ticket Channel Category</th>
+                  <th>Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{range .panels}}
+                  <tr>
+                    <td>{{.ChannelName}}</td>
+                    <td>{{.Title}}</td>
+                    <td>{{.Content}}</td>
+                    <td>{{.CategoryName}}</td>
+                    <td><a href="/manage/{{$.guildId}}/panels/delete/{{.MessageId}}?csrf={{$.csrf}}">Delete</a></td>
+                  </tr>
+                {{end}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Create A Panel</h4>
+            </div>
+            <div class="card-body">
+              <form method="post" action="/manage/{{.guildId}}/panels/create">
+                <div class="row">
+                  <div class="col-md-4 pr-1">
+                    <div class="form-group">
+                      <label>Panel Title</label>
+                      <input name="title" type="text" class="form-control" placeholder="Open a ticket!">
+                    </div>
+                  </div>
+                  <div class="col-md-8 pr-1">
+                    <div class="form-group">
+                      <label>Panel Content</label>
+                      <textarea name="content" type="text" class="form-control"
+                                placeholder="By reacting to this ticket, a ticket will be opened for you."></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-3 pr-1">
+                    <label>Panel Colour (Hex)</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">#</div>
+                      </div>
+                      <input name="colour" type="text" class="form-control" placeholder="23A31A">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 pr-1">
+                    <label>Panel Channel</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">#</div>
+                      </div>
+                      <select class="form-control" name="channel">
+                          {{range $id, $name := .channels}}
+                            <option value="{{$id}}">{{$name}}</option>
+                          {{end}}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 pr-1">
+                    <label>Ticket Channel Category</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">#</div>
+                      </div>
+                      <select class="form-control" name="categories">
+                          {{range $id, $name := .categories}}
+                            <option value="{{$id}}">{{$name}}</option>
+                          {{end}}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 pr-1">
+                    <div class="form-group">
+                      <label>Reaction Emote</label>
+                      <input name="reaction" type="text" class="form-control" placeholder="envelope_with_arrow">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <input name="csrf" type="hidden" value="{{.csrf}}">
+                  <div class="col-md-2 pr-1 offset-md-5">
+                    <div class="form-group">
+                      <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+      <div style="position: absolute; right: 10px; min-width: 300px">
+          {{if not .validTitle}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Panel titles must be between 1 and 255 characters long
+              </div>
+            </div>
+          {{end}}
+          {{if not .validContent}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Panel content must be between 1 and 1024 characters long
+              </div>
+            </div>
+          {{end}}
+          {{if not .validColour}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Invalid panel colour. You must use the hex value of the colour, which you can find <a href="https://www.google.co.uk/search?client=opera&q=html+colour+picker">here</a>.
+              </div>
+            </div>
+          {{end}}
+          {{if not .validChannel}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Invalid channel - please try again
+              </div>
+            </div>
+          {{end}}
+          {{if not .validCategory}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Invalid category - please try again
+              </div>
+            </div>
+          {{end}}
+          {{if not .validReaction}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Invalid reaction emote
+              </div>
+            </div>
+          {{end}}
+          {{if .created}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Success</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                Your panel has been created. You may need to refresh this page to see it displayed.
+              </div>
+            </div>
+          {{end}}
+          {{if .metQuota}}
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">Warning</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                You've hit your panel quota. Premium users can create <b>unlimited panels</b>. Click <a href="https://ticketsbot.net/premium">here</a> to learn more about premium.
+              </div>
+            </div>
+          {{end}}
+      </div>
+    </div>
+
+    <script>
+        $('.toast').toast('show');
+    </script>
+  </div>
+{{end}}

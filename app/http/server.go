@@ -49,6 +49,10 @@ func StartServer() {
 	router.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 	router.GET("/manage/:id/blacklist/remove/:user", manage.BlacklistRemoveHandler)
 
+	router.GET("/manage/:id/panels", manage.PanelHandler)
+	router.POST("/manage/:id/panels/create", manage.PanelCreateHandler)
+	router.GET("/manage/:id/panels/delete/:msg", manage.PanelDeleteHandler)
+
 	router.GET("/manage/:id/tickets", manage.TicketListHandler)
 	router.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
 	router.POST("/manage/:id/tickets/view/:uuid", manage.SendMessage)
@@ -69,6 +73,7 @@ func createRenderer() multitemplate.Renderer {
 	r = addManageTemplate(r, "settings")
 	r = addManageTemplate(r, "ticketlist")
 	r = addManageTemplate(r, "ticketview")
+	r = addManageTemplate(r, "panels")
 
 	return r
 }

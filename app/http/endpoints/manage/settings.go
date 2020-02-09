@@ -69,8 +69,8 @@ func SettingsHandler(ctx *gin.Context) {
 		// Archive channel
 		// Create a list of IDs
 		var channelIds []string
-		for _, c := range guild.Channels {
-			channelIds = append(channelIds, c.Id)
+		for _, c := range channels {
+			channelIds = append(channelIds, strconv.Itoa(int(c.ChannelId)))
 		}
 
 		panelSettings := table.GetPanelSettings(guildId)

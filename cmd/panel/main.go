@@ -1,21 +1,34 @@
 package main
 
 import (
+	crypto_rand "crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
 	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/TicketsGo/sentry"
 	"math/rand"
 	"time"
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano() % 3497)
+	var b [8]byte
+	_, err := crypto_rand.Read(b[:])
+	if err == nil {
+		rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
+	} else {
+		sentry.Error(err)
+		rand.Seed(time.Now().UnixNano())
+	}
 
 	config.LoadConfig()
 	database.ConnectToDatabase()
+
+	utils.LoadEmoji()
 
 	cache.Client = cache.NewRedisClient()
 	go Listen(cache.Client)

@@ -67,7 +67,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		// Get welcome message
 		welcomeMessageValid := false
 		welcomeMessage := ctx.PostForm("welcomeMessage")
-		if welcomeMessage != "" && len(welcomeMessage) > 1000 {
+		if welcomeMessage != "" && len(welcomeMessage) < 1000 {
 			table.UpdateWelcomeMessage(guildId, welcomeMessage)
 			welcomeMessageValid = true
 		}
@@ -139,7 +139,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 
 		// Get panel colour
 		panelColourHex := ctx.PostForm("panelcolour")
-		if panelColourHex == "" {
+		if panelColourHex != "" {
 			panelColour, err := strconv.ParseUint(panelColourHex, 16, 32)
 			if err == nil {
 				table.UpdatePanelColour(guildId, int(panelColour))
@@ -150,7 +150,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		usersCanClose := ctx.PostForm("userscanclose") == "on"
 		table.SetUserCanClose(guildId, usersCanClose)
 
-		ctx.Redirect(302, fmt.Sprintf("/manage/%d/settings?validPrefix=%t&validWelcomeMessage=%t&ticketLimitValid=%t", guildId, prefixValid, welcomeMessageValid, ticketLimitValid))
+		ctx.Redirect(302, fmt.Sprintf("/manage/%d/settings?validPrefix=%t&validWelcomeMessage=%t&validTicketLimit=%t", guildId, prefixValid, welcomeMessageValid, ticketLimitValid))
 	} else {
 		ctx.Redirect(302, "/login")
 	}
