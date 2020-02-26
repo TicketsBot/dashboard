@@ -53,6 +53,8 @@ func LogViewHandler(ctx *gin.Context) {
 		}
 
 		uuid := ctx.Param("uuid")
+
+		// Doesn't need guild = ticket.guild check, since we select where uuid=uuid and guild=guild
 		cdnUrl := table.GetCdnUrl(guildId, uuid)
 
 		if cdnUrl == "" {

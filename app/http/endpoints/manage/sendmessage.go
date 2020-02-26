@@ -57,6 +57,12 @@ func SendMessage(ctx *gin.Context) {
 		ticket := <-ticketChan
 		exists := ticket != table.Ticket{}
 
+		// Verify that the user has permission to be here
+		if ticket.Guild != guildId {
+			ctx.Redirect(302, fmt.Sprintf("/manage/%s/tickets", guildIdStr))
+			return
+		}
+
 		contentType := discord.ApplicationJson
 
 		if exists {

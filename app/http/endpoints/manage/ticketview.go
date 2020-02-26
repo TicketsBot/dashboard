@@ -67,6 +67,12 @@ func TicketViewHandler(ctx *gin.Context) {
 			return
 		}
 
+		// Verify that the user has permission to be here
+		if ticket.Guild != guildId {
+			ctx.Redirect(302, fmt.Sprintf("/manage/%s/tickets", guildIdStr))
+			return
+		}
+
 		// Get messages
 		var messages []objects.Message
 		// We want to show users error messages so they can report them

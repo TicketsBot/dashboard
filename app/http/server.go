@@ -55,6 +55,7 @@ func StartServer() {
 
 	router.GET("/manage/:id/tickets", manage.TicketListHandler)
 	router.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
+	router.POST("/manage/:id/tickets/view/:uuid/close", manage.TicketCloseHandler)
 	router.POST("/manage/:id/tickets/view/:uuid", manage.SendMessage)
 	router.GET("/webchat", manage.WebChatWs)
 
