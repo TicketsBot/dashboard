@@ -123,6 +123,7 @@ func TicketViewHandler(ctx *gin.Context) {
 			"error": errorMessage,
 			"messages": messagesFormatted,
 			"ticketId": ticket.TicketId,
+			"uuid": ticket.Uuid,
 			"include_mock": true,
 			"premium": <-premium,
 		})

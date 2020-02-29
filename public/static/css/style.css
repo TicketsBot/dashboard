@@ -27,3 +27,8 @@ body {
 .table td, .table th {
     text-align: center;
 }
+
+.close-container {
+    text-align: right;
+    padding-bottom: 10px;
+}

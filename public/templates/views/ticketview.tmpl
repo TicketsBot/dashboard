@@ -5,6 +5,18 @@
         <div class="col-md-12">
           <div class="card">
             <div class="card-body">
+              <h4 class="card-title">Close Ticket</h4>
+              <div class="close-container">
+                <form class="form-inline" action="/manage/{{.guildId}}/tickets/view/{{.uuid}}/close" method="post">
+                  <input type="text" class="form-control" id="reason" name="reason" placeholder="No reason specified" style="width: 80%">
+                  <input name="csrf" type="hidden" value="{{.csrf}}">
+                  <div style="padding-left: 10px">
+                    <button type="submit" class="btn btn-primary">Close Ticket</button>
+                  </div>
+                </form>
+              </div>
+
+              <h4 class="card-title">View Ticket</h4>
               <div class="discord-container">
                 <div class="channel-header">
                   <span class="channel-name">#ticket-{{.ticketId}}</span>

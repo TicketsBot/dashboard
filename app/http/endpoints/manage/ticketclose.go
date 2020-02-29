@@ -70,7 +70,13 @@ func TicketCloseHandler(ctx *gin.Context) {
 			return
 		}
 
-		go cache.Client.PublishTicketClose(ticket.Uuid, userId, "") // TODO: Add option for reason
+		// Get the reason
+		reason := ctx.PostForm("reason")
+		if len(reason) > 255 {
+			reason = reason[:255]
+		}
+
+		go cache.Client.PublishTicketClose(ticket.Uuid, userId, reason)
 
 		ctx.Redirect(302, fmt.Sprintf("/manage/%d/tickets", guildId))
 	} else {
