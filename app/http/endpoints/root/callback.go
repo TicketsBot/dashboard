@@ -79,7 +79,7 @@ func CallbackHandler(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(encoded)
+	fmt.Println(string(encoded))
 
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)
