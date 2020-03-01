@@ -73,6 +73,14 @@ func CallbackHandler(ctx *gin.Context) {
 
 	store.Set("csrf", utils.RandStringRunes(32))
 
+	// Debug
+	encoded, err := json.Marshal(&currentUser); if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	fmt.Println(encoded)
+
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)
 	store.Set("avatar", fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.webp", currentUser.Id, currentUser.Avatar))
