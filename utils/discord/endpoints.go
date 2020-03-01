@@ -3,6 +3,7 @@ package discord
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/pasztorpisti/qs"
@@ -116,6 +117,8 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(string(content))
 
 	if rawResponse != nil {
 		*rawResponse<-string(content)
