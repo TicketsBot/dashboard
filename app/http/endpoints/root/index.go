@@ -29,9 +29,8 @@ func IndexHandler(ctx *gin.Context) {
 		adminGuildIds := table.GetAdminGuilds(userId)
 		for _, guild := range table.GetGuilds(userIdStr) {
 			guildId, err := strconv.ParseInt(guild.Id, 10, 64)
-			if err != nil {
-				ctx.String(500, err.Error())
-				return
+			if err != nil { // I think this happens when a server was deleted? We should just skip though.
+				continue
 			}
 
 			if guild.Owner || utils.Contains(adminGuildIds, guildId) {
