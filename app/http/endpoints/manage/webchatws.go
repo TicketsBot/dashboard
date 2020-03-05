@@ -1,13 +1,14 @@
 package manage
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/channel"
-	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/webhooks"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -109,7 +111,8 @@ func WebChatWs(ctx *gin.Context) {
 				data := evnt.Data.(map[string]interface{})
 
 				guildId = data["guild"].(string)
-				ticket, err = strconv.Atoi(data["ticket"].(string)); if err != nil {
+				ticket, err = strconv.Atoi(data["ticket"].(string));
+				if err != nil {
 					conn.Close()
 				}
 
@@ -175,25 +178,7 @@ func WebChatWs(ctx *gin.Context) {
 
 					success := false
 					if webhook != nil {
-						endpoint := webhooks.ExecuteWebhook(*webhook)
-
-						var res *http.Response
-						err, res = endpoint.Request(store, &contentType, webhooks.ExecuteWebhookBody{
-							Content: content,
-							Username: store.Get("name").(string),
-							AvatarUrl: store.Get("avatar").(string),
-							AllowedMentions: objects.AllowedMention{
-								Parse: make([]objects.AllowedMentionType, 0),
-								Roles: make([]string, 0),
-								Users: make([]string, 0),
-							},
-						}, nil)
-
-						if res.StatusCode == 404 || res.StatusCode == 403 {
-							go table.DeleteWebhookByUuid(ticket.Uuid)
-						} else {
-							success = true
-						}
+						success = executeWebhook(content, ticket.Uuid, *webhook, store)
 					}
 
 					if !success {
@@ -211,4 +196,35 @@ func WebChatWs(ctx *gin.Context) {
 			}
 		}
 	}
+}
+
+func executeWebhook(uuid, webhook, content string, store sessions.Session) bool {
+	body := map[string]interface{}{
+		"content":    content,
+		"username":   store.Get("name").(string),
+		"avatar_url": store.Get("avatar").(string),
+	}
+	encoded, err := json.Marshal(&body); if err != nil {
+		return false
+	}
+	req, err := http.NewRequest("POST", fmt.Sprintf("https://discordapp.com/api/v6/webhooks/%s", webhook), bytes.NewBuffer(encoded)); if err != nil {
+		return false
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	client.Timeout = 3 * time.Second
+
+	res, err := client.Do(req); if err != nil {
+		return false
+	}
+
+	if res.StatusCode == 404 || res.StatusCode == 403 {
+		go table.DeleteWebhookByUuid(uuid)
+	} else {
+		return true
+	}
+
+	return false
 }
