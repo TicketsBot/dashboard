@@ -65,7 +65,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	// Get ID + name
 	var currentUser objects.User
-	err = user.CurrentUser.Request(store, nil, nil, &currentUser, nil)
+	err, _ = user.CurrentUser.Request(store, nil, nil, &currentUser)
 	if err != nil {
 		ctx.String(500, err.Error())
 		return
@@ -85,7 +85,7 @@ func CallbackHandler(ctx *gin.Context) {
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
 		var guilds []objects.Guild
-		err = user.CurrentUserGuilds.Request(store, nil, nil, &guilds, nil)
+		err, _ = user.CurrentUserGuilds.Request(store, nil, nil, &guilds)
 		if err != nil {
 			log.Error(err.Error())
 			return

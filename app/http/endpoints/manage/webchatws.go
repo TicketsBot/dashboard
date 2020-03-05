@@ -177,8 +177,8 @@ func WebChatWs(ctx *gin.Context) {
 					if webhook != nil {
 						endpoint := webhooks.ExecuteWebhook(*webhook)
 
-						resChan := make(chan *http.Response)
-						err  = endpoint.Request(store, &contentType, webhooks.ExecuteWebhookBody{
+						var res *http.Response
+						err, res = endpoint.Request(store, &contentType, webhooks.ExecuteWebhookBody{
 							Content: content,
 							Username: store.Get("name").(string),
 							AvatarUrl: store.Get("avatar").(string),
@@ -187,8 +187,7 @@ func WebChatWs(ctx *gin.Context) {
 								Roles: make([]string, 0),
 								Users: make([]string, 0),
 							},
-						}, nil, &resChan)
-						res := <-resChan
+						}, nil)
 
 						if res.StatusCode == 404 || res.StatusCode == 403 {
 							go table.DeleteWebhookByUuid(ticket.Uuid)
@@ -199,9 +198,9 @@ func WebChatWs(ctx *gin.Context) {
 
 					if !success {
 						endpoint := channel.CreateMessage(int(ticket.Channel))
-						err = endpoint.Request(store, &contentType, channel.CreateMessageBody{
+						err, _ = endpoint.Request(store, &contentType, channel.CreateMessageBody{
 							Content: content,
-						}, nil, nil)
+						}, nil)
 					}
 				}
 			}

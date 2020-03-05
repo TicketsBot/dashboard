@@ -37,7 +37,7 @@ type Endpoint struct {
 	Endpoint          string
 }
 
-func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}, rawResponse *chan *http.Response) error {
+func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}) (error, *http.Response) {
 	url := BASE_URL + e.Endpoint
 
 	// Create req
@@ -51,13 +51,13 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 		if *contentType == ApplicationJson {
 			raw, err := json.Marshal(body)
 			if err != nil {
-				return err
+				return err, nil
 			}
 			encoded = raw
 		} else if *contentType == ApplicationFormUrlEncoded {
 			str, err := qs.Marshal(body)
 			if err != nil {
-				return err
+				return err, nil
 			}
 			encoded = []byte(str)
 		}
@@ -67,7 +67,7 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 	}
 
 	if err != nil {
-		return err
+		return err, nil
 	}
 
 	// Set content type and user agent
@@ -87,7 +87,7 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 		if err != nil {
 			store.Clear()
 			_ = store.Save()
-			return errors.New("Please login again!")
+			return errors.New("Please login again!"), nil
 		}
 
 		store.Set("access_token", res.AccessToken)
@@ -109,18 +109,14 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 
 	res, err := client.Do(req)
 	if err != nil {
-		return err
+		return err, nil
 	}
 	defer res.Body.Close()
 
 	content, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return err
+		return err, nil
 	}
 
-	if rawResponse != nil {
-		*rawResponse<-res
-	}
-
-	return json.Unmarshal(content, response)
+	return json.Unmarshal(content, response), res
 }

@@ -55,7 +55,7 @@ func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
 			var g objects.Guild
 			endpoint := guild.GetGuild(int(guildId))
 
-			endpoint.Request(store, nil, nil, &g, nil)
+			endpoint.Request(store, nil, nil, &g)
 
 			ownerIdRaw = g.OwnerId
 			go redis.Client.StoreGuild(g)
