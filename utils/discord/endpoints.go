@@ -23,6 +23,7 @@ const (
 
 	BEARER AuthorizationType = "Bearer"
 	BOT    AuthorizationType = "BOT"
+	NONE   AuthorizationType = "NONE"
 
 	ApplicationJson           ContentType = "application/json"
 	ApplicationFormUrlEncoded ContentType = "application/x-www-form-urlencoded"
@@ -36,7 +37,7 @@ type Endpoint struct {
 	Endpoint          string
 }
 
-func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}, rawResponse *chan string) error {
+func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}, rawResponse *chan *http.Response) error {
 	url := BASE_URL + e.Endpoint
 
 	// Create req
@@ -118,7 +119,7 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 	}
 
 	if rawResponse != nil {
-		*rawResponse<-string(content)
+		*rawResponse<-res
 	}
 
 	return json.Unmarshal(content, response)

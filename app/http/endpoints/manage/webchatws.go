@@ -7,10 +7,13 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/channel"
+	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/webhooks"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
+	"github.com/TicketsBot/TicketsGo/database"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"net/http"
 	"strconv"
 	"sync"
 )
@@ -166,10 +169,41 @@ func WebChatWs(ctx *gin.Context) {
 						content = content[0:1999]
 					}
 
-					endpoint := channel.CreateMessage(int(ticket.Channel))
-					err = endpoint.Request(store, &contentType, channel.CreateMessageBody{
-						Content: content,
-					}, nil, nil)
+					// Preferably send via a webhook
+					webhookChan := make(chan *string)
+					go database.GetWebhookByUuid(ticket.Uuid, webhookChan)
+					webhook := <-webhookChan
+
+					success := false
+					if webhook != nil {
+						endpoint := webhooks.ExecuteWebhook(*webhook)
+
+						resChan := make(chan *http.Response)
+						err  = endpoint.Request(store, &contentType, webhooks.ExecuteWebhookBody{
+							Content: content,
+							Username: store.Get("name").(string),
+							AvatarUrl: store.Get("avatar").(string),
+							AllowedMentions: objects.AllowedMention{
+								Parse: make([]objects.AllowedMentionType, 0),
+								Roles: make([]string, 0),
+								Users: make([]string, 0),
+							},
+						}, nil, &resChan)
+						res := <-resChan
+
+						if res.StatusCode == 200 {
+							success = true
+						} else {
+							go database.DeleteWebhookByUuid(ticket.Uuid)
+						}
+					}
+
+					if !success {
+						endpoint := channel.CreateMessage(int(ticket.Channel))
+						err = endpoint.Request(store, &contentType, channel.CreateMessageBody{
+							Content: content,
+						}, nil, nil)
+					}
 				}
 			}
 		}
