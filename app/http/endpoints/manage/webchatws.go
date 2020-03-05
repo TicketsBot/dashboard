@@ -163,7 +163,7 @@ func WebChatWs(ctx *gin.Context) {
 				contentType := discord.ApplicationJson
 
 				if exists {
-					content := fmt.Sprintf("**%s**: %s", store.Get("name").(string), data)
+					content := data
 					if len(content) > 2000 {
 						content = content[0:1999]
 					}
@@ -197,6 +197,11 @@ func WebChatWs(ctx *gin.Context) {
 					}
 
 					if !success {
+						content = fmt.Sprintf("**%s**: %s", store.Get("name").(string), data)
+						if len(content) > 2000 {
+							content = content[0:1999]
+						}
+
 						endpoint := channel.CreateMessage(int(ticket.Channel))
 						err, _ = endpoint.Request(store, &contentType, channel.CreateMessageBody{
 							Content: content,

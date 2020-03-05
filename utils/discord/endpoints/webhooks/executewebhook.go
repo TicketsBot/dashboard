@@ -1,6 +1,7 @@
 package webhooks
 
 import (
+	"fmt"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 )
@@ -12,10 +13,10 @@ type ExecuteWebhookBody struct {
 	AllowedMentions objects.AllowedMention `json:"allowed_mentions"`
 }
 
-func ExecuteWebhook(url string) discord.Endpoint {
+func ExecuteWebhook(webhook string) discord.Endpoint {
 	return discord.Endpoint{
 		RequestType:       discord.POST,
 		AuthorizationType: discord.NONE,
-		Endpoint:          url,
+		Endpoint:          fmt.Sprintf("/webhooks/%s?wait=true", webhook),
 	}
 }

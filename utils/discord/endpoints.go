@@ -39,7 +39,6 @@ type Endpoint struct {
 
 func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, body interface{}, response interface{}) (error, *http.Response) {
 	url := BASE_URL + e.Endpoint
-
 	// Create req
 	var req *http.Request
 	var err error
