@@ -81,7 +81,7 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 	refreshToken := store.Get("refresh_token").(string)
 
 	// Check if needs refresh
-	if (time.Now().UnixNano() / int64(time.Second)) > int64(expiry) {
+	if (time.Now().UnixNano() / int64(time.Second)) > expiry {
 		res, err := RefreshToken(refreshToken)
 		if err != nil {
 			store.Clear()
