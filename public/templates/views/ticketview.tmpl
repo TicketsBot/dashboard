@@ -78,10 +78,9 @@
 
   {{if .premium}}
   <script>
-      //ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
-      ws = new WebSocket("ws://localhost:3000/webchat");
+      let ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
 
-      ws.onopen = (evt) => {
+      ws.onopen = () => {
           ws.send(JSON.stringify({
               "type": "auth",
               "data": {
