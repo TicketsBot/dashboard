@@ -10,7 +10,7 @@ import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/TicketsGo/sentry"
+	"github.com/apex/log"
 	"math/rand"
 	"time"
 )
@@ -21,7 +21,7 @@ func main() {
 	if err == nil {
 		rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
 	} else {
-		sentry.Error(err)
+		log.Error(err.Error())
 		rand.Seed(time.Now().UnixNano())
 	}
 

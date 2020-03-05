@@ -9,7 +9,6 @@ import (
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/channel"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/webhooks"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
-	"github.com/TicketsBot/TicketsGo/database"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -171,7 +170,7 @@ func WebChatWs(ctx *gin.Context) {
 
 					// Preferably send via a webhook
 					webhookChan := make(chan *string)
-					go database.GetWebhookByUuid(ticket.Uuid, webhookChan)
+					go table.GetWebhookByUuid(ticket.Uuid, webhookChan)
 					webhook := <-webhookChan
 
 					success := false
@@ -191,10 +190,10 @@ func WebChatWs(ctx *gin.Context) {
 						}, nil, &resChan)
 						res := <-resChan
 
-						if res.StatusCode == 200 {
-							success = true
+						if res.StatusCode == 404 || res.StatusCode == 403 {
+							go table.DeleteWebhookByUuid(ticket.Uuid)
 						} else {
-							go database.DeleteWebhookByUuid(ticket.Uuid)
+							success = true
 						}
 					}
 
