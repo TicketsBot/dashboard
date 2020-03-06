@@ -178,7 +178,7 @@ func WebChatWs(ctx *gin.Context) {
 
 					success := false
 					if webhook != nil {
-						success = executeWebhook(content, ticket.Uuid, *webhook, store)
+						success = executeWebhook( ticket.Uuid, *webhook, content, store)
 					}
 
 					if !success {
@@ -207,7 +207,7 @@ func executeWebhook(uuid, webhook, content string, store sessions.Session) bool 
 	encoded, err := json.Marshal(&body); if err != nil {
 		return false
 	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://discordapp.com/api/v6/webhooks/%s", webhook), bytes.NewBuffer(encoded)); if err != nil {
+	req, err := http.NewRequest("POST", fmt.Sprintf("https://canary.discordapp.com/api/webhooks/%s", webhook), bytes.NewBuffer(encoded)); if err != nil {
 		return false
 	}
 

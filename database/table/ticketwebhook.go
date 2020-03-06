@@ -3,8 +3,8 @@ package table
 import "github.com/TicketsBot/GoPanel/database"
 
 type TicketWebhook struct {
-	Uuid     string `gorm:"column:UUID;type:varchar(36);unique;primary_key"`
-	WebhookUrl   string `gorm:"column:CDNURL;type:varchar(200)"`
+	Uuid       string `gorm:"column:UUID;type:varchar(36);unique;primary_key"`
+	WebhookUrl string `gorm:"column:CDNURL;type:varchar(200)"`
 }
 
 func (TicketWebhook) TableName() string {
