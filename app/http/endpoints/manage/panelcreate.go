@@ -88,11 +88,12 @@ func PanelCreateHandler(ctx *gin.Context) {
 		}
 
 		// Validate colour
+		validColour := true
 		panelColourHex := ctx.PostForm("colour")
 		panelColour, err := strconv.ParseUint(panelColourHex, 16, 32)
 		if err != nil {
-			ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?validColour=false", guildId))
-			return
+			validColour = false
+			panelColour = 0x23A31A
 		}
 
 		// Validate channel
@@ -149,7 +150,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		go cache.Client.PublishPanelCreate(settings)
 
-		ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?created=true", guildId))
+		ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?created=true&validColour=%t", guildId, validColour))
 	} else {
 		ctx.Redirect(302, "/login")
 	}

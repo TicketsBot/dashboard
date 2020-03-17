@@ -104,3 +104,23 @@ func CallbackHandler(ctx *gin.Context) {
 		table.UpdateGuilds(currentUser.Id, base64.StdEncoding.EncodeToString(marshalled))
 	}()
 }
+
+func cacheRoles(store sessions.Session, guildId, userId int64) {
+	rolesChan := make(chan *[]int64, 0)
+	go utils.GetRolesRest(store, guildId, userId, rolesChan)
+	roles := <-rolesChan
+
+	if roles == nil {
+		return
+	}
+
+	memberIdChan := make(chan *int)
+	go table.GetMemberId(guildId, userId, memberIdChan)
+	memberId := <-memberIdChan
+
+	if memberId == nil {
+		return
+	}
+
+
+}
