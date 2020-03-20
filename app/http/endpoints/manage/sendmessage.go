@@ -76,6 +76,8 @@ func SendMessage(ctx *gin.Context) {
 				Content: content,
 			}, nil)
 		}
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 
 	ctx.Redirect(301, ctx.Request.URL.String())

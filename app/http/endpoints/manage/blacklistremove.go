@@ -59,5 +59,7 @@ func BlacklistRemoveHandler(ctx *gin.Context) {
 		}
 
 		ctx.Redirect(302, fmt.Sprintf("/manage/%s/blacklist", guildIdStr))
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 }

@@ -105,5 +105,7 @@ func TicketListHandler(ctx *gin.Context) {
 			"baseUrl": config.Conf.Server.BaseUrl,
 			"tickets": ticketsFormatted,
 		})
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 }

@@ -127,5 +127,7 @@ func TicketViewHandler(ctx *gin.Context) {
 			"include_mock": true,
 			"premium": <-premium,
 		})
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 }

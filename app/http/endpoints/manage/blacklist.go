@@ -104,5 +104,7 @@ func BlacklistHandler(ctx *gin.Context) {
 			"userNotFound": userNotFound,
 			"isStaff": isStaff,
 		})
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 }

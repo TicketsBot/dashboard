@@ -82,5 +82,7 @@ func LogViewHandler(ctx *gin.Context) {
 
 			ctx.String(200, string(content))
 		}
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 }

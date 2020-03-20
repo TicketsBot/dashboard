@@ -140,5 +140,7 @@ func PanelHandler(ctx *gin.Context) {
 			"created":       ctx.Query("created") == "true",
 			"metQuota":      ctx.Query("metQuota") == "true",
 		})
+	} else {
+		ctx.Redirect(302, "/login")
 	}
 }
