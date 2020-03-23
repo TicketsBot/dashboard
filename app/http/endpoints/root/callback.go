@@ -14,6 +14,7 @@ import (
 	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"strconv"
 	"time"
 )
 
@@ -82,6 +83,10 @@ func CallbackHandler(ctx *gin.Context) {
 
 	ctx.Redirect(302, config.Conf.Server.BaseUrl)
 
+	userId, err := strconv.ParseInt(currentUser.Id, 10, 64); if err != nil { // ???
+		return
+	}
+
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
 		var guilds []objects.Guild
@@ -93,6 +98,12 @@ func CallbackHandler(ctx *gin.Context) {
 		
 		for _, guild := range guilds {
 			go cache.Client.StoreGuild(guild)
+
+			// cache roles
+			guildId, err := strconv.ParseInt(guild.Id, 10, 64); if err != nil {
+				continue
+			}
+			go cacheRoles(store, guildId, userId)
 		}
 
 		marshalled, err := json.Marshal(guilds)
@@ -106,21 +117,16 @@ func CallbackHandler(ctx *gin.Context) {
 }
 
 func cacheRoles(store sessions.Session, guildId, userId int64) {
-	rolesChan := make(chan *[]int64, 0)
-	go utils.GetRolesRest(store, guildId, userId, rolesChan)
-	roles := <-rolesChan
+	roles := utils.GetRolesRest(store, guildId, userId)
 
 	if roles == nil {
 		return
 	}
 
-	memberIdChan := make(chan *int)
-	go table.GetMemberId(guildId, userId, memberIdChan)
-	memberId := <-memberIdChan
+	// Delete old roles
+	table.DeleteRoles(guildId, userId)
 
-	if memberId == nil {
-		return
+	for _, role := range *roles {
+		table.CacheRole(guildId, userId, role)
 	}
-
-
 }

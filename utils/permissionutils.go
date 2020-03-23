@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/guild"
@@ -31,7 +30,9 @@ func IsAdmin(store sessions.Session, guild objects.Guild, guildId, userId int64,
 		res <- true
 	}
 
-	userRoles := GetRoles(store, guildId, userId)
+	userRolesChan := make(chan []int64)
+	go table.GetCachedRoles(guildId, userId, userRolesChan)
+	userRoles := <-userRolesChan
 
 	adminRolesChan := make(chan []int64)
 	go table.GetAdminRoles(strconv.Itoa(int(guildId)), adminRolesChan)
@@ -54,12 +55,7 @@ func IsAdmin(store sessions.Session, guild objects.Guild, guildId, userId int64,
 	res <- false
 }
 
-func GetRoles(store sessions.Session, guildId, userId int64) []int64 {
-	key := fmt.Sprintf("%d-%d", guildId, userId)
-	if cached, ok := roleCache.Get(key); ok {
-		return cached.([]int64)
-	}
-
+func GetRolesRest(store sessions.Session, guildId, userId int64) *[]int64 {
 	var member objects.Member
 	endpoint := guild.GetGuildMember(int(guildId), int(userId))
 
@@ -67,7 +63,5 @@ func GetRoles(store sessions.Session, guildId, userId int64) []int64 {
 		return nil
 	}
 
-	roleCache.Set(key, &member.Roles, time.Minute)
-
-	return member.Roles
+	return &member.Roles
 }
