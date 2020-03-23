@@ -1,19 +1,21 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/guild"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
-	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
+	"github.com/robfig/go-cache"
 	"strconv"
+	"time"
 )
 
-func IsAdmin(guild objects.Guild, guildId, user int64, res chan bool) {
-	userIdStr := strconv.Itoa(int(user))
+var roleCache = cache.New(time.Minute, time.Minute)
 
-	if Contains(config.Conf.Admins, userIdStr) {
+func IsAdmin(store sessions.Session, guild objects.Guild, guildId, userId int64, res chan bool) {
+	if Contains(config.Conf.Admins, strconv.Itoa(int(userId))) {
 		res <- true
 	}
 
@@ -21,30 +23,51 @@ func IsAdmin(guild objects.Guild, guildId, user int64, res chan bool) {
 		res <- true
 	}
 
-	if table.IsAdmin(guildId, user) {
+	if table.IsAdmin(guildId, userId) {
+		res <- true
+	}
+
+	if guild.Permissions & 0x8 != 0 {
+		res <- true
+	}
+
+	userRoles := GetRoles(store, guildId, userId)
+
+	adminRolesChan := make(chan []int64)
+	go table.GetAdminRoles(strconv.Itoa(int(guildId)), adminRolesChan)
+	adminRoles := <- adminRolesChan
+
+	hasAdminRole := false
+	for _, userRole := range userRoles {
+		for _, adminRole := range adminRoles {
+			if userRole == adminRole {
+				hasAdminRole = true
+				break
+			}
+		}
+	}
+
+	if hasAdminRole {
 		res <- true
 	}
 
 	res <- false
 }
 
-func GetRolesRest(store sessions.Session, guildId, userId int64, res chan *[]int64) {
+func GetRoles(store sessions.Session, guildId, userId int64) []int64 {
+	key := fmt.Sprintf("%d-%d", guildId, userId)
+	if cached, ok := roleCache.Get(key); ok {
+		return cached.([]int64)
+	}
+
 	var member objects.Member
 	endpoint := guild.GetGuildMember(int(guildId), int(userId))
 
 	if err, _ := endpoint.Request(store, nil, nil, &member); err != nil {
-		res <- nil
+		return nil
 	}
 
-	roles := make([]int64, 0)
-	for _, role := range member.Roles {
-		int, err := strconv.ParseInt(role, 10, 64); if err != nil {
-			log.Error(err.Error())
-			continue
-		}
+	roleCache.Set(key, &member.Roles, time.Minute)
 
-		roles = append(roles, int)
-	}
-
-	res <- &roles
+	return member.Roles
 }
