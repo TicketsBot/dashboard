@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
-	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/guild"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/apex/log"
