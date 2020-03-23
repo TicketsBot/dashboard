@@ -126,7 +126,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		// Validate reaction emote
 		reaction := strings.ToLower(ctx.PostForm("reaction"))
-		if len(title) == 0 || len(title) > 32 {
+		if len(reaction) == 0 || len(reaction) > 32 {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?validReaction=false", guildId))
 			return
 		}
