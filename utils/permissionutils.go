@@ -14,7 +14,7 @@ import (
 
 var roleCache = cache.New(time.Minute, time.Minute)
 
-func IsAdmin(store sessions.Session, guild objects.Guild, guildId, userId int64, res chan bool) {
+func IsAdmin(guild objects.Guild, guildId, userId int64, res chan bool) {
 	if Contains(config.Conf.Admins, strconv.Itoa(int(userId))) {
 		res <- true
 	}

@@ -33,7 +33,7 @@ func IndexHandler(ctx *gin.Context) {
 			}
 
 			isAdmin := make(chan bool)
-			go utils.IsAdmin(store, guild, guildId, userId, isAdmin)
+			go utils.IsAdmin(guild, guildId, userId, isAdmin)
 			if <-isAdmin {
 				adminGuilds = append(adminGuilds, guild)
 			}
