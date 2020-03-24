@@ -5,6 +5,7 @@ import (
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/guild"
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
+	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/robfig/go-cache"
 	"strconv"
@@ -60,8 +61,10 @@ func GetRolesRest(store sessions.Session, guildId, userId int64) *[]int64 {
 	endpoint := guild.GetGuildMember(int(guildId), int(userId))
 
 	if err, _ := endpoint.Request(store, nil, nil, &member); err != nil {
+		log.Error(err.Error())
 		return nil
 	}
 
-	return &member.Roles
+	roles := []int64(member.Roles)
+	return &roles
 }

@@ -1,6 +1,8 @@
 package table
 
-import "github.com/TicketsBot/TicketsGo/database"
+import (
+	"github.com/TicketsBot/GoPanel/database"
+)
 
 type CachedRole struct {
 	AssociationId int   `gorm:"column:ASSOCIATIONID;primary_key;auto_increment"`
@@ -14,7 +16,7 @@ func (CachedRole) TableName() string {
 }
 
 func DeleteRoles(guildId, userId int64) {
-	database.Db.Where(CachedRole{
+	database.Database.Where(CachedRole{
 		GuildId: guildId,
 		UserId:  userId,
 	}).Delete(CachedRole{})
@@ -22,7 +24,7 @@ func DeleteRoles(guildId, userId int64) {
 
 // TODO: Cache invalidation
 func CacheRole(guildId, userId, roleId int64) {
-	database.Db.Create(&CachedRole{
+	database.Database.Create(&CachedRole{
 		GuildId: guildId,
 		UserId:  userId,
 		RoleId:  roleId,
@@ -31,7 +33,7 @@ func CacheRole(guildId, userId, roleId int64) {
 
 func GetCachedRoles(guildId, userId int64, res chan []int64) {
 	var rows []CachedRole
-	database.Db.Where(&CachedRole{
+	database.Database.Where(&CachedRole{
 		GuildId: guildId,
 		UserId:  userId,
 	}).Find(&rows)
@@ -40,5 +42,6 @@ func GetCachedRoles(guildId, userId int64, res chan []int64) {
 	for _, row := range rows {
 		roles = append(roles, row.RoleId)
 	}
+
 	res <- roles
 }
