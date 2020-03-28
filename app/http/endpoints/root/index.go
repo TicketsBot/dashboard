@@ -25,8 +25,9 @@ func IndexHandler(ctx *gin.Context) {
 			return
 		}
 
+		userGuilds := table.GetGuilds(userIdStr)
 		adminGuilds := make([]objects.Guild, 0)
-		for _, guild := range table.GetGuilds(userIdStr) {
+		for _, guild := range userGuilds {
 			guildId, err := strconv.ParseInt(guild.Id, 10, 64)
 			if err != nil { // I think this happens when a server was deleted? We should just skip though.
 				continue

@@ -1,6 +1,8 @@
 package manage
 
 import (
+	"fmt"
+	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -30,6 +32,14 @@ func SettingsHandler(ctx *gin.Context) {
 		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
+			return
+		}
+
+		// Check the bot is in the guild
+		isInGuild := make(chan bool)
+		go cache.Client.GuildExists(guildIdStr, isInGuild)
+		if !<-isInGuild {
+			ctx.Redirect(302, fmt.Sprintf("https://invite.ticketsbot.net/?guild_id=%s&disable_guild_select=true&response_type=code&scope=bot%%20identify&redirect_uri=%s", guildIdStr, config.Conf.Server.BaseUrl))
 			return
 		}
 
