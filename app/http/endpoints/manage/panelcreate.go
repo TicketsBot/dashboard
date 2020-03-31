@@ -91,7 +91,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		// Validate colour
 		validColour := true
-		panelColourHex := ctx.PostForm("colour")
+		panelColourHex := strings.Replace(ctx.PostForm("colour"), "#", "", -1)
 		panelColour, err := strconv.ParseUint(panelColourHex, 16, 32)
 		if err != nil {
 			validColour = false

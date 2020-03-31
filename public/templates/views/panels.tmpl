@@ -5,7 +5,7 @@
         <div class="col-md-12">
           <div class="card">
             <div class="card-header">
-              <h4 class="card-title">Panels</h4>
+              <h4 class="card-title">Reaction Panels</h4>
             </div>
             <div class="card-body">
               <p>Your panel quota: <b>{{.panelcount}} / {{if .premium}}∞{{else}}1{{end}}</b></p>
@@ -47,13 +47,13 @@
                 <div class="row">
                   <div class="col-md-4 pr-1">
                     <div class="form-group">
-                      <label>Panel Title</label>
+                      <label class="black">Panel Title</label>
                       <input name="title" type="text" class="form-control" placeholder="Open a ticket!">
                     </div>
                   </div>
                   <div class="col-md-8 pr-1">
                     <div class="form-group">
-                      <label>Panel Content</label>
+                      <label class="black">Panel Content</label>
                       <textarea name="content" type="text" class="form-control"
                                 placeholder="By reacting to this ticket, a ticket will be opened for you."></textarea>
                     </div>
@@ -61,17 +61,14 @@
                 </div>
                 <div class="row">
                   <div class="col-md-3 pr-1">
-                    <label>Panel Colour (Hex)</label>
+                    <label class="black">Panel Colour</label>
                     <div class="input-group mb-3">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">#</div>
-                      </div>
-                      <input name="colour" type="text" class="form-control" placeholder="23A31A">
+                      <input name="colour" type="color" class="form-control input-fill" value="#23A31A">
                     </div>
                   </div>
 
                   <div class="col-md-3 pr-1">
-                    <label>Panel Channel</label>
+                    <label class="black">Panel Channel</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
                         <div class="input-group-text">#</div>
@@ -85,7 +82,7 @@
                   </div>
 
                   <div class="col-md-3 pr-1">
-                    <label>Ticket Channel Category</label>
+                    <label class="black">Ticket Channel Category</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
                         <div class="input-group-text">#</div>
@@ -100,7 +97,7 @@
 
                   <div class="col-md-3 pr-1">
                     <div class="form-group">
-                      <label>Reaction Emote</label>
+                      <label class="black">Reaction Emote</label>
                       <input name="reaction" type="text" class="form-control" placeholder="envelope_with_arrow">
                     </div>
                   </div>
