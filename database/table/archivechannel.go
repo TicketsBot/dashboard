@@ -5,7 +5,7 @@ import (
 )
 
 type ArchiveChannel struct {
-	Guild  int64 `gorm:"column:GUILDID"`
+	Guild   int64 `gorm:"column:GUILDID"`
 	Channel int64 `gorm:"column:CHANNELID"`
 }
 
@@ -24,4 +24,3 @@ func GetArchiveChannel(guildId int64) int64 {
 
 	return channel.Channel
 }
-

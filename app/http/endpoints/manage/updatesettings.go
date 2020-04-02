@@ -114,17 +114,20 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 
 		// Archive channel
 		// Create a list of IDs
-		var channelIds []string
-		for _, c := range guild.Channels {
-			channelIds = append(channelIds, c.Id)
+		channelsChan := make(chan []table.Channel)
+		go table.GetCachedChannelsByGuild(guildId, channelsChan)
+		channels := <-channelsChan
+
+		var channelIds []int64
+		for _, channel := range channels {
+			channelIds = append(channelIds, channel.ChannelId)
 		}
 
 		// Update or archive channel
 		archiveChannelStr := ctx.PostForm("archivechannel")
-		if utils.Contains(channelIds, archiveChannelStr) {
-			// Error is impossible, as we check it's a valid channel already
-			parsed, _ := strconv.ParseInt(archiveChannelStr, 10, 64)
-			table.UpdateArchiveChannel(guildId, parsed)
+		archiveChannelId, err := strconv.ParseInt(archiveChannelStr, 10, 64)
+		if err == nil && utils.Contains(channelIds, archiveChannelId) {
+			table.UpdateArchiveChannel(guildId, archiveChannelId)
 		}
 
 		// Users can close
