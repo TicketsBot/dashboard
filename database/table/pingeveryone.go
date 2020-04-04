@@ -5,8 +5,8 @@ import (
 )
 
 type PingEveryone struct {
-	GuildId int64  `gorm:"column:GUILDID"`
-	PingEveryone bool `gorm:"column:PINGEVERYONE;type:TINYINT"`
+	GuildId      uint64 `gorm:"column:GUILDID"`
+	PingEveryone bool   `gorm:"column:PINGEVERYONE;type:TINYINT"`
 }
 
 func (PingEveryone) TableName() string {
@@ -14,7 +14,7 @@ func (PingEveryone) TableName() string {
 }
 
 // tldr I hate gorm
-func UpdatePingEveryone(guildId int64, pingEveryone bool) {
+func UpdatePingEveryone(guildId uint64, pingEveryone bool) {
 	var settings []PingEveryone
 	database.Database.Where(&PingEveryone{GuildId: guildId}).Find(&settings)
 
@@ -29,7 +29,7 @@ func UpdatePingEveryone(guildId int64, pingEveryone bool) {
 	//database.Database.Where(&PingEveryone{GuildId: guildId}).Assign(&updated).FirstOrCreate(&PingEveryone{})
 }
 
-func GetPingEveryone(guildId int64) bool {
+func GetPingEveryone(guildId uint64) bool {
 	pingEveryone := PingEveryone{PingEveryone: true}
 	database.Database.Where(&PingEveryone{GuildId: guildId}).First(&pingEveryone)
 

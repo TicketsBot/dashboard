@@ -11,7 +11,7 @@ import (
 )
 
 type wrappedPanel struct {
-	MessageId    int64
+	MessageId    uint64
 	ChannelName  string
 	Title        string
 	Content      string
@@ -35,7 +35,7 @@ func PanelHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -101,7 +101,7 @@ func PanelHandler(ctx *gin.Context) {
 		}
 
 		// Format channels to be text channels only
-		channelMap := make(map[int64]string)
+		channelMap := make(map[uint64]string)
 		for _, channel := range channels {
 			if channel.Type == 0 {
 				channelMap[channel.ChannelId] = channel.Name
@@ -109,7 +109,7 @@ func PanelHandler(ctx *gin.Context) {
 		}
 
 		// Get categories & format
-		categories := make(map[int64]string)
+		categories := make(map[uint64]string)
 		for _, channel := range channels {
 			if channel.Type == 4 {
 				categories[channel.ChannelId] = channel.Name
@@ -118,7 +118,7 @@ func PanelHandler(ctx *gin.Context) {
 
 		// Get is premium
 		isPremiumChan := make(chan bool)
-		go utils.IsPremiumGuild(store, guildIdStr, isPremiumChan)
+		go utils.IsPremiumGuild(store, guildId, isPremiumChan)
 		isPremium := <-isPremiumChan
 
 		ctx.HTML(200, "manage/panels", gin.H{

@@ -14,7 +14,7 @@ import (
 
 var roleCache = cache.New(time.Minute, time.Minute)
 
-func IsAdmin(guild objects.Guild, guildId, userId int64, res chan bool) {
+func IsAdmin(guild objects.Guild, guildId, userId uint64, res chan bool) {
 	if Contains(config.Conf.Admins, strconv.Itoa(int(userId))) {
 		res <- true
 	}
@@ -31,12 +31,12 @@ func IsAdmin(guild objects.Guild, guildId, userId int64, res chan bool) {
 		res <- true
 	}
 
-	userRolesChan := make(chan []int64)
+	userRolesChan := make(chan []uint64)
 	go table.GetCachedRoles(guildId, userId, userRolesChan)
 	userRoles := <-userRolesChan
 
-	adminRolesChan := make(chan []int64)
-	go table.GetAdminRoles(strconv.Itoa(int(guildId)), adminRolesChan)
+	adminRolesChan := make(chan []uint64)
+	go table.GetAdminRoles(guildId, adminRolesChan)
 	adminRoles := <- adminRolesChan
 
 	hasAdminRole := false
@@ -56,15 +56,15 @@ func IsAdmin(guild objects.Guild, guildId, userId int64, res chan bool) {
 	res <- false
 }
 
-func GetRolesRest(store sessions.Session, guildId, userId int64) *[]int64 {
+func GetRolesRest(store sessions.Session, guildId, userId uint64) *[]uint64 {
 	var member objects.Member
-	endpoint := guild.GetGuildMember(int(guildId), int(userId))
+	endpoint := guild.GetGuildMember(guildId, userId)
 
 	if err, _ := endpoint.Request(store, nil, nil, &member); err != nil {
 		log.Error(err.Error())
 		return nil
 	}
 
-	roles := []int64(member.Roles)
+	roles := []uint64(member.Roles)
 	return &roles
 }

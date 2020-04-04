@@ -7,11 +7,11 @@ import (
 
 type TicketCloseMessage struct {
 	Uuid   string
-	User   int64
+	User   uint64
 	Reason string
 }
 
-func (c *RedisClient) PublishTicketClose(ticket string, userId int64, reason string) {
+func (c *RedisClient) PublishTicketClose(ticket string, userId uint64, reason string) {
 	settings := TicketCloseMessage{
 		Uuid:   ticket,
 		User:   userId,

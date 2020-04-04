@@ -23,14 +23,11 @@ type ProxyResponse struct {
 
 var premiumCache = cache.New(10 * time.Minute, 10 * time.Minute)
 
-func IsPremiumGuild(store sessions.Session, guildIdRaw string, ch chan bool) {
+func IsPremiumGuild(store sessions.Session, guildId uint64, ch chan bool) {
+	guildIdRaw := strconv.FormatUint(guildId, 10)
+
 	if premium, ok := premiumCache.Get(guildIdRaw); ok {
 		ch<-premium.(bool)
-		return
-	}
-
-	guildId, err := strconv.ParseInt(guildIdRaw, 10, 64); if err != nil {
-		ch<-false
 		return
 	}
 

@@ -29,7 +29,7 @@ func SettingsHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return

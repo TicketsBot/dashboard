@@ -6,8 +6,8 @@ import (
 
 type TicketArchive struct {
 	Uuid     string `gorm:"column:UUID;type:varchar(36)"`
-	Guild    int64  `gorm:"column:GUILDID"`
-	User     int64  `gorm:"column:USERID"`
+	Guild    uint64 `gorm:"column:GUILDID"`
+	User     uint64 `gorm:"column:USERID"`
 	Username string `gorm:"column:USERNAME;type:varchar(32)"`
 	TicketId int    `gorm:"column:TICKETID"`
 	CdnUrl   string `gorm:"column:CDNURL;type:varchar(100)"`
@@ -17,14 +17,14 @@ func (TicketArchive) TableName() string {
 	return "ticketarchive"
 }
 
-func GetTicketArchives(guildId int64) []TicketArchive {
+func GetTicketArchives(guildId uint64) []TicketArchive {
 	var archives []TicketArchive
 	database.Database.Where(&TicketArchive{Guild: guildId}).Order("TICKETID desc").Find(&archives)
 
 	return archives
 }
 
-func GetFilteredTicketArchives(guildId int64, userId int64, username string, ticketId int) []TicketArchive {
+func GetFilteredTicketArchives(guildId uint64, userId uint64, username string, ticketId int) []TicketArchive {
 	var archives []TicketArchive
 
 	query := database.Database.Where(&TicketArchive{Guild: guildId})
@@ -43,7 +43,7 @@ func GetFilteredTicketArchives(guildId int64, userId int64, username string, tic
 	return archives
 }
 
-func GetCdnUrl(guildId int64, uuid string) string {
+func GetCdnUrl(guildId uint64, uuid string) string {
 	var archive TicketArchive
 	database.Database.Where(&TicketArchive{Guild: guildId, Uuid: uuid}).First(&archive)
 	return archive.CdnUrl

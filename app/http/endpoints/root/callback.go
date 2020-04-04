@@ -83,7 +83,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	ctx.Redirect(302, config.Conf.Server.BaseUrl)
 
-	userId, err := strconv.ParseInt(currentUser.Id, 10, 64); if err != nil { // ???
+	userId, err := strconv.ParseUint(currentUser.Id, 10, 64); if err != nil { // ???
 		return
 	}
 
@@ -100,7 +100,7 @@ func CallbackHandler(ctx *gin.Context) {
 			go cache.Client.StoreGuild(guild)
 
 			// cache roles
-			guildId, err := strconv.ParseInt(guild.Id, 10, 64); if err != nil {
+			guildId, err := strconv.ParseUint(guild.Id, 10, 64); if err != nil {
 				continue
 			}
 			go cacheRoles(store, guildId, userId)
@@ -116,7 +116,7 @@ func CallbackHandler(ctx *gin.Context) {
 	}()
 }
 
-func cacheRoles(store sessions.Session, guildId, userId int64) {
+func cacheRoles(store sessions.Session, guildId, userId uint64) {
 	roles := utils.GetRolesRest(store, guildId, userId)
 
 	if roles == nil {

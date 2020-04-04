@@ -93,7 +93,7 @@ func WebChatWs(ctx *gin.Context) {
 		}
 
 		var guildId string
-		var guildIdParsed int64
+		var guildIdParsed uint64
 		var ticket int
 
 		for {
@@ -119,7 +119,7 @@ func WebChatWs(ctx *gin.Context) {
 				socket.Ticket = ticket
 
 				// Verify the guild exists
-				guildIdParsed, err = strconv.ParseInt(guildId, 10, 64)
+				guildIdParsed, err = strconv.ParseUint(guildId, 10, 64)
 				if err != nil {
 					fmt.Println(err.Error())
 					conn.Close()
@@ -146,7 +146,7 @@ func WebChatWs(ctx *gin.Context) {
 
 				// Verify the guild is premium
 				premium := make(chan bool)
-				go utils.IsPremiumGuild(store, guildId, premium)
+				go utils.IsPremiumGuild(store, guildIdParsed, premium)
 				if !<-premium {
 					conn.Close()
 					return

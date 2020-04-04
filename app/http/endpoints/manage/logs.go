@@ -27,7 +27,7 @@ func LogsHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -63,9 +63,9 @@ func LogsHandler(ctx *gin.Context) {
 
 		// Get logs
 		// Get user ID from URL
-		var filteredUserId int64
+		var filteredUserId uint64
 		if utils.IsInt(ctx.Query("userid")) {
-			filteredUserId, _ = strconv.ParseInt(ctx.Query("userid"), 10, 64)
+			filteredUserId, _ = strconv.ParseUint(ctx.Query("userid"), 10, 64)
 		}
 
 		// Get ticket ID from URL

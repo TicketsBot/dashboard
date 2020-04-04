@@ -15,6 +15,6 @@ func IsLoggedIn(store sessions.Session) bool {
 		store.Get("csrf") != nil
 }
 
-func GetUserId(store sessions.Session) (int64, error) {
-	return strconv.ParseInt(store.Get("userid").(string), 10, 64)
+func GetUserId(store sessions.Session) (uint64, error) {
+	return strconv.ParseUint(store.Get("userid").(string), 10, 64)
 }

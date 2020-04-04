@@ -28,7 +28,7 @@ func TicketListHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -53,18 +53,18 @@ func TicketListHandler(ctx *gin.Context) {
 
 		tickets := table.GetOpenTickets(guildId)
 
-		var toFetch []int64
+		var toFetch []uint64
 		for _, ticket := range tickets {
 			toFetch = append(toFetch, ticket.Owner)
 
 			for _, idStr := range strings.Split(ticket.Members, ",") {
-				if memberId, err := strconv.ParseInt(idStr, 10, 64); err == nil {
+				if memberId, err := strconv.ParseUint(idStr, 10, 64); err == nil {
 					toFetch = append(toFetch, memberId)
 				}
 			}
 		}
 
-		nodes := make(map[int64]table.UsernameNode)
+		nodes := make(map[uint64]table.UsernameNode)
 		for _, node := range table.GetUserNodes(toFetch) {
 			nodes[node.Id] = node
 		}
@@ -74,7 +74,7 @@ func TicketListHandler(ctx *gin.Context) {
 		for _, ticket := range tickets {
 			var membersFormatted []map[string]interface{}
 			for index, memberIdStr := range strings.Split(ticket.Members, ",") {
-				if memberId, err := strconv.ParseInt(memberIdStr, 10, 64); err == nil {
+				if memberId, err := strconv.ParseUint(memberIdStr, 10, 64); err == nil {
 					if memberId != 0 {
 						var separator string
 						if index != len(strings.Split(ticket.Members, ",")) - 1 {

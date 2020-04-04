@@ -28,7 +28,7 @@ func BlacklistRemoveHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -53,7 +53,7 @@ func BlacklistRemoveHandler(ctx *gin.Context) {
 
 		if ctx.Query("c") == store.Get("csrf").(string) {
 			targetIdStr := ctx.Param("user")
-			targetId, err := strconv.ParseInt(targetIdStr, 10, 64)
+			targetId, err := strconv.ParseUint(targetIdStr, 10, 64)
 
 			if err == nil { // If it's a real ID
 				table.RemoveBlacklist(guildId, targetId)

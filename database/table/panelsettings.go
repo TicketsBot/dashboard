@@ -5,55 +5,55 @@ import (
 )
 
 type PanelSettings struct {
-	GuildId int64 `gorm:"column:GUILDID"`
-	Title string `gorm:"column:TITLE;type:VARCHAR(255)"`
+	GuildId uint64 `gorm:"column:GUILDID"`
+	Title   string `gorm:"column:TITLE;type:VARCHAR(255)"`
 	Content string `gorm:"column:CONTENT;type:TEXT"`
-	Colour int `gorm:"column:COLOUR`
+	Colour  int    `gorm:"column:COLOUR`
 }
 
 func (PanelSettings) TableName() string {
 	return "panelsettings"
 }
 
-func UpdatePanelSettings(guildId int64, title string, content string, colour int) {
+func UpdatePanelSettings(guildId uint64, title string, content string, colour int) {
+	settings := PanelSettings{
+		Title:   title,
+		Content: content,
+		Colour:  colour,
+	}
+
+	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
+}
+
+func UpdatePanelTitle(guildId uint64, title string) {
 	settings := PanelSettings{
 		Title: title,
+	}
+
+	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
+}
+
+func UpdatePanelContent(guildId uint64, content string) {
+	settings := PanelSettings{
 		Content: content,
+	}
+
+	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
+}
+
+func UpdatePanelColour(guildId uint64, colour int) {
+	settings := PanelSettings{
 		Colour: colour,
 	}
 
 	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
 }
 
-func UpdatePanelTitle(guildId int64, title string) {
+func GetPanelSettings(guildId uint64) PanelSettings {
 	settings := PanelSettings{
-		Title: title,
-	}
-
-	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
-}
-
-func UpdatePanelContent(guildId int64, content string) {
-	settings := PanelSettings{
-		Content: content,
-	}
-
-	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
-}
-
-func UpdatePanelColour(guildId int64, colour int) {
-	settings := PanelSettings{
-		Colour: colour,
-	}
-
-	database.Database.Where(&PanelSettings{GuildId: guildId}).Assign(&settings).FirstOrCreate(&PanelSettings{})
-}
-
-func GetPanelSettings(guildId int64) PanelSettings {
-	settings := PanelSettings{
-		Title: "Open A Ticket",
+		Title:   "Open A Ticket",
 		Content: "React with :envelope_with_arrow: to open a ticket",
-		Colour: 2335514,
+		Colour:  2335514,
 	}
 	database.Database.Where(PanelSettings{GuildId: guildId}).First(&settings)
 

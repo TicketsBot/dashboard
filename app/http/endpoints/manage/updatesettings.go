@@ -28,7 +28,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -108,7 +108,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		categoryStr := ctx.PostForm("category")
 		if utils.Contains(categoryIds, categoryStr) {
 			// Error is impossible, as we check it's a valid channel already
-			category, _ := strconv.ParseInt(categoryStr, 10, 64)
+			category, _ := strconv.ParseUint(categoryStr, 10, 64)
 			table.UpdateChannelCategory(guildId, category)
 		}
 
@@ -118,14 +118,14 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		go table.GetCachedChannelsByGuild(guildId, channelsChan)
 		channels := <-channelsChan
 
-		var channelIds []int64
+		var channelIds []uint64
 		for _, channel := range channels {
 			channelIds = append(channelIds, channel.ChannelId)
 		}
 
 		// Update or archive channel
 		archiveChannelStr := ctx.PostForm("archivechannel")
-		archiveChannelId, err := strconv.ParseInt(archiveChannelStr, 10, 64)
+		archiveChannelId, err := strconv.ParseUint(archiveChannelStr, 10, 64)
 		if err == nil && utils.Contains(channelIds, archiveChannelId) {
 			table.UpdateArchiveChannel(guildId, archiveChannelId)
 		}

@@ -5,32 +5,32 @@ import (
 )
 
 type BlacklistNode struct {
-	Assoc int `gorm:"column:ASSOCID;type:int;primary_key;auto_increment"`
-	Guild int64  `gorm:"column:GUILDID"`
-	User int64 `gorm:"column:USERID"`
+	Assoc int    `gorm:"column:ASSOCID;type:int;primary_key;auto_increment"`
+	Guild uint64 `gorm:"column:GUILDID"`
+	User  uint64 `gorm:"column:USERID"`
 }
 
 func (BlacklistNode) TableName() string {
 	return "blacklist"
 }
 
-func IsBlacklisted(guildId, userId int64) bool {
+func IsBlacklisted(guildId, userId uint64) bool {
 	var count int
 	database.Database.Table("blacklist").Where(&BlacklistNode{Guild: guildId, User: userId}).Count(&count)
 	return count > 0
 }
 
-func AddBlacklist(guildId, userId int64) {
+func AddBlacklist(guildId, userId uint64) {
 	database.Database.Create(&BlacklistNode{Guild: guildId, User: userId})
 }
 
-func RemoveBlacklist(guildId, userId int64) {
+func RemoveBlacklist(guildId, userId uint64) {
 	var node BlacklistNode
 	database.Database.Where(BlacklistNode{Guild: guildId, User: userId}).Take(&node)
 	database.Database.Delete(&node)
 }
 
-func GetBlacklistNodes(guildId int64) []BlacklistNode {
+func GetBlacklistNodes(guildId uint64) []BlacklistNode {
 	var nodes []BlacklistNode
 	database.Database.Where(&BlacklistNode{Guild: guildId}).Find(&nodes)
 	return nodes

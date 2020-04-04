@@ -30,7 +30,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -62,7 +62,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		// Get if the guild is premium
 		premiumChan := make(chan bool)
-		go utils.IsPremiumGuild(store, guildIdStr, premiumChan)
+		go utils.IsPremiumGuild(store, guildId, premiumChan)
 		premium := <-premiumChan
 
 		// Check the user hasn't met their panel quota
@@ -100,7 +100,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		// Validate channel
 		channelIdStr := ctx.PostForm("channel")
-		channelId, err := strconv.ParseInt(channelIdStr, 10, 64); if err != nil {
+		channelId, err := strconv.ParseUint(channelIdStr, 10, 64); if err != nil {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?validChannel=false", guildId))
 			return
 		}
@@ -114,7 +114,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 
 		// Validate category
 		categoryStr := ctx.PostForm("categories")
-		categoryId, err := strconv.ParseInt(categoryStr, 10, 64); if err != nil {
+		categoryId, err := strconv.ParseUint(categoryStr, 10, 64); if err != nil {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?validCategory=false", guildId))
 			return
 		}
@@ -158,7 +158,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 	}
 }
 
-func validateChannel(guildId, channelId int64, res chan bool) {
+func validateChannel(guildId, channelId uint64, res chan bool) {
 	// Get channels from DB
 	channelsChan := make(chan []table.Channel)
 	go table.GetCachedChannelsByGuild(guildId, channelsChan)
@@ -176,7 +176,7 @@ func validateChannel(guildId, channelId int64, res chan bool) {
 	res <- validChannel
 }
 
-func validateCategory(guildId, categoryId int64, res chan bool) {
+func validateCategory(guildId, categoryId uint64, res chan bool) {
 	// Get channels from DB
 	categoriesChan := make(chan []table.Channel)
 	go table.GetCategories(guildId, categoriesChan)

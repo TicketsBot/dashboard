@@ -33,7 +33,7 @@ func TicketViewHandler(ctx *gin.Context) {
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")
-		guildId, err := strconv.ParseInt(guildIdStr, 10, 64)
+		guildId, err := strconv.ParseUint(guildIdStr, 10, 64)
 		if err != nil {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 			return
@@ -96,7 +96,7 @@ func TicketViewHandler(ctx *gin.Context) {
 			match := MentionRegex.FindAllStringSubmatch(content, -1)
 			for _, mention := range match {
 				if len(mention) >= 2 {
-					mentionedId, err := strconv.ParseInt(mention[1], 10, 64); if err != nil {
+					mentionedId, err := strconv.ParseUint(mention[1], 10, 64); if err != nil {
 						continue
 					}
 
@@ -113,7 +113,7 @@ func TicketViewHandler(ctx *gin.Context) {
 		}
 
 		premium := make(chan bool)
-		go utils.IsPremiumGuild(store, guildIdStr, premium)
+		go utils.IsPremiumGuild(store, guildId, premium)
 
 		ctx.HTML(200, "manage/ticketview", gin.H{
 			"name":    store.Get("name").(string),
