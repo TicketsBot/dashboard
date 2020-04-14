@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord"
-	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/channel"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/rxdn/gdl/rest"
 	"net/http"
 	"strconv"
 	"sync"
@@ -84,8 +85,6 @@ func WebChatWs(ctx *gin.Context) {
 		SocketsLock.Lock()
 		Sockets = append(Sockets, socket)
 		SocketsLock.Unlock()
-
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			conn.Close()
@@ -127,13 +126,7 @@ func WebChatWs(ctx *gin.Context) {
 				}
 
 				// Get object for selected guild
-				var guild objects.Guild
-				for _, g := range table.GetGuilds(userIdStr) {
-					if g.Id == guildId {
-						guild = g
-						break
-					}
-				}
+				guild, _ := cache.Instance.GetGuild(guildIdParsed, false)
 
 				// Verify the user has permissions to be here
 				isAdmin := make(chan bool)
@@ -164,8 +157,6 @@ func WebChatWs(ctx *gin.Context) {
 				ticket := <-ticketChan
 				exists := ticket != table.Ticket{}
 
-				contentType := discord.ApplicationJson
-
 				if exists {
 					content := data
 					if len(content) > 2000 {
@@ -188,10 +179,7 @@ func WebChatWs(ctx *gin.Context) {
 							content = content[0:1999]
 						}
 
-						endpoint := channel.CreateMessage(int(ticket.Channel))
-						err, _ = endpoint.Request(store, &contentType, channel.CreateMessageBody{
-							Content: content,
-						}, nil)
+						_, _ = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Channel, rest.CreateMessageData{Content: content})
 					}
 				}
 			}

@@ -3,8 +3,8 @@ package manage
 import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -18,7 +18,6 @@ func BlacklistHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -34,13 +33,7 @@ func BlacklistHandler(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -79,7 +72,7 @@ func BlacklistHandler(ctx *gin.Context) {
 			exists := targetId != 0
 
 			if exists {
-				if guild.OwnerId == strconv.Itoa(int(targetId)) || table.IsStaff(guildId, targetId) { // Prevent users from blacklisting staff
+				if guild.OwnerId == targetId || table.IsStaff(guildId, targetId) { // Prevent users from blacklisting staff
 					isStaff = true
 				} else {
 					if !utils.Contains(blacklistedIds, targetId) { // Prevent duplicates

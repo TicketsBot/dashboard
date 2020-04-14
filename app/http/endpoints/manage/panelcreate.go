@@ -2,13 +2,14 @@ package manage
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/channel"
 	"strconv"
 	"strings"
 )
@@ -21,7 +22,6 @@ func PanelCreateHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -37,13 +37,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -150,7 +144,7 @@ func PanelCreateHandler(ctx *gin.Context) {
 			ReactionEmote:  emoji,
 		}
 
-		go cache.Client.PublishPanelCreate(settings)
+		go messagequeue.Client.PublishPanelCreate(settings)
 
 		ctx.Redirect(302, fmt.Sprintf("/manage/%d/panels?created=true&validColour=%t", guildId, validColour))
 	} else {
@@ -159,15 +153,10 @@ func PanelCreateHandler(ctx *gin.Context) {
 }
 
 func validateChannel(guildId, channelId uint64, res chan bool) {
-	// Get channels from DB
-	channelsChan := make(chan []table.Channel)
-	go table.GetCachedChannelsByGuild(guildId, channelsChan)
-	channels := <-channelsChan
-
 	// Compare channel IDs
 	validChannel := false
-	for _, guildChannel := range channels {
-		if guildChannel.ChannelId == channelId {
+	for _, guildChannel := range cache.Instance.GetGuildChannels(guildId) {
+		if guildChannel.Id == channelId {
 			validChannel = true
 			break
 		}
@@ -177,15 +166,10 @@ func validateChannel(guildId, channelId uint64, res chan bool) {
 }
 
 func validateCategory(guildId, categoryId uint64, res chan bool) {
-	// Get channels from DB
-	categoriesChan := make(chan []table.Channel)
-	go table.GetCategories(guildId, categoriesChan)
-	categories := <-categoriesChan
-
-	// Compare channel IDs
+	// Compare ch IDs
 	validCategory := false
-	for _, category := range categories {
-		if category.ChannelId == categoryId {
+	for _, ch := range cache.Instance.GetGuildChannels(guildId) {
+		if ch.Type == channel.ChannelTypeGuildCategory && ch.Id == categoryId {
 			validCategory = true
 			break
 		}

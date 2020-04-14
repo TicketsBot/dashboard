@@ -74,8 +74,10 @@
                         <div class="input-group-text">#</div>
                       </div>
                       <select class="form-control" name="channel">
-                          {{range $id, $name := .channels}}
-                            <option value="{{$id}}">{{$name}}</option>
+                          {{range .channels}}
+                            {{if eq .Type 0}} <!-- Check the channel is a text channel -->
+                              <option value="{{.Id}}">{{.Name}}</option>
+                            {{end}}
                           {{end}}
                       </select>
                     </div>
@@ -88,8 +90,10 @@
                         <div class="input-group-text">#</div>
                       </div>
                       <select class="form-control" name="categories">
-                          {{range $id, $name := .categories}}
-                            <option value="{{$id}}">{{$name}}</option>
+                          {{range .channels}}
+                            {{if eq .Type 4}} <!-- Check the channel is a category -->
+                              <option value="{{.Id}}">{{.Name}}</option>
+                            {{end}}
                           {{end}}
                       </select>
                     </div>
@@ -155,8 +159,9 @@
                 </button>
               </div>
               <div class="toast-body">
-                Invalid panel colour. You must use the hex value of the colour, which you can find <a href="https://www.google.co.uk/search?client=opera&q=html+colour+picker">here</a>.
-                <br />Colour has defaulted to green.
+                Invalid panel colour. You must use the hex value of the colour, which you can find <a
+                        href="https://www.google.co.uk/search?client=opera&q=html+colour+picker">here</a>.
+                <br/>Colour has defaulted to green.
               </div>
             </div>
           {{end}}
@@ -221,7 +226,8 @@
                 </button>
               </div>
               <div class="toast-body">
-                You've hit your panel quota. Premium users can create <b>unlimited panels</b>. Click <a href="https://ticketsbot.net/premium">here</a> to learn more about premium.
+                You've hit your panel quota. Premium users can create <b>unlimited panels</b>. Click <a
+                        href="https://ticketsbot.net/premium">here</a> to learn more about premium.
               </div>
             </div>
           {{end}}

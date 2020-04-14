@@ -7,12 +7,13 @@ import (
 
 type (
 	Config struct {
-		Admins []string
+		Admins  []string
 		Server  Server
 		Oauth   Oauth
 		MariaDB MariaDB
 		Bot     Bot
 		Redis   Redis
+		Cache   Cache
 	}
 
 	Server struct {
@@ -48,7 +49,7 @@ type (
 	}
 
 	Bot struct {
-		Token string
+		Token                 string
 		PremiumLookupProxyUrl string `toml:"premium-lookup-proxy-url"`
 		PremiumLookupProxyKey string `toml:"premium-lookup-proxy-key"`
 	}
@@ -58,6 +59,10 @@ type (
 		Port     int
 		Password string
 		Threads  int
+	}
+
+	Cache struct {
+		Uri string
 	}
 )
 

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/channel"
 	"strconv"
 )
 
@@ -19,7 +20,6 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -35,13 +35,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -95,39 +89,30 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		table.UpdatePingEveryone(guildId, pingEveryone)
 
 		// Get a list of actual category IDs
-		categories := make(chan []table.Channel)
-		go table.GetCategories(guildId, categories)
-
-		// Convert to category IDs
-		var categoryIds []string
-		for _, category := range <-categories {
-			categoryIds = append(categoryIds, strconv.Itoa(int(category.ChannelId)))
-		}
+		channels := cache.Instance.GetGuildChannels(guildId)
 
 		// Update category
-		categoryStr := ctx.PostForm("category")
-		if utils.Contains(categoryIds, categoryStr) {
-			// Error is impossible, as we check it's a valid channel already
-			category, _ := strconv.ParseUint(categoryStr, 10, 64)
-			table.UpdateChannelCategory(guildId, category)
+		if categoryId, err := strconv.ParseUint(ctx.PostForm("category"), 10, 64); err == nil {
+			for _, ch := range channels {
+				if ch.Id == categoryId { // compare ID
+					if ch.Type == channel.ChannelTypeGuildCategory { // verify we're dealing with a category
+						table.UpdateChannelCategory(guildId, categoryId)
+					}
+					break
+				}
+			}
 		}
 
 		// Archive channel
-		// Create a list of IDs
-		channelsChan := make(chan []table.Channel)
-		go table.GetCachedChannelsByGuild(guildId, channelsChan)
-		channels := <-channelsChan
-
-		var channelIds []uint64
-		for _, channel := range channels {
-			channelIds = append(channelIds, channel.ChannelId)
-		}
-
-		// Update or archive channel
-		archiveChannelStr := ctx.PostForm("archivechannel")
-		archiveChannelId, err := strconv.ParseUint(archiveChannelStr, 10, 64)
-		if err == nil && utils.Contains(channelIds, archiveChannelId) {
-			table.UpdateArchiveChannel(guildId, archiveChannelId)
+		if archiveChannelId, err := strconv.ParseUint(ctx.PostForm("archivechannel"), 10, 64); err == nil {
+			for _, ch := range channels {
+				if ch.Id == archiveChannelId { // compare ID
+					if ch.Type == channel.ChannelTypeGuildText { // verify channel type
+						table.UpdateArchiveChannel(guildId, archiveChannelId)
+					}
+					break
+				}
+			}
 		}
 
 		// Users can close

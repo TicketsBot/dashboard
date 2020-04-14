@@ -51,7 +51,7 @@
                       </div>
                       <select class="form-control" name="archivechannel">
                           {{range .channels}}
-                            <option {{if eq .ChannelId $.archivechannel }}selected{{end}} value="{{.ChannelId}}">{{.Name}}</option>
+                            <option {{if eq .Id $.archivechannel }}selected{{end}} value="{{.Id}}">{{.Name}}</option>
                           {{end}}
                       </select>
                     </div>
@@ -62,7 +62,7 @@
                       <label>Channel Category</label>
                       <select class="form-control" name="category">
                           {{range .categories}}
-                            <option {{if eq $.activecategory .ChannelId}}selected{{end}} value="{{.ChannelId}}">{{.Name}}</option>
+                            <option {{if eq $.activecategory .Id}}selected{{end}} value="{{.Id}}">{{.Name}}</option>
                           {{end}}
                       </select>
                     </div>

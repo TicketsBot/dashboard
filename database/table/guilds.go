@@ -8,7 +8,7 @@ import (
 )
 
 type GuildCache struct {
-	UserId string `gorm:"column:USERID;type:varchar(20)"` // Apparently I made this a VARCHAR in the JS version
+	UserId uint64 `gorm:"column:USERID"`
 	Guilds string `gorm:"column:guilds;type:mediumtext"`
 }
 
@@ -16,12 +16,13 @@ func (GuildCache) TableName() string {
 	return "guildscache"
 }
 
-func UpdateGuilds(userId string, guilds string) {
+// this is horrible
+func UpdateGuilds(userId uint64, guilds string) {
 	var cache GuildCache
 	database.Database.Where(&GuildCache{UserId: userId}).Assign(&GuildCache{Guilds: guilds}).FirstOrCreate(&cache)
 }
 
-func GetGuilds(userId string) []objects.Guild {
+func GetGuilds(userId uint64) []objects.Guild {
 	var cache GuildCache
 	database.Database.Where(&GuildCache{UserId: userId}).First(&cache)
 	decoded, err := base64.StdEncoding.DecodeString(cache.Guilds)

@@ -1,4 +1,4 @@
-package cache
+package messagequeue
 
 import (
 	"encoding/json"

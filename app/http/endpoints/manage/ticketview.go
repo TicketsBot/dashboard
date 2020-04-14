@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/channel"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/rest"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,7 +25,6 @@ func TicketViewHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -40,13 +40,7 @@ func TicketViewHandler(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -76,16 +70,7 @@ func TicketViewHandler(ctx *gin.Context) {
 		}
 
 		// Get messages
-		var messages []objects.Message
-		// We want to show users error messages so they can report them
-		isError := false
-		var errorMessage string
-
-		endpoint := channel.GetChannelMessages(int(ticket.Channel))
-		if err, _ = endpoint.Request(store, nil, nil, &messages); err != nil {
-			isError = true
-			errorMessage = err.Error()
-		}
+		messages, err := rest.GetChannelMessages(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Channel, rest.GetChannelMessagesData{Limit: 100})
 
 		// Format messages, exclude unneeded data
 		var messagesFormatted []map[string]interface{}
@@ -96,7 +81,8 @@ func TicketViewHandler(ctx *gin.Context) {
 			match := MentionRegex.FindAllStringSubmatch(content, -1)
 			for _, mention := range match {
 				if len(mention) >= 2 {
-					mentionedId, err := strconv.ParseUint(mention[1], 10, 64); if err != nil {
+					mentionedId, err := strconv.ParseUint(mention[1], 10, 64)
+					if err != nil {
 						continue
 					}
 
@@ -108,7 +94,7 @@ func TicketViewHandler(ctx *gin.Context) {
 
 			messagesFormatted = append(messagesFormatted, map[string]interface{}{
 				"username": message.Author.Username,
-				"content": content,
+				"content":  content,
 			})
 		}
 
@@ -116,18 +102,18 @@ func TicketViewHandler(ctx *gin.Context) {
 		go utils.IsPremiumGuild(store, guildId, premium)
 
 		ctx.HTML(200, "manage/ticketview", gin.H{
-			"name":    store.Get("name").(string),
-			"guildId": guildIdStr,
-			"csrf": store.Get("csrf").(string),
-			"avatar": store.Get("avatar").(string),
-			"baseUrl": config.Conf.Server.BaseUrl,
-			"isError": isError,
-			"error": errorMessage,
-			"messages": messagesFormatted,
-			"ticketId": ticket.TicketId,
-			"uuid": ticket.Uuid,
+			"name":         store.Get("name").(string),
+			"guildId":      guildIdStr,
+			"csrf":         store.Get("csrf").(string),
+			"avatar":       store.Get("avatar").(string),
+			"baseUrl":      config.Conf.Server.BaseUrl,
+			"isError":      err != nil,
+			"error":        err.Error(),
+			"messages":     messagesFormatted,
+			"ticketId":     ticket.TicketId,
+			"uuid":         ticket.Uuid,
 			"include_mock": true,
-			"premium": <-premium,
+			"premium":      <-premium,
 		})
 	} else {
 		ctx.Redirect(302, "/login")

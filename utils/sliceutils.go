@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/TicketsBot/GoPanel/utils/discord/objects"
+	"github.com/rxdn/gdl/objects/channel/message"
 	"reflect"
 )
 
@@ -33,7 +34,7 @@ func Insert(slice []objects.Guild, index int, value objects.Guild) []objects.Gui
 	return slice
 }
 
-func Reverse(slice []objects.Message) []objects.Message {
+func Reverse(slice []message.Message) []message.Message {
 	for i := len(slice)/2-1; i >= 0; i-- {
 		opp := len(slice)-1-i
 		slice[i], slice[opp] = slice[opp], slice[i]

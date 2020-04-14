@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
-	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/apex/log"
 	"math/rand"
@@ -27,17 +28,18 @@ func main() {
 
 	config.LoadConfig()
 	database.ConnectToDatabase()
+	cache.Instance = cache.NewCache()
 
 	utils.LoadEmoji()
 
-	cache.Client = cache.NewRedisClient()
-	go Listen(cache.Client)
+	messagequeue.Client = messagequeue.NewRedisClient()
+	go Listen(messagequeue.Client)
 
 	http.StartServer()
 }
 
-func Listen(client cache.RedisClient) {
-	ch := make(chan cache.TicketMessage)
+func Listen(client messagequeue.RedisClient) {
+	ch := make(chan messagequeue.TicketMessage)
 	go client.ListenForMessages(ch)
 
 	for decoded := range ch {

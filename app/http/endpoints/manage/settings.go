@@ -2,13 +2,13 @@ package manage
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/channel"
 	"strconv"
 )
 
@@ -20,7 +20,6 @@ func SettingsHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -36,21 +35,14 @@ func SettingsHandler(ctx *gin.Context) {
 		}
 
 		// Check the bot is in the guild
-		isInGuild := make(chan bool)
-		go cache.Client.GuildExists(guildIdStr, isInGuild)
-		if !<-isInGuild {
+		_, isInGuild := cache.Instance.GetGuild(guildId, false)
+		if !isInGuild {
 			ctx.Redirect(302, fmt.Sprintf("https://invite.ticketsbot.net/?guild_id=%s&disable_guild_select=true&response_type=code&scope=bot%%20identify&redirect_uri=%s", guildIdStr, config.Conf.Server.BaseUrl))
 			return
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -72,21 +64,15 @@ func SettingsHandler(ctx *gin.Context) {
 		go table.GetTicketNamingScheme(guildId, namingSchemeChan)
 		namingScheme := <-namingSchemeChan
 
-		// /users/@me/guilds doesn't return channels, so we have to get them for the specific guild
-		channelsChan := make(chan []table.Channel)
-		go table.GetCachedChannelsByGuild(guildId, channelsChan)
-		channels := <-channelsChan
+		// get guild channels from cache
+		channels := cache.Instance.GetGuildChannels(guildId)
 
-		// Get a list of actual category IDs
-		categoriesChan := make(chan []table.Channel)
-		go table.GetCategories(guildId, categoriesChan)
-		categories := <-categoriesChan
-
-		// Archive channel
-		// Create a list of IDs
-		var channelIds []string
-		for _, c := range channels {
-			channelIds = append(channelIds, strconv.Itoa(int(c.ChannelId)))
+		// separate out categories
+		categories := make([]channel.Channel, 0)
+		for _, ch := range channels {
+			if ch.Type == channel.ChannelTypeGuildCategory {
+				categories = append(categories, ch)
+			}
 		}
 
 		panelSettings := table.GetPanelSettings(guildId)
@@ -101,26 +87,26 @@ func SettingsHandler(ctx *gin.Context) {
 		invalidTicketLimit := ctx.Query("validTicketLimit") == "false"
 
 		ctx.HTML(200, "manage/settings", gin.H{
-			"name":           store.Get("name").(string),
-			"guildId":        guildIdStr,
-			"avatar": store.Get("avatar").(string),
-			"prefix":         prefix,
-			"welcomeMessage": welcomeMessage,
-			"ticketLimit":    limit,
-			"categories":     categories,
-			"activecategory": categoryId,
-			"channels": channels,
-			"archivechannel": archiveChannel,
-			"invalidPrefix": invalidPrefix,
+			"name":                  store.Get("name").(string),
+			"guildId":               guildIdStr,
+			"avatar":                store.Get("avatar").(string),
+			"prefix":                prefix,
+			"welcomeMessage":        welcomeMessage,
+			"ticketLimit":           limit,
+			"categories":            categories,
+			"activecategory":        categoryId,
+			"channels":              channels,
+			"archivechannel":        archiveChannel,
+			"invalidPrefix":         invalidPrefix,
 			"invalidWelcomeMessage": invalidWelcomeMessage,
-			"invalidTicketLimit": invalidTicketLimit,
-			"csrf": store.Get("csrf").(string),
-			"pingEveryone": pingEveryone,
-			"paneltitle": panelSettings.Title,
-			"panelcontent": panelSettings.Content,
-			"panelcolour": strconv.FormatInt(int64(panelSettings.Colour), 16),
-			"usersCanClose": usersCanClose,
-			"namingScheme": string(namingScheme),
+			"invalidTicketLimit":    invalidTicketLimit,
+			"csrf":                  store.Get("csrf").(string),
+			"pingEveryone":          pingEveryone,
+			"paneltitle":            panelSettings.Title,
+			"panelcontent":          panelSettings.Content,
+			"panelcolour":           strconv.FormatInt(int64(panelSettings.Colour), 16),
+			"usersCanClose":         usersCanClose,
+			"namingScheme":          string(namingScheme),
 		})
 	} else {
 		ctx.Redirect(302, "/login")

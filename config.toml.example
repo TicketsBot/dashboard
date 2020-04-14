@@ -33,3 +33,6 @@ host="127.0.0.1"
 port=6379
 password=""
 threads=5
+
+[cache]
+uri="postgres://pwd:user@localhost:5432/db"

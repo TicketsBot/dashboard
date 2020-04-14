@@ -3,8 +3,8 @@ package manage
 import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -26,7 +26,6 @@ func PanelHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -42,13 +41,7 @@ func PanelHandler(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -64,12 +57,7 @@ func PanelHandler(ctx *gin.Context) {
 		panels := <-panelChan
 
 		// Get channels
-		channelsChan := make(chan []table.Channel)
-		go table.GetCachedChannelsByGuild(guildId, channelsChan)
-		channels := <-channelsChan
-
-		// Get default panel settings
-		settings := table.GetPanelSettings(guildId)
+		channels := cache.Instance.GetGuildChannels(guildId)
 
 		// Convert to wrapped panels
 		wrappedPanels := make([]wrappedPanel, 0)
@@ -81,39 +69,16 @@ func PanelHandler(ctx *gin.Context) {
 				CategoryName: "",
 			}
 
-			if panel.Title == "" {
-				wrapper.Title = settings.Title
-			}
-			if panel.Content == "" {
-				wrapper.Content = settings.Content
-			}
-
 			// Get channel name & category name
 			for _, guildChannel := range channels {
-				if guildChannel.ChannelId == panel.ChannelId {
+				if guildChannel.Id == panel.ChannelId {
 					wrapper.ChannelName = guildChannel.Name
-				} else if guildChannel.ChannelId == panel.TargetCategory {
+				} else if guildChannel.Id == panel.TargetCategory {
 					wrapper.CategoryName = guildChannel.Name
 				}
 			}
 
 			wrappedPanels = append(wrappedPanels, wrapper)
-		}
-
-		// Format channels to be text channels only
-		channelMap := make(map[uint64]string)
-		for _, channel := range channels {
-			if channel.Type == 0 {
-				channelMap[channel.ChannelId] = channel.Name
-			}
-		}
-
-		// Get categories & format
-		categories := make(map[uint64]string)
-		for _, channel := range channels {
-			if channel.Type == 4 {
-				categories[channel.ChannelId] = channel.Name
-			}
 		}
 
 		// Get is premium
@@ -130,8 +95,7 @@ func PanelHandler(ctx *gin.Context) {
 			"panelcount": len(panels),
 			"premium":    isPremium,
 			"panels":     wrappedPanels,
-			"channels":   channelMap,
-			"categories": categories,
+			"channels":   channels,
 
 			"validTitle":    ctx.Query("validTitle") != "true",
 			"validContent":  ctx.Query("validContent") != "false",

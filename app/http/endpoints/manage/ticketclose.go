@@ -2,11 +2,11 @@ package manage
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/cache"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -20,7 +20,6 @@ func TicketCloseHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -36,13 +35,7 @@ func TicketCloseHandler(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -78,7 +71,7 @@ func TicketCloseHandler(ctx *gin.Context) {
 			reason = reason[:255]
 		}
 
-		go cache.Client.PublishTicketClose(ticket.Uuid, userId, reason)
+		go messagequeue.Client.PublishTicketClose(ticket.Uuid, userId, reason)
 
 		ctx.Redirect(302, fmt.Sprintf("/manage/%d/tickets", guildId))
 	} else {

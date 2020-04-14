@@ -3,23 +3,19 @@ package utils
 import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
-	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/guild"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
-	"github.com/apex/log"
-	"github.com/gin-gonic/contrib/sessions"
-	"github.com/robfig/go-cache"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
+	"github.com/rxdn/gdl/objects/guild"
+	"github.com/rxdn/gdl/rest"
 	"strconv"
-	"time"
 )
 
-var roleCache = cache.New(time.Minute, time.Minute)
-
-func IsAdmin(guild objects.Guild, guildId, userId uint64, res chan bool) {
+func IsAdmin(g guild.Guild, guildId, userId uint64, res chan bool) {
 	if Contains(config.Conf.Admins, strconv.Itoa(int(userId))) {
 		res <- true
 	}
 
-	if guild.Owner {
+	if g.Owner {
 		res <- true
 	}
 
@@ -27,24 +23,24 @@ func IsAdmin(guild objects.Guild, guildId, userId uint64, res chan bool) {
 		res <- true
 	}
 
-	if guild.Permissions & 0x8 != 0 {
+	if g.Permissions & 0x8 != 0 {
 		res <- true
 	}
-
-	userRolesChan := make(chan []uint64)
-	go table.GetCachedRoles(guildId, userId, userRolesChan)
-	userRoles := <-userRolesChan
 
 	adminRolesChan := make(chan []uint64)
 	go table.GetAdminRoles(guildId, adminRolesChan)
 	adminRoles := <- adminRolesChan
 
+	userRoles, found := getRoles(guildId, userId)
+
 	hasAdminRole := false
-	for _, userRole := range userRoles {
-		for _, adminRole := range adminRoles {
-			if userRole == adminRole {
-				hasAdminRole = true
-				break
+	if found {
+		for _, userRole := range userRoles {
+			for _, adminRole := range adminRoles {
+				if userRole == adminRole {
+					hasAdminRole = true
+					break
+				}
 			}
 		}
 	}
@@ -56,15 +52,18 @@ func IsAdmin(guild objects.Guild, guildId, userId uint64, res chan bool) {
 	res <- false
 }
 
-func GetRolesRest(store sessions.Session, guildId, userId uint64) *[]uint64 {
-	var member objects.Member
-	endpoint := guild.GetGuildMember(guildId, userId)
+func getRoles(guildId, userId uint64) ([]uint64, bool) {
+	member, found := cache.Instance.GetMember(guildId, userId)
+	if !found { // get from rest
+		var err error
+		member, err = rest.GetGuildMember(config.Conf.Bot.Token, ratelimit.Ratelimiter, guildId, userId)
+		if err != nil {
+			return nil, false
+		}
 
-	if err, _ := endpoint.Request(store, nil, nil, &member); err != nil {
-		log.Error(err.Error())
-		return nil
+		// cache
+		cache.Instance.StoreMember(member, guildId)
 	}
 
-	roles := []uint64(member.Roles)
-	return &roles
+	return member.Roles, true
 }

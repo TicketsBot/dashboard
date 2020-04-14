@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord"
-	"github.com/TicketsBot/GoPanel/utils/discord/endpoints/channel"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/rest"
 	"strconv"
 )
 
@@ -21,7 +21,6 @@ func SendMessage(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userIdStr := store.Get("userid").(string)
 		userId, err := utils.GetUserId(store)
 		if err != nil {
 			ctx.String(500, err.Error())
@@ -37,13 +36,7 @@ func SendMessage(ctx *gin.Context) {
 		}
 
 		// Get object for selected guild
-		var guild objects.Guild
-		for _, g := range table.GetGuilds(userIdStr) {
-			if g.Id == guildIdStr {
-				guild = g
-				break
-			}
-		}
+		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
@@ -65,18 +58,13 @@ func SendMessage(ctx *gin.Context) {
 			return
 		}
 
-		contentType := discord.ApplicationJson
-
 		if exists {
 			content := fmt.Sprintf("**%s**: %s", store.Get("name").(string), ctx.PostForm("message"))
 			if len(content) > 2000 {
 				content = content[0:1999]
 			}
 
-			endpoint := channel.CreateMessage(int(ticket.Channel))
-			err, _ = endpoint.Request(store, &contentType, channel.CreateMessageBody{
-				Content: content,
-			}, nil)
+			_, _ = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Channel, rest.CreateMessageData{Content: content})
 		}
 	} else {
 		ctx.Redirect(302, "/login")
