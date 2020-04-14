@@ -2,7 +2,6 @@ package utils
 
 import (
 	"github.com/gin-gonic/contrib/sessions"
-	"strconv"
 )
 
 func IsLoggedIn(store sessions.Session) bool {
@@ -15,6 +14,6 @@ func IsLoggedIn(store sessions.Session) bool {
 		store.Get("csrf") != nil
 }
 
-func GetUserId(store sessions.Session) (uint64, error) {
-	return strconv.ParseUint(store.Get("userid").(string), 10, 64)
+func GetUserId(store sessions.Session) uint64 {
+	return store.Get("userid").(uint64)
 }

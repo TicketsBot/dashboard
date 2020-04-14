@@ -18,11 +18,7 @@ func LogsHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userId, err := utils.GetUserId(store)
-		if err != nil {
-			ctx.String(500, err.Error())
-			return
-		}
+		userId := utils.GetUserId(store)
 
 		// Verify the guild exists
 		guildIdStr := ctx.Param("id")

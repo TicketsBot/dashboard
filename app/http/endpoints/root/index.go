@@ -19,11 +19,7 @@ func IndexHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
-		userId, err := utils.GetUserId(store)
-		if err != nil {
-			ctx.String(500, err.Error())
-			return
-		}
+		userId := utils.GetUserId(store)
 
 		userGuilds := table.GetGuilds(userId)
 		adminGuilds := make([]objects.Guild, 0)
