@@ -85,11 +85,7 @@ func WebChatWs(ctx *gin.Context) {
 		SocketsLock.Lock()
 		Sockets = append(Sockets, socket)
 		SocketsLock.Unlock()
-		userId, err := utils.GetUserId(store)
-		if err != nil {
-			conn.Close()
-			return
-		}
+		userId := utils.GetUserId(store)
 
 		var guildId string
 		var guildIdParsed uint64
