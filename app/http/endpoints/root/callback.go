@@ -75,7 +75,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)
-	store.Set("avatar", fmt.Sprintf("https://cdn.discordapp.com/avatars/%s/%s.webp", currentUser.Id, currentUser.Avatar))
+	store.Set("avatar", fmt.Sprintf("https://cdn.discordapp.com/avatars/%d/%s.webp", currentUser.Id, currentUser.Avatar))
 	if err = store.Save(); err != nil {
 		log.Error(err.Error())
 	}
