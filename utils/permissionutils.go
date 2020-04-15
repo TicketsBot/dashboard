@@ -6,6 +6,7 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/rxdn/gdl/objects/guild"
+	"github.com/rxdn/gdl/permission"
 	"github.com/rxdn/gdl/rest"
 	"strconv"
 )
@@ -23,8 +24,8 @@ func IsAdmin(g guild.Guild, userId uint64, res chan bool) {
 		res <- true
 	}
 
-	if g.Permissions & 0x8 != 0 {
-		res <- true
+	if permission.HasPermissionRaw(g.Permissions, permission.Administrator) {
+		 res <- true
 	}
 
 	adminRolesChan := make(chan []uint64)
