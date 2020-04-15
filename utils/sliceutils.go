@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/rxdn/gdl/objects/channel/message"
 	"reflect"
 )
@@ -21,17 +20,6 @@ func Contains(s interface{}, elem interface{}) bool {
 	}
 
 	return false
-}
-
-func Insert(slice []objects.Guild, index int, value objects.Guild) []objects.Guild {
-	// Grow the slice by one element.
-	slice = slice[0 : len(slice)+1]
-	// Use copy to move the upper part of the slice out of the way and open a hole.
-	copy(slice[index+1:], slice[index:])
-	// Store the new value.
-	slice[index] = value
-	// Return the result.
-	return slice
 }
 
 func Reverse(slice []message.Message) []message.Message {

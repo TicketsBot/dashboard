@@ -9,10 +9,10 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	userEndpoint "github.com/TicketsBot/GoPanel/utils/discord/endpoints/user"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/user"
 	"time"
 )
@@ -84,7 +84,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
-		var guilds []objects.Guild
+		var guilds []guild.Guild
 		err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
 		if err != nil {
 			log.Error(err.Error())

@@ -4,11 +4,9 @@ import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
-	"strconv"
 )
 
 func IndexHandler(ctx *gin.Context) {
@@ -22,15 +20,10 @@ func IndexHandler(ctx *gin.Context) {
 		userId := utils.GetUserId(store)
 
 		userGuilds := table.GetGuilds(userId)
-		adminGuilds := make([]objects.Guild, 0)
+		adminGuilds := make([]guild.Guild, 0)
 		for _, g := range userGuilds {
-			guildId, err := strconv.ParseUint(g.Id, 10, 64)
-			if err != nil { // I think this happens when a server was deleted? We should just skip though.
-				continue
-			}
-
 			fakeGuild := guild.Guild{
-				Id:          guildId,
+				Id:          g.Id,
 				OwnerId:     g.OwnerId,
 				Permissions: g.Permissions,
 			}

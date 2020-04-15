@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils/discord/objects"
+	"github.com/rxdn/gdl/objects/guild"
 )
 
 type GuildCache struct {
@@ -22,17 +22,17 @@ func UpdateGuilds(userId uint64, guilds string) {
 	database.Database.Where(&GuildCache{UserId: userId}).Assign(&GuildCache{Guilds: guilds}).FirstOrCreate(&cache)
 }
 
-func GetGuilds(userId uint64) []objects.Guild {
+func GetGuilds(userId uint64) []guild.Guild {
 	var cache GuildCache
 	database.Database.Where(&GuildCache{UserId: userId}).First(&cache)
 	decoded, err := base64.StdEncoding.DecodeString(cache.Guilds)
 	if err != nil {
-		return make([]objects.Guild, 0)
+		return nil
 	}
 
-	var guilds []objects.Guild
+	var guilds []guild.Guild
 	if err := json.Unmarshal(decoded, &guilds); err != nil {
-		return make([]objects.Guild, 0)
+		return nil
 	}
 
 	return guilds
