@@ -1,23 +1,22 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
 version: 2
 jobs:
   build:
     docker:
       - image: circleci/golang:1.14
+    working_directory: /go/src/github.com/TicketsBot/GoPanel
 
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
 
-      - run:
-        name: Install czlib
-        command: sudo apt-get install -y zlib1g-dev
+      - restore_cache:
+          keys:
+            - v1-pkg-cache
 
       - run:
-        name: Build
-        command: go build ./cmd/panel/main.go
+          name: Install czlib
+          command: sudo apt-get install -y zlib1g-dev
+
+      - run: go build cmd/panel/main.go
 
       - store_artifacts:
-          path: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/main
+          path: /go/src/github.com/TicketsBot/GoPanel/main
