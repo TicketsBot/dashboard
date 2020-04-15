@@ -126,7 +126,7 @@ func WebChatWs(ctx *gin.Context) {
 
 				// Verify the user has permissions to be here
 				isAdmin := make(chan bool)
-				go utils.IsAdmin(guild, guildIdParsed, userId, isAdmin)
+				go utils.IsAdmin(guild, userId, isAdmin)
 				if !<-isAdmin {
 					fmt.Println(err.Error())
 					conn.Close()

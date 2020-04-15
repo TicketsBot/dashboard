@@ -10,16 +10,16 @@ import (
 	"strconv"
 )
 
-func IsAdmin(g guild.Guild, guildId, userId uint64, res chan bool) {
+func IsAdmin(g guild.Guild, userId uint64, res chan bool) {
 	if Contains(config.Conf.Admins, strconv.Itoa(int(userId))) {
 		res <- true
 	}
 
-	if g.Owner {
+	if g.OwnerId == userId {
 		res <- true
 	}
 
-	if table.IsAdmin(guildId, userId) {
+	if table.IsAdmin(g.Id, userId) {
 		res <- true
 	}
 
@@ -28,10 +28,10 @@ func IsAdmin(g guild.Guild, guildId, userId uint64, res chan bool) {
 	}
 
 	adminRolesChan := make(chan []uint64)
-	go table.GetAdminRoles(guildId, adminRolesChan)
+	go table.GetAdminRoles(g.Id, adminRolesChan)
 	adminRoles := <- adminRolesChan
 
-	userRoles, found := getRoles(guildId, userId)
+	userRoles, found := getRoles(g.Id, userId)
 
 	hasAdminRole := false
 	if found {

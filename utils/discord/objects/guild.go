@@ -5,5 +5,6 @@ type Guild struct {
 	Name        string
 	Icon        string
 	Owner       bool
+	OwnerId     uint64 `json:"id,string"`
 	Permissions int
 }

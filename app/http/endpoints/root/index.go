@@ -30,12 +30,13 @@ func IndexHandler(ctx *gin.Context) {
 			}
 
 			fakeGuild := guild.Guild{
-				Owner:       g.Owner,
+				Id:          guildId,
+				OwnerId:     g.OwnerId,
 				Permissions: g.Permissions,
 			}
 
 			isAdmin := make(chan bool)
-			go utils.IsAdmin(fakeGuild, guildId, userId, isAdmin)
+			go utils.IsAdmin(fakeGuild, userId, isAdmin)
 			if <-isAdmin {
 				adminGuilds = append(adminGuilds, g)
 			}

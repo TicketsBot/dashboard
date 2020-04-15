@@ -35,7 +35,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
-		go utils.IsAdmin(guild, guildId, userId, isAdmin)
+		go utils.IsAdmin(guild, userId, isAdmin)
 		if !<-isAdmin {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
