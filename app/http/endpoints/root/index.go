@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 )
-0
+
 func IndexHandler(ctx *gin.Context) {
 	store := sessions.Default(ctx)
 	if store == nil {
