@@ -20,6 +20,12 @@ func LoginHandler(ctx *gin.Context) {
 		ctx.Redirect(302, config.Conf.Server.BaseUrl)
 	} else {
 		redirect := url.QueryEscape(config.Conf.Oauth.RedirectUri)
-		ctx.Redirect(302, fmt.Sprintf("https://discordapp.com/oauth2/authorize?response_type=code&redirect_uri=%s&scope=identify+guilds&client_id=%d", redirect, config.Conf.Oauth.Id))
+
+		var guildsScope string
+		if _, noGuilds := ctx.GetQuery("noguilds"); !noGuilds {
+			guildsScope = "+guilds"
+		}
+
+		ctx.Redirect(302, fmt.Sprintf("https://discordapp.com/oauth2/authorize?response_type=code&redirect_uri=%s&scope=identify%s&client_id=%d&state=%s", redirect, guildsScope, config.Conf.Oauth.Id, ctx.Query("state")))
 	}
 }

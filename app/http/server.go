@@ -44,7 +44,7 @@ func StartServer() {
 	router.POST("/manage/:id/settings", manage.UpdateSettingsHandler)
 
 	router.GET("/manage/:id/logs/page/:page", manage.LogsHandler)
-	router.GET("/manage/:id/logs/view/:uuid", manage.LogViewHandler)
+	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler)
 
 	router.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 	router.GET("/manage/:id/blacklist/remove/:user", manage.BlacklistRemoveHandler)

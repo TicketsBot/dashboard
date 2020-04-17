@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/user"
+	"strings"
 	"time"
 )
 
@@ -48,8 +49,8 @@ func CallbackHandler(ctx *gin.Context) {
 		return
 	}
 
-	code := ctx.DefaultQuery("code", "")
-	if code == "" {
+	code, ok := ctx.GetQuery("code")
+	if !ok {
 		ctx.String(400, "Discord provided an invalid Oauth2 code")
 		return
 	}
@@ -80,7 +81,7 @@ func CallbackHandler(ctx *gin.Context) {
 		log.Error(err.Error())
 	}
 
-	ctx.Redirect(302, config.Conf.Server.BaseUrl)
+	handleRedirect(ctx)
 
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
@@ -109,4 +110,14 @@ func CallbackHandler(ctx *gin.Context) {
 		// TODO: unfuck this
 		table.UpdateGuilds(currentUser.Id, base64.StdEncoding.EncodeToString(marshalled))
 	}()
+}
+
+func handleRedirect(ctx *gin.Context) {
+	state := strings.Split(ctx.Query("state"), ".")
+
+	if len(state) == 3 && state[0] == "viewlog" {
+		ctx.Redirect(302, fmt.Sprintf("%s/manage/%s/logs/view/%s", config.Conf.Server.BaseUrl, state[1], state[2]))
+	} else {
+		ctx.Redirect(302, config.Conf.Server.BaseUrl)
+	}
 }

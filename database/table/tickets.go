@@ -10,7 +10,7 @@ type Ticket struct {
 	Owner    uint64 `gorm:"column:OWNERID"`
 	Members  string `gorm:"column:MEMBERS;type:text"`
 	IsOpen   bool   `gorm:"column:OPEN"`
-	OpenTime int64 `gorm:"column:OPENTIME"`
+	OpenTime int64  `gorm:"column:OPENTIME"`
 }
 
 func (Ticket) TableName() string {
@@ -20,6 +20,18 @@ func (Ticket) TableName() string {
 func GetTickets(guild uint64) []Ticket {
 	var tickets []Ticket
 	database.Database.Where(&Ticket{Guild: guild}).Order("ID asc").Find(&tickets)
+	return tickets
+}
+
+func GetClosedTickets(guildId uint64) []Ticket {
+	var tickets []Ticket
+	database.Database.Where(&Ticket{Guild: guildId, IsOpen: false}).Order("ID asc").Find(&tickets)
+	return tickets
+}
+
+func GetClosedTicketsByUserId(guildId uint64, userIds []uint64) []Ticket {
+	var tickets []Ticket
+	database.Database.Where(&Ticket{Guild: guildId, IsOpen: false}).Where("OWNERID IN (?)", userIds).Order("ID asc").Find(&tickets)
 	return tickets
 }
 

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/TicketsBot/archiverclient v0.0.0-20200417174514-cf009e9a2547
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/gin-contrib/multitemplate v0.0.0-20200226145339-3e397ee01bc6
@@ -19,6 +20,5 @@ require (
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
-	github.com/rxdn/gdl v0.0.0-20200410134146-c1b0871088c5
-	github.com/vmihailenco/msgpack v4.0.4+incompatible
+	github.com/rxdn/gdl v0.0.0-20200417164852-76b2d3c847c1
 )

@@ -12,6 +12,7 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/archiverclient"
 	"github.com/apex/log"
 	gdlratelimit "github.com/rxdn/gdl/rest/ratelimit"
 	"math/rand"
@@ -32,12 +33,14 @@ func main() {
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
+	manage.Archiver = archiverclient.NewArchiverClient(config.Conf.Bot.ObjectStore)
+
 	utils.LoadEmoji()
 
 	messagequeue.Client = messagequeue.NewRedisClient()
 	go Listen(messagequeue.Client)
 
-	ratelimit.Ratelimiter = gdlratelimit.NewRateLimiter(gdlratelimit.NewRedisStore(messagequeue.Client.Client, "ratelimit")) // TODO: Use values from config
+	ratelimit.Ratelimiter = gdlratelimit.NewRateLimiter(gdlratelimit.NewRedisStore(messagequeue.Client.Client, "ratelimit"), 1) // TODO: Use values from config
 
 	http.StartServer()
 }
