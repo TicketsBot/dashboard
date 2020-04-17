@@ -2,6 +2,7 @@ package manage
 
 import (
 	"context"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
@@ -84,7 +85,7 @@ func LogsHandler(ctx *gin.Context) {
 			// Get username from URL
 			if username := ctx.Query("username"); username != "" {
 				// username -> user id
-				rows, err := cache.Instance.PgCache.Query(context.Background(), `select users.user_id from users where "data"->>'Username'=$1 and exists(SELECT FROM members where members.guild_id=$2);`, username, guildId)
+				rows, err := cache.Instance.PgCache.Query(context.Background(), `select users.user_id from users where LOWER("data"->>'Username') LIKE LOWER($1) and exists(SELECT FROM members where members.guild_id=$2);`, fmt.Sprintf("%%%s%%", username), guildId)
 				defer rows.Close()
 				if err != nil {
 					log.Error(err.Error())
