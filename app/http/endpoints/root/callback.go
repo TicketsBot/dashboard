@@ -84,11 +84,20 @@ func CallbackHandler(ctx *gin.Context) {
 
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
-		var guilds []guild.Guild
+		var guilds []*guild.Guild
 		err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
 		if err != nil {
 			log.Error(err.Error())
 			return
+		}
+
+		// endpoint's partial guild doesn't include ownerid
+		// we only user cached guilds on the index page, so it doesn't matter if we don't have have the real owner id
+		// if the user isn't the owner, as we pull from the cache on other endpoints
+		for _, guild := range guilds {
+			if guild.Owner {
+				guild.OwnerId = currentUser.Id
+			}
 		}
 
 		marshalled, err := json.Marshal(guilds)
