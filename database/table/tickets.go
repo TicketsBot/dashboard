@@ -25,13 +25,13 @@ func GetTickets(guild uint64) []Ticket {
 
 func GetClosedTickets(guildId uint64) []Ticket {
 	var tickets []Ticket
-	database.Database.Where(&Ticket{Guild: guildId, IsOpen: false}).Order("ID desc").Find(&tickets)
+	database.Database.Where(&Ticket{Guild: guildId}).Where("OPEN = 0").Order("ID desc").Find(&tickets)
 	return tickets
 }
 
 func GetClosedTicketsByUserId(guildId uint64, userIds []uint64) []Ticket {
 	var tickets []Ticket
-	database.Database.Where(&Ticket{Guild: guildId, IsOpen: false}).Where("OWNERID IN (?)", userIds).Order("ID desc").Find(&tickets)
+	database.Database.Where(&Ticket{Guild: guildId}).Where("OPEN = 0").Where("OWNERID IN (?)", userIds).Order("ID desc").Find(&tickets)
 	return tickets
 }
 
