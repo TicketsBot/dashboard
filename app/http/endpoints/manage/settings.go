@@ -31,14 +31,11 @@ func SettingsHandler(ctx *gin.Context) {
 		}
 
 		// Check the bot is in the guild
-		_, isInGuild := cache.Instance.GetGuild(guildId, false)
+		guild, isInGuild := cache.Instance.GetGuild(guildId, false)
 		if !isInGuild {
 			ctx.Redirect(302, fmt.Sprintf("https://invite.ticketsbot.net/?guild_id=%s&disable_guild_select=true&response_type=code&scope=bot%%20identify&redirect_uri=%s", guildIdStr, config.Conf.Server.BaseUrl))
 			return
 		}
-
-		// Get object for selected guild
-		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)

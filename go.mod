@@ -21,4 +21,5 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/rxdn/gdl v0.0.0-20200417164852-76b2d3c847c1
+	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a // indirect
 )
