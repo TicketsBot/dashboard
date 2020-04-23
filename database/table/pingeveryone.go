@@ -29,9 +29,8 @@ func UpdatePingEveryone(guildId uint64, pingEveryone bool) {
 	//database.Database.Where(&PingEveryone{GuildId: guildId}).Assign(&updated).FirstOrCreate(&PingEveryone{})
 }
 
-func GetPingEveryone(guildId uint64) bool {
+func GetPingEveryone(guildId uint64, ch chan bool) {
 	pingEveryone := PingEveryone{PingEveryone: true}
 	database.Database.Where(&PingEveryone{GuildId: guildId}).First(&pingEveryone)
-
-	return pingEveryone.PingEveryone
+	ch <- pingEveryone.PingEveryone
 }

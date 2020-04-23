@@ -22,6 +22,7 @@ type (
 		MainSite  string
 		Ratelimit Ratelimit
 		Session   Session
+		Secret    string
 	}
 
 	Ratelimit struct {

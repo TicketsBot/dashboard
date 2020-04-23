@@ -2,8 +2,10 @@ package http
 
 import (
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
+	"github.com/TicketsBot/GoPanel/app/http/middleware"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/static"
@@ -31,33 +33,66 @@ func StartServer() {
 	// Handle static asset requests
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
+	router.Use(gin.Recovery())
+
 	// Register templates
 	router.HTMLRender = createRenderer()
 
-	router.GET("/", root.IndexHandler)
-
 	router.GET("/login", root.LoginHandler)
 	router.GET("/callback", root.CallbackHandler)
-	router.GET("/logout", root.LogoutHandler)
 
-	router.GET("/manage/:id/settings", manage.SettingsHandler)
-	router.POST("/manage/:id/settings", manage.UpdateSettingsHandler)
+	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler) // we check in the actual handler bc of a custom redirect
 
-	router.GET("/manage/:id/logs/page/:page", manage.LogsHandler)
-	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler)
+	authorized := router.Group("/", middleware.AuthenticateCookie)
+	{
+		authorized.POST("/token", api.TokenHandler)
 
-	router.GET("/manage/:id/blacklist", manage.BlacklistHandler)
-	router.GET("/manage/:id/blacklist/remove/:user", manage.BlacklistRemoveHandler)
+		authenticateGuild := authorized.Group("/", middleware.AuthenticateGuild(false))
 
-	router.GET("/manage/:id/panels", manage.PanelHandler)
-	router.POST("/manage/:id/panels/create", manage.PanelCreateHandler)
-	router.GET("/manage/:id/panels/delete/:msg", manage.PanelDeleteHandler)
+		authorized.GET("/", root.IndexHandler)
+		authorized.GET("/logout", root.LogoutHandler)
 
-	router.GET("/manage/:id/tickets", manage.TicketListHandler)
-	router.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
-	router.POST("/manage/:id/tickets/view/:uuid/close", manage.TicketCloseHandler)
-	router.POST("/manage/:id/tickets/view/:uuid", manage.SendMessage)
-	router.GET("/webchat", manage.WebChatWs)
+		authenticateGuild.GET("/manage/:id/settings", manage.SettingsHandler)
+		authenticateGuild.GET("/manage/:id/logs", manage.LogsHandler)
+		authenticateGuild.GET("/manage/:id/blacklist", manage.BlacklistHandler)
+		authenticateGuild.GET("/manage/:id/panels", manage.PanelHandler)
+
+		authenticateGuild.GET("/manage/:id/tickets", manage.TicketListHandler)
+		authenticateGuild.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
+		authenticateGuild.POST("/manage/:id/tickets/view/:uuid", api.SendMessage)
+
+		authorized.GET("/webchat", manage.WebChatWs)
+	}
+
+	apiGroup := router.Group("/api", middleware.AuthenticateToken)
+	guildAuthApi := apiGroup.Group("/", middleware.AuthenticateGuild(true))
+	{
+		guildAuthApi.GET("/:id/channels", api.ChannelsHandler)
+		guildAuthApi.GET("/:id/premium", api.PremiumHandler)
+
+		guildAuthApi.GET("/:id/settings", api.GetSettingsHandler)
+		guildAuthApi.POST("/:id/settings", api.UpdateSettingsHandler)
+
+		guildAuthApi.GET("/:id/blacklist", api.GetBlacklistHandler)
+		guildAuthApi.PUT("/:id/blacklist", api.AddBlacklistHandler)
+		guildAuthApi.DELETE("/:id/blacklist/:user", api.RemoveBlacklistHandler)
+
+		guildAuthApi.GET("/:id/panels", api.ListPanels)
+		guildAuthApi.PUT("/:id/panels", api.CreatePanel)
+		guildAuthApi.DELETE("/:id/panels/:message", api.DeletePanel)
+
+		guildAuthApi.GET("/:id/logs/:page", api.GetLogs)
+
+		guildAuthApi.GET("/:id/tickets", api.GetTickets)
+		guildAuthApi.GET("/:id/tickets/:uuid", api.GetTicket)
+		guildAuthApi.POST("/:id/tickets/:uuid", api.SendMessage)
+		guildAuthApi.DELETE("/:id/tickets/:uuid", api.CloseTicket)
+	}
+
+	userGroup := router.Group("/user", middleware.AuthenticateToken)
+	{
+		userGroup.GET("/guilds", api.GetGuilds)
+	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {
 		panic(err)

@@ -1,22 +1,14 @@
 package manage
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/rxdn/gdl/rest"
-	"net/http"
 	"strconv"
 	"sync"
-	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -47,169 +39,95 @@ type (
 
 func WebChatWs(ctx *gin.Context) {
 	store := sessions.Default(ctx)
-	if store == nil {
+
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
-	defer store.Save()
 
-	if utils.IsLoggedIn(store) {
-		conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
+	socket := &Socket{
+		Ws: conn,
+	}
 
-		socket := &Socket{
-			Ws: conn,
-		}
-
-		conn.SetCloseHandler(func(code int, text string) error {
-			i := -1
-			SocketsLock.Lock()
-
-			for index, element := range Sockets {
-				if element == socket {
-					i = index
-					break
-				}
-			}
-
-			if i != -1 {
-				Sockets = Sockets[:i+copy(Sockets[i:], Sockets[i+1:])]
-			}
-			SocketsLock.Unlock()
-
-			return nil
-		})
-
+	conn.SetCloseHandler(func(code int, text string) error {
+		i := -1
 		SocketsLock.Lock()
-		Sockets = append(Sockets, socket)
-		SocketsLock.Unlock()
-		userId := utils.GetUserId(store)
 
-		var guildId string
-		var guildIdParsed uint64
-		var ticket int
-
-		for {
-			var evnt WsEvent
-			err := conn.ReadJSON(&evnt)
-			if err != nil {
+		for index, element := range Sockets {
+			if element == socket {
+				i = index
 				break
 			}
+		}
 
-			if guildId == "" && evnt.Type != "auth" {
+		if i != -1 {
+			Sockets = Sockets[:i+copy(Sockets[i:], Sockets[i+1:])]
+		}
+		SocketsLock.Unlock()
+
+		return nil
+	})
+
+	SocketsLock.Lock()
+	Sockets = append(Sockets, socket)
+	SocketsLock.Unlock()
+	userId := utils.GetUserId(store)
+
+	var guildId string
+	var guildIdParsed uint64
+	var ticket int
+
+	for {
+		var evnt WsEvent
+		err := conn.ReadJSON(&evnt)
+		if err != nil {
+			break
+		}
+
+		if guildId == "" && evnt.Type != "auth" {
+			conn.Close()
+			break
+		} else if evnt.Type == "auth" {
+			data := evnt.Data.(map[string]interface{})
+
+			guildId = data["guild"].(string)
+			ticket, err = strconv.Atoi(data["ticket"].(string))
+			if err != nil {
 				conn.Close()
 				break
-			} else if evnt.Type == "auth" {
-				data := evnt.Data.(map[string]interface{})
+			}
 
-				guildId = data["guild"].(string)
-				ticket, err = strconv.Atoi(data["ticket"].(string));
-				if err != nil {
-					conn.Close()
-				}
+			socket.Guild = guildId
+			socket.Ticket = ticket
 
-				socket.Guild = guildId
-				socket.Ticket = ticket
+			// Verify the guild exists
+			guildIdParsed, err = strconv.ParseUint(guildId, 10, 64)
+			if err != nil {
+				fmt.Println(err.Error())
+				conn.Close()
+				return
+			}
 
-				// Verify the guild exists
-				guildIdParsed, err = strconv.ParseUint(guildId, 10, 64)
-				if err != nil {
-					fmt.Println(err.Error())
-					conn.Close()
-					return
-				}
+			// Get object for selected guild
+			guild, _ := cache.Instance.GetGuild(guildIdParsed, false)
 
-				// Get object for selected guild
-				guild, _ := cache.Instance.GetGuild(guildIdParsed, false)
+			// Verify the user has permissions to be here
+			isAdmin := make(chan bool)
+			go utils.IsAdmin(guild, userId, isAdmin)
+			if !<-isAdmin {
+				fmt.Println(err.Error())
+				conn.Close()
+				return
+			}
 
-				// Verify the user has permissions to be here
-				isAdmin := make(chan bool)
-				go utils.IsAdmin(guild, userId, isAdmin)
-				if !<-isAdmin {
-					fmt.Println(err.Error())
-					conn.Close()
-					return
-				}
-
-				// Verify the guild is premium
-				premium := make(chan bool)
-				go utils.IsPremiumGuild(store, guildIdParsed, premium)
-				if !<-premium {
-					conn.Close()
-					return
-				}
-			} else if evnt.Type == "send" {
-				data := evnt.Data.(string)
-
-				if data == "" {
-					continue
-				}
-
-				// Get ticket UUID from URL and verify it exists
-				ticketChan := make(chan table.Ticket)
-				go table.GetTicketById(guildIdParsed, ticket, ticketChan)
-				ticket := <-ticketChan
-				exists := ticket != table.Ticket{}
-
-				if exists {
-					content := data
-					if len(content) > 2000 {
-						content = content[0:1999]
-					}
-
-					// Preferably send via a webhook
-					webhookChan := make(chan *string)
-					go table.GetWebhookByUuid(ticket.Uuid, webhookChan)
-					webhook := <-webhookChan
-
-					success := false
-					if webhook != nil {
-						success = executeWebhook( ticket.Uuid, *webhook, content, store)
-					}
-
-					if !success {
-						content = fmt.Sprintf("**%s**: %s", store.Get("name").(string), data)
-						if len(content) > 2000 {
-							content = content[0:1999]
-						}
-
-						_, _ = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Channel, rest.CreateMessageData{Content: content})
-					}
-				}
+			// Verify the guild is premium
+			premium := make(chan bool)
+			go utils.IsPremiumGuild(guildIdParsed, premium)
+			if !<-premium {
+				conn.Close()
+				return
 			}
 		}
 	}
-}
-
-func executeWebhook(uuid, webhook, content string, store sessions.Session) bool {
-	body := map[string]interface{}{
-		"content":    content,
-		"username":   store.Get("name").(string),
-		"avatar_url": store.Get("avatar").(string),
-	}
-	encoded, err := json.Marshal(&body); if err != nil {
-		return false
-	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://canary.discordapp.com/api/webhooks/%s", webhook), bytes.NewBuffer(encoded)); if err != nil {
-		return false
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	client.Timeout = 3 * time.Second
-
-	res, err := client.Do(req); if err != nil {
-		return false
-	}
-
-	if res.StatusCode == 404 || res.StatusCode == 403 {
-		go table.DeleteWebhookByUuid(uuid)
-	} else {
-		return true
-	}
-
-	return false
 }

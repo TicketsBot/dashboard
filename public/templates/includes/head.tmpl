@@ -14,15 +14,54 @@
   <link href="/assets/css/style.css" rel="stylesheet">
 
   <style>
-    .avatar {
-      background: url("{{.avatar}}?size=32");
-      width: 28px;
-      height: 29px;
+    #avatar-sidebar {
+      background: url("{{.avatar}}?size=256") center center;
+      width: 32px;
+      height: 32px;
       display: block;
       background-size: cover;
       border-radius: 50%;
+      float: right;
+
     }
   </style>
+
+  <!-- Vue
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+  <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>-->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"
+          integrity="sha256-T/f7Sju1ZfNNfBh7skWn0idlCBcI3RwdLSS4/I7NQKQ=" crossorigin="anonymous"></script>
+
+  <script>
+      async function getToken() {
+          let token = window.localStorage.getItem('token');
+          if (token == null) {
+              let res = await axios.post('/token', {
+                  withCredentials: true
+              });
+
+              if (res.status !== 200 || !res.data.success) {
+                  console.log("An error occurred whilst retrieving an authentication token. Please contact the developer");
+                  console.log(res);
+                  return;
+              }
+
+              token = res.data.token;
+              localStorage.setItem('token', token);
+          }
+
+          return token;
+      }
+
+      async function setDefaultHeader() {
+          const token = await getToken();
+          axios.defaults.headers.common['Authorization'] = token;
+          axios.defaults.validateStatus = false;
+      }
+
+      setDefaultHeader();
+  </script>
 
   <!-- Bootstrap -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -51,6 +90,49 @@
       window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
       ga('create', 'UA-161945537-1', 'auto');
       ga('send', 'pageview');
-    </script>
-  <script async src='https://www.google-analytics.com/analytics.js' type="80be96f83bbfbba3d4097e23-text/javascript"></script>
+
+
+  </script>
+  <script async src='https://www.google-analytics.com/analytics.js'
+          type="80be96f83bbfbba3d4097e23-text/javascript"></script>
+
+  <script>
+      function showToast(title, content) {
+          const container = document.getElementById('toast-container');
+
+          container.innerHTML += `
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto">${title}</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body">
+                ${content}
+              </div>
+            </div>
+          `;
+
+          $('.toast').toast('show');
+      }
+
+      function appendTd(tr, content) {
+          const td = document.createElement('td');
+          td.appendChild(document.createTextNode(content));
+          td.classList.add('white');
+          tr.appendChild(td);
+      }
+
+      function appendButton(tr, content, onclick) {
+          const tdRemove = document.createElement('td');
+          const removeButton = document.createElement('button');
+          removeButton.type = 'submit';
+          removeButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+          removeButton.appendChild(document.createTextNode(content));
+          removeButton.onclick = onclick;
+          tdRemove.appendChild(removeButton);
+          tr.appendChild(tdRemove);
+      }
+  </script>
 {{end}}

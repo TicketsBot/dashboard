@@ -17,9 +17,8 @@ func UpdatePrefix(guildId uint64, prefix string) {
 	database.Database.Where(&Prefix{GuildId: guildId}).Assign(&Prefix{Prefix: prefix}).FirstOrCreate(&Prefix{})
 }
 
-func GetPrefix(guildId uint64) string {
+func GetPrefix(guildId uint64, ch chan string) {
 	prefix := Prefix{Prefix: "t!"}
 	database.Database.Where(&Prefix{GuildId: guildId}).First(&prefix)
-
-	return prefix.Prefix
+	ch <- prefix.Prefix
 }

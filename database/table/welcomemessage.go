@@ -17,9 +17,8 @@ func UpdateWelcomeMessage(guildId uint64, message string) {
 	database.Database.Where(&WelcomeMessage{GuildId: guildId}).Assign(&WelcomeMessage{Message: message}).FirstOrCreate(&WelcomeMessage{})
 }
 
-func GetWelcomeMessage(guildId uint64) string {
+func GetWelcomeMessage(guildId uint64, ch chan string) {
 	message := WelcomeMessage{Message: "No message specified"}
 	database.Database.Where(&WelcomeMessage{GuildId: guildId}).First(&message)
-
-	return message.Message
+	ch <- message.Message
 }

@@ -12,27 +12,27 @@
                 <div id="accordion">
                   <div class="card">
                     <div class="card-header collapsed filterCard" id="addBlacklistHeader" data-toggle="collapse" data-target="#addBlacklist" aria-expanded="false" aria-controls="addBlacklist">
-                      <span class="align-middle" data-toggle="collapse" data-target="#addBlacklist" aria-expanded="false" aria-controls="addBlacklist">
+                      <span class="align-middle white" data-toggle="collapse" data-target="#addBlacklist" aria-expanded="false" aria-controls="addBlacklist">
                         <i class="fas fa-plus"></i> Add New User
                       </span>
                     </div>
                     <div id="addBlacklist" class="collapse" aria-labelledby="addBlacklistHeader" data-parent="#accordion">
                       <div class="card-body">
-                        <form>
+                        <form onsubmit="blacklistUser(); return false;">
                           <div class="row">
                             <div class="col-md-3 pr-1">
                               <div class="form-group">
                                 <label>Username</label>
-                                <input name="username" type="text" class="form-control" placeholder="Username">
+                                <input name="username" type="text" class="form-control" placeholder="Username" id="username">
                               </div>
                             </div>
-                            <div class="col-md-1 px-1">
+                            <div class="col-md-2 px-1">
                               <label>Discriminator</label>
                               <div class="input-group mb-3">
                                 <div class="input-group-prepend">
                                   <div class="input-group-text">#</div>
                                 </div>
-                                <input name="discrim" type="text" class="form-control" placeholder="0000">
+                                <input name="discrim" type="text" class="form-control" placeholder="0000" id="discriminator">
                               </div>
                             </div>
                           </div>
@@ -41,7 +41,7 @@
                           <div class="row">
                             <div class="col-md-2">
                               <div class="form-group">
-                                <button type="submit" class="btn btn-primary mx-auto"><i class="fas fa-paper-plane"></i> Submit</button>
+                                <button type="submit" class="btn btn-primary btn-fill mx-auto"><i class="fas fa-paper-plane"></i> Submit</button>
                               </div>
                             </div>
                           </div>
@@ -59,14 +59,7 @@
                     <th>Remove</th>
                   </tr>
                   </thead>
-                  <tbody>
-                  {{range .blacklisted}}
-                    <tr>
-                      <td>{{.userId}}</td>
-                      <td>{{.username}}#{{.discrim}}</td>
-                      <td><a href="/manage/{{$.guildId}}/blacklist/remove/{{.userId}}?c={{$.csrf}}">Remove</a></td>
-                    </tr>
-                  {{end}}
+                  <tbody id="blacklisted-container">
                   </tbody>
                 </table>
               </div>
@@ -76,40 +69,73 @@
       </div>
     </div>
 
-
     <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
-      <div style="position: absolute; right: 10px; min-width: 300px">
-        {{if .userNotFound}}
-          <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-            <div class="toast-header">
-              <strong class="mr-auto">Warning</strong>
-              <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="toast-body">
-              The user you specified couldn't be found
-            </div>
-          </div>
-        {{end}}
-        {{if .isStaff}}
-          <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-            <div class="toast-header">
-              <strong class="mr-auto">Warning</strong>
-              <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="toast-body">
-              You cannot blacklist a staff member
-            </div>
-          </div>
-        {{end}}
+      <div style="position: absolute; right: 10px" id="toast-container">
       </div>
     </div>
 
     <script>
-      $('.toast').toast('show');
+      async function appendUser(id, username, discrim) {
+          const container = document.getElementById('blacklisted-container');
+          const tr = document.createElement('tr');
+          tr.id = id;
+
+          appendTd(tr, id);
+          appendTd(tr, `${username}#${discrim}`);
+
+          const tdRemove = document.createElement('td');
+          const removeButton = document.createElement('button');
+          removeButton.type = 'submit';
+          removeButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+          removeButton.appendChild(document.createTextNode('Remove'));
+          removeButton.onclick = () => {unblacklistUser(id)};
+          tdRemove.appendChild(removeButton);
+
+          tr.appendChild(tdRemove);
+
+          container.appendChild(tr);
+      }
+
+      async function unblacklistUser(id) {
+          const res = await axios.delete('/api/{{.guildId}}/blacklist/' + id);
+          if (res.status === 200 && res.data.success) {
+              showToast("Success", "Unblacklisted user");
+
+              const el = document.getElementById(id);
+              el.parentNode.removeChild(el);
+          } else {
+              showToast("Error", res.data.error)
+          }
+      }
+
+      async function blacklistUser() {
+          const username = document.getElementById('username').value;
+          const discriminator = document.getElementById('discriminator').value;
+          const res = await axios.put('/api/{{.guildId}}/blacklist', {
+              'username': username,
+              'discriminator': discriminator,
+          });
+
+          if (res.status === 200 && res.data.success) {
+              showToast("Success", "User has been blacklisted");
+              appendUser(res.data.user_id, username, discriminator);
+
+              document.getElementById('username').value = '';
+              document.getElementById('discriminator').value = '';
+          } else {
+              showToast("Error", res.data.error)
+          }
+      }
+
+      async function loadData() {
+          const res = await axios.get('/api/{{.guildId}}/blacklist');
+          Object.keys(res.data).forEach((userId) => {
+              const userData = res.data[userId];
+              appendUser(userId, userData.username, userData.discriminator);
+          });
+      }
+
+      loadData();
     </script>
   </div>
 {{end}}

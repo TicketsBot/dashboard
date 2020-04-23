@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="">
   <head>
     {{template "head" .}}
   </head>
   <body>
     <div class="wrapper">
-      {{template "sidebar" .}}
-
-      <div class="main-panel">
+      <div class="main-panel" style="width: 100% !important;">
         {{template "navbar" .}}
         {{template "content" .}}
       </div>

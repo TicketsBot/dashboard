@@ -17,9 +17,8 @@ func UpdateChannelCategory(guildId uint64, categoryId uint64) {
 	database.Database.Where(&ChannelCategory{GuildId: guildId}).Assign(&ChannelCategory{Category: categoryId}).FirstOrCreate(&ChannelCategory{})
 }
 
-func GetChannelCategory(guildId uint64) uint64 {
+func GetChannelCategory(guildId uint64, ch chan uint64) {
 	var category ChannelCategory
 	database.Database.Where(&ChannelCategory{GuildId: guildId}).First(&category)
-
-	return category.Category
+	ch <- category.Category
 }

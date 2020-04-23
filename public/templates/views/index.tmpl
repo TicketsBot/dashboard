@@ -6,41 +6,56 @@
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Servers</h4>
-                {{if .empty}}
-                  <p class="card-category">Select a server to manage below</p>
-                {{end}}
             </div>
-            <div class="card-body">
-              {{if .empty}}
-                <p class="center-align" style="padding-top: 50px; font-size: 16px">
+            <div class="card-body" id="card">
+              <div class="card-body table-responsive">
+                <p class="center-align white" style="padding-top: 50px; font-size: 16px; display: none" id="no-guilds">
                   You are not the admin of any guilds that the bot is in. Click below to invite the bot:
                   <br/>
-                  <a href="https://invite.ticketsbot.net">Invite</a>
+                  <a href="https://invite.ticketsbot.net"><button class="btn btn-primary btn-fill"><i class="fas fa-plus"></i> Invite</button></a>
                 </p>
-                {{else}}
-                <div class="card-body table-responsive">
-                  <table class="table table-hover table-striped">
-                    <thead>
-                      <th>Server Name</th>
-                    </thead>
-                    <tbody>
-                      {{range .servers}}
-                        <tr>
-                          <td>
-                            <a href="/manage/{{.Id}}/settings">
-                              {{.Name}}
-                            </a>
-                          </td>
-                        </tr>
-                      {{end}}
-                    </tbody>
-                  </table>
-                </div>
-              {{end}}
+                <table class="table table-hover table-striped" id="guild-table" style="display: none">
+                  <thead>
+                    <th>Server Name</th>
+                  </thead>
+                  <tbody id="guild-container">
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+      async function loadData() {
+          const res = await axios.get('/user/guilds');
+
+          if (res.data.length > 0) {
+              document.getElementById('guild-table').style.display = 'table';
+
+              const container = document.getElementById('guild-container');
+
+              for (guild of res.data) {
+                  const tr = document.createElement('tr');
+                  const td = document.createElement('td');
+
+                  const link = document.createElement('a');
+                  link.href = `/manage/${guild.id}/settings`;
+                  link.classList.add('server');
+                  link.appendChild(document.createTextNode(guild.name));
+
+                  td.appendChild(link);
+                  tr.appendChild(td);
+                  container.appendChild(tr);
+              }
+          } else {
+              document.getElementById('no-guilds').style.display = 'block';
+          }
+      }
+
+      loadData();
+  </script>
 {{end}}
