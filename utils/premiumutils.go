@@ -7,7 +7,6 @@ import (
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
-	"github.com/gin-gonic/contrib/sessions"
 	gocache "github.com/robfig/go-cache"
 	"github.com/rxdn/gdl/rest"
 	"io/ioutil"
@@ -23,7 +22,7 @@ type ProxyResponse struct {
 
 var premiumCache = gocache.New(10 * time.Minute, 10 * time.Minute)
 
-func IsPremiumGuild(store sessions.Session, guildId uint64, ch chan bool) {
+func IsPremiumGuild(guildId uint64, ch chan bool) {
 	guildIdRaw := strconv.FormatUint(guildId, 10)
 
 	if premium, ok := premiumCache.Get(guildIdRaw); ok {

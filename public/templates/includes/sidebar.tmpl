@@ -1,12 +1,6 @@
 {{define "sidebar"}}
-  <div class="sidebar" data-color="orange" data-image="/assets/img/sidebar-2.jpg">
+  <div class="sidebar" id="sidebar-gradient">
     <div class="sidebar-wrapper">
-      <div class="logo">
-        <a href="https://ticketsbot.net" class="simple-text">
-          TicketsBot
-        </a>
-      </div>
-
       <ul class="nav">
         <li class="nav-item sidebar-bottom">
           <a href="/">
@@ -23,7 +17,7 @@
         </li>
         <li class="nav-item sidebar-bottom" style="bottom: 10px">
           <a href="#">
-            <i class="avatar"></i>
+            <i id="avatar-sidebar"></i>
             <p>{{.name}}</p>
           </a>
         </li>

@@ -17,9 +17,8 @@ func UpdateTicketLimit(guildId uint64, limit int) {
 	database.Database.Where(&TicketLimit{GuildId: guildId}).Assign(&TicketLimit{Limit: limit}).FirstOrCreate(&TicketLimit{})
 }
 
-func GetTicketLimit(guildId uint64) int {
+func GetTicketLimit(guildId uint64, ch chan int) {
 	limit := TicketLimit{Limit: 5}
 	database.Database.Where(&TicketLimit{GuildId: guildId}).First(&limit)
-
-	return limit.Limit
+	ch <- limit.Limit
 }

@@ -1,17 +1,14 @@
-package root
+package api
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 )
 
-func IndexHandler(ctx *gin.Context) {
-	store := sessions.Default(ctx)
-	userId := utils.GetUserId(store)
+func GetGuilds(ctx *gin.Context) {
+	userId := ctx.Keys["userid"].(uint64)
 
 	userGuilds := table.GetGuilds(userId)
 	adminGuilds := make([]guild.Guild, 0)
@@ -29,9 +26,5 @@ func IndexHandler(ctx *gin.Context) {
 		}
 	}
 
-	ctx.HTML(200, "main/index", gin.H{
-		"name":    store.Get("name").(string),
-		"baseurl": config.Conf.Server.BaseUrl,
-		"avatar":  store.Get("avatar").(string),
-	})
+	ctx.JSON(200, adminGuilds)
 }

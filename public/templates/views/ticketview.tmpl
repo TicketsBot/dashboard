@@ -7,11 +7,10 @@
             <div class="card-body">
               <h4 class="card-title">Close Ticket</h4>
               <div class="close-container">
-                <form class="form-inline" action="/manage/{{.guildId}}/tickets/view/{{.uuid}}/close" method="post">
+                <form class="form-inline" action="javascript:close()">
                   <input type="text" class="form-control" id="reason" name="reason" placeholder="No reason specified" style="width: 80%">
-                  <input name="csrf" type="hidden" value="{{.csrf}}">
                   <div style="padding-left: 10px">
-                    <button type="submit" class="btn btn-primary">Close Ticket</button>
+                    <button type="submit" class="btn btn-primary btn-fill">Close Ticket</button>
                   </div>
                 </form>
               </div>
@@ -19,25 +18,13 @@
               <h4 class="card-title">View Ticket</h4>
               <div class="discord-container">
                 <div class="channel-header">
-                  <span class="channel-name">#ticket-{{.ticketId}}</span>
+                  <span id="channel-name"></span>
                 </div>
                 <div id="message-container">
-                    {{range .messages}}
-                      <div class="message">
-                        <b>{{.username}}</b>
-                          {{.content}}
-                      </div>
-                    {{end}}
                 </div>
                 <div class="input-container">
-                  <form action="javascript:sendMessage()">
-                      {{if .premium}}
-                        <input type="text" class="form-control message-input" id="message" name="message"
-                               placeholder="Message #ticket-{{.ticketId}}">
-                      {{else}}
-                        <input type="text" class="form-control message-input" id="message" name="message"
-                               placeholder="Premium users get live messages and can respond through webchat" disabled>
-                      {{end}}
+                  <form onsubmit="sendMessage(); return false;">
+                    <input type="text" class="form-control message-input" id="message" name="message">
                   </form>
                 </div>
               </div>
@@ -47,76 +34,115 @@
       </div>
 
       <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
-        <div style="position: absolute; right: 10px; min-width: 300px">
-          {{if .isError}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Error</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                {{.error}}
-              </div>
-            </div>
-          {{end}}
+        <div style="position: absolute; right: 10px; min-width: 300px" id="toast-container">
         </div>
       </div>
-
-      <script>
-          $('.toast').toast('show');
-      </script>
     </div>
   </div>
 
   <script>
-      // Scroll to bottom
-      let container = document.getElementById("message-container");
-      container.scrollTop = container.scrollHeight;
+    async function close() {
+        const reason = document.getElementById('reason').value;
+        document.getElementById('reason').value = '';
+
+        const res = await axios.delete('/api/{{.guildId}}/tickets/{{.uuid}}', {
+            data: {
+                reason: reason
+            }
+        });
+
+        if (res.status === 200 && res.data.success) {
+            location.href = '/manage/{{.guildId}}/tickets';
+        } else {
+            showToast('Error', res.data.error);
+        }
+    }
   </script>
 
-  {{if .premium}}
   <script>
-      let ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
+    async function isPremium() {
+        const res = await axios.get('/api/{{.guildId}}/premium');
+        return res.data.premium;
+    }
+
+    async function appendMessages(messages) {
+        const container = document.getElementById('message-container');
+
+        for (message of messages) {
+            const div = document.createElement('div');
+            div.classList.add('message');
+
+            const username = document.createElement('b');
+            username.appendChild(document.createTextNode(message.username));
+            username.appendChild(document.createTextNode(': '));
+            div.appendChild(username);
+
+            div.appendChild(document.createTextNode(message.content));
+
+            container.appendChild(div);
+        }
+    }
+
+    async function loadData() {
+        const premium = await isPremium();
+
+        const res = await axios.get('/api/{{.guildId}}/tickets/{{.uuid}}');
+        if (res.status === 200 && res.data.success) {
+            const data = res.data;
+            document.getElementById('channel-name').innerText = `#ticket-${data.ticket.TicketId}`;
+            await appendMessages(data.messages);
+
+            startWebsocket(data.ticket.TicketId);
+        } else {
+            showToast('Error', res.data.error);
+        }
+
+        const el = document.getElementById('message');
+        if (premium) {
+            el.placeholder = `Message #ticket-${res.data.ticket.TicketId}`;
+        } else {
+            el.disabled = true;
+            el.placeholder = 'Premium users get live messages and can respond through webchat'
+        }
+    }
+
+    loadData();
+  </script>
+
+  <script>
+      // Scroll to bottom
+    const container = document.getElementById("message-container");
+    container.scrollTop = container.scrollHeight;
+
+    async function startWebsocket(ticketId) {
+      //const ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
+      const ws = new WebSocket("ws://localhost:3000/webchat");
 
       ws.onopen = () => {
-          ws.send(JSON.stringify({
-              "type": "auth",
-              "data": {
-                  "guild": "{{.guildId}}",
-                  "ticket": "{{.ticketId}}"
-              }
-          }));
+        ws.send(JSON.stringify({
+          "type": "auth",
+          "data": {
+            "guild": "{{.guildId}}",
+            "ticket": `${ticketId}`
+          }
+        }));
       };
 
       ws.onmessage = (evt) => {
-          let data = JSON.parse(evt.data);
-
-          let container = document.getElementById("message-container");
-
-          let element = document.createElement("div");
-          element.className = "message";
-          element.innerHTML = `
-            <b>${data.username}</b>
-            ${data.content}
-          `;
-
-          container.appendChild(element);
-
-          // Scroll to bottom
-          container.scrollTop = container.scrollHeight;
+        const data = JSON.parse(evt.data);
+        appendMessages([data]);
+        container.scrollTop = container.scrollHeight;
       };
+    }
 
-      function sendMessage() {
-          let msg = document.getElementById("message").value;
-          document.getElementById("message").value = "";
+    async function sendMessage() {
+      const msg = document.getElementById("message").value;
+      document.getElementById("message").value = "";
 
-          ws.send(JSON.stringify({
-              "type": "send",
-              "data": msg
-          }))
+      const res = await axios.post('/api/{{.guildId}}/tickets/{{.uuid}}', {message: msg});
+      if (res.status !== 200 || !res.data.success) {
+          showToast('Error', res.data.error);
       }
+    }
   </script>
-  {{end}}
 {{end}}

@@ -25,9 +25,7 @@ func AddBlacklist(guildId, userId uint64) {
 }
 
 func RemoveBlacklist(guildId, userId uint64) {
-	var node BlacklistNode
-	database.Database.Where(BlacklistNode{Guild: guildId, User: userId}).Take(&node)
-	database.Database.Delete(&node)
+	database.Database.Where(BlacklistNode{Guild: guildId, User: userId}).Delete(BlacklistNode{})
 }
 
 func GetBlacklistNodes(guildId uint64) []BlacklistNode {

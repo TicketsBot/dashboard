@@ -6,37 +6,37 @@
           <div id="accordion">
             <div class="card">
               <div class="card-header collapsed filterCard" id="filterHeader" data-toggle="collapse" data-target="#filterLogs" aria-expanded="false" aria-controls="filterLogs">
-              <span class="align-middle" data-toggle="collapse" data-target="#filterLogs" aria-expanded="false" aria-controls="filterLogs">
+              <span class="align-middle white" data-toggle="collapse" data-target="#filterLogs" aria-expanded="false" aria-controls="filterLogs">
                 <i class="fas fa-search"></i> Filter Logs
               </span>
               </div>
               <div id="filterLogs" class="collapse" aria-labelledby="filterHeader" data-parent="#accordion">
                 <div class="card-body">
-                  <form action="/manage/{{.guildId}}/logs/page/1">
+                  <form onsubmit="filterLogs(); return false;">
                     <div class="row">
                       <div class="col-md-4 pr-1">
                         <div class="form-group">
                           <label>Ticket ID</label>
-                          <input name="ticketid" type="text" class="form-control" placeholder="Ticket ID">
+                          <input name="ticketid" type="text" class="form-control" placeholder="Ticket ID" id="ticketid">
                         </div>
                       </div>
                       <div class="col-md-4 px-1">
                         <div class="form-group">
                           <label>Username</label>
-                          <input name="username" type="text" class="form-control" placeholder="Username">
+                          <input name="username" type="text" class="form-control" placeholder="Username" id="username">
                         </div>
                       </div>
                       <div class="col-md-4 px-1">
                         <div class="form-group">
                           <label>User ID</label>
-                          <input name="userid" type="text" class="form-control" placeholder="User ID">
+                          <input name="userid" type="text" class="form-control" placeholder="User ID" id="userid">
                         </div>
                       </div>
                     </div>
                     <div class="row">
                       <div class="col-md-2">
                         <div class="form-group">
-                          <button type="submit" class="btn btn-primary mx-auto"><i class="fas fa-paper-plane"></i> Filter</button>
+                          <button type="submit" class="btn btn-primary mx-auto btn-fill"><i class="fas fa-paper-plane"></i> Filter</button>
                         </div>
                       </div>
                     </div>
@@ -64,7 +64,7 @@
                     <th>Log URL</th>
                   </tr>
                   </thead>
-                  <tbody>
+                  <tbody id="log-container">
                     {{range .logs}}
                       <tr>
                         <td>{{.ticketid}}</td>
@@ -79,14 +79,9 @@
                 <div class="row">
                   <div class="col-md-12">
                     <ul class="pagination justify-content-center">
-                      {{if .isPageOne}}
-                        <li class="disabled"><a href="#"><i class="fas fa-chevron-left"></i></a></li>
-                      {{else}}
-                        <li class="waves-effect"><a href="/manage/{{.guildId}}/logs/page/{{.previousPage}}"><i class="fas fa-chevron-left"></i></a></li>
-                      {{end}}
-
-                      <p class="center-align" style="padding-left: 10px; padding-right: 10px;">Page {{.page}}</p>
-                      <li class="waves-effect"><a href="/manage/{{.guildId}}/logs/page/{{.nextPage}}"><i class="fas fa-chevron-right"></i></a></li>
+                      <li class="waves-effect"><a href="#" onclick="previous()"><i class="fas fa-chevron-left"></i></a></li>
+                      <p class="center-align white" style="padding-left: 10px; padding-right: 10px;">Page {{.page}}</p>
+                      <li class="waves-effect"><a href="#" onclick="next()"><i class="fas fa-chevron-right"></i></a></li>
                     </ul>
                   </div>
                 </div>
@@ -96,5 +91,89 @@
         </div>
       </div>
     </div>
+
+    <!--<div aria-live="polite" aria-atomic="true" style="position: relative">
+      <div style="position: absolute; right: 10px" id="toast-container">
+      </div>
+    </div>-->
+
+    <script>
+      let currentPage = 1;
+
+      function appendLog(log) {
+          const container = document.getElementById('log-container');
+
+          const tr = document.createElement('tr');
+
+          appendTd(tr, log.ticketid);
+          appendTd(tr, log.username);
+          appendTd(tr, log.userid);
+          appendButton(tr, 'View', () => { location.href = '/manage/{{.guildId}}/logs/view/' + log.ticketid });
+
+          // create view button
+          const viewTd = document.createElement('td');
+          tr.appendChild(viewTd);
+
+          container.appendChild(tr);
+      }
+
+      async function loadPage(page, ticketId, username, userId) {
+          const container = document.getElementById('log-container');
+          container.innerHTML = '';
+
+          let  url = '/api/{{.guildId}}/logs/' + page;
+
+          if (ticketId !== undefined) {
+              url += `?ticketid=${ticketId}`;
+          } else if (username !== undefined) {
+              url += `?username=${username}`;
+          } else if (userId !== undefined) {
+              url += `?userid=${userId}`;
+          }
+
+          const res = await axios.get(url);
+          for (log of res.data) {
+              appendLog(log);
+          }
+      }
+
+      async function loadData() {
+          await loadPage(currentPage);
+      }
+
+      loadData();
+    </script>
+
+    <script>
+      async function next() {
+          currentPage += 1;
+          await loadPage(currentPage);
+      }
+
+      async function previous() {
+          if (currentPage <= 1) {
+              return
+          }
+
+          currentPage -= 1;
+          await loadPage(currentPage);
+      }
+
+      async function filterLogs() {
+          const ticketId = document.getElementById('ticketid').value;
+          const username = document.getElementById('username').value;
+          const userId = document.getElementById('userid').value;
+
+          if (ticketId > 0) {
+              await loadPage(1, ticketId);
+          } else if (username !== "") {
+              await loadPage(1, undefined, username);
+          } else if (userId !== "") {
+              await loadPage(1, undefined, undefined, userId);
+          } else {
+              await loadPage(1);
+          }
+      }
+    </script>
   </div>
 {{end}}

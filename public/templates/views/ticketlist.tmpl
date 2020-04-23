@@ -18,15 +18,7 @@
                     <th>View</th>
                   </tr>
                 </thead>
-                <tbody>
-                {{range .tickets}}
-                  <tr>
-                    <td>{{.ticketId}}</td>
-                    <td>{{.username}}#{{.discrim}}</td>
-                    <td>{{range .members}}{{.username}}#{{.discrim}}{{.sep}}{{end}}</td>
-                    <td><a class="btn btn-primary btn-sm" role="button" href="/manage/{{$.guildId}}/tickets/view/{{.uuid}}">View</a></td>
-                  </tr>
-                {{end}}
+                <tbody id="ticket-container">
                 </tbody>
               </table>
             </div>
@@ -37,7 +29,30 @@
   </div>
 
   <script>
-    $('.toast').toast('show');
+    function appendTicket(ticket) {
+        const container = document.getElementById('ticket-container');
+        const tr = document.createElement('tr');
+
+        appendTd(tr, ticket.ticketId);
+        appendTd(tr, `${ticket.username}#${ticket.discrim}`);
+
+        const members = ticket.members.map(member => `${member.username}#${member.discrim}`).join(', ');
+        appendTd(tr, members);
+
+        appendButton(tr, 'View', () => { console.log(ticket); location.href = '/manage/{{.guildId}}/tickets/view/' + ticket.uuid });
+
+        container.appendChild(tr);
+    }
+
+    async function loadData() {
+        const res = await axios.get('/api/{{.guildId}}/tickets');
+
+        for (ticket of res.data) {
+            appendTicket(ticket);
+        }
+    }
+
+    loadData();
   </script>
 </div>
 {{end}}

@@ -11,25 +11,25 @@
                 {{end}}
             </div>
             <div class="card-body">
-              <form method="post">
+              <form onsubmit="updateSettings(); return false;">
                 <div class="row">
                   <div class="col-md-5 pr-1">
                     <div class="form-group">
                       <label>Prefix (Max len. 8)</label>
-                      <input name="prefix" type="text" class="form-control" placeholder="t!" value="{{.prefix}}">
+                      <input name="prefix" type="text" class="form-control" placeholder="t!" id="prefix">
                     </div>
                   </div>
                   <div class="col-md-5 px-1">
                     <div class="form-group">
                       <label>Ticket Limit (1-10)</label>
-                      <input name="ticketlimit" type="text" class="form-control" placeholder="5" value="{{.ticketLimit}}">
+                      <input name="ticketlimit" type="text" class="form-control" placeholder="5" id="ticket_limit">
                     </div>
                   </div>
                   <div class="col-md-2 px-1">
                     <div class="form-group">
                       <label>Ping @everyone on ticket open</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="pingeveryone" value="on" {{if .pingEveryone}}checked{{end}} style="width:30px;height:30px;">
+                        <input class="form-check-input" type="checkbox" name="pingeveryone" value="on" id="ping_everyone" style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -38,7 +38,8 @@
                 <div class="row">
                   <div class="col-md-12">
                     <label>Welcome Message (Max len. 1000)</label>
-                    <textarea name="welcomeMessage" class="form-control" rows="3" style="resize: none">{{.welcomeMessage}}</textarea>
+                    <textarea name="welcomeMessage" class="form-control" rows="3" id="welcome_message"
+                              style="resize: none">{{.welcomeMessage}}</textarea>
                   </div>
                 </div>
 
@@ -49,10 +50,7 @@
                       <div class="input-group-prepend">
                         <div class="input-group-text">#</div>
                       </div>
-                      <select class="form-control" name="archivechannel">
-                          {{range .channels}}
-                            <option {{if eq .Id $.archivechannel }}selected{{end}} value="{{.Id}}">{{.Name}}</option>
-                          {{end}}
+                      <select class="form-control" name="archive_channel" id="archive_channel">
                       </select>
                     </div>
                   </div>
@@ -60,10 +58,7 @@
                   <div class="col-md-5 px-1">
                     <div class="form-group">
                       <label>Channel Category</label>
-                      <select class="form-control" name="category">
-                          {{range .categories}}
-                            <option {{if eq $.activecategory .Id}}selected{{end}} value="{{.Id}}">{{.Name}}</option>
-                          {{end}}
+                      <select class="form-control" name="category" id="category">
                       </select>
                     </div>
                   </div>
@@ -72,7 +67,8 @@
                     <div class="form-group">
                       <label>Allow users to close tickets</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="userscanclose" value="on" {{if .usersCanClose}}checked{{end}} style="width:30px;height:30px;">
+                        <input class="form-check-input" type="checkbox" name="userscanclose" value="on"
+                               id="users_can_close" style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -80,23 +76,25 @@
 
                 <label>Ticket Naming Scheme</label>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="namingscheme" id="naming-by-id" value="id" {{if eq .namingScheme "id"}}checked{{end}}>
-                  <label class="form-check-label" for="naming-by-id">
-                    Ticket ID
+                  <input class="form-check-input" type="radio" name="namingscheme" id="naming-by-id" value="id">
+                  <label class="form-check-label white" for="naming-by-id">
+                    Ticket ID (#ticket-1)
                   </label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input" type="radio" name="namingscheme" id="naming-by-username" value="username" {{if eq .namingScheme "username"}}checked{{end}}>
-                  <label class="form-check-label" for="naming-by-username">
-                    Username
+                  <input class="form-check-input" type="radio" name="namingscheme" id="naming-by-username"
+                         value="username">
+                  <label class="form-check-label white" for="naming-by-username">
+                    Username (#ryan-1)
                   </label>
                 </div>
 
-                <input name="csrf" type="hidden" value="{{.csrf}}">
                 <div class="row">
-                  <div class="col-md-1 pr-1">
+                  <div class="col-md-2 pr-1">
                     <div class="form-group">
-                      <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
+                      <button class="btn btn-primary btn-fill" type="submit"><i class="fas fa-paper-plane"></i>
+                        Submit
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -107,53 +105,137 @@
       </div>
     </div>
 
-    <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
-      <div style="position: absolute; right: 10px; min-width: 300px">
-          {{if .invalidPrefix}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                The prefix you specified was invalid
-              </div>
-            </div>
-          {{end}}
-          {{if .invalidWelcomeMessage}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                The welcome message you specified was invalid
-              </div>
-            </div>
-          {{end}}
-          {{if .invalidTicketLimit}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                The ticket limit you specified was invalid
-              </div>
-            </div>
-          {{end}}
+    <div aria-live="polite" aria-atomic="true" style="position: relative;">
+      <div style="position: absolute; right: 10px" id="toast-container">
       </div>
     </div>
 
     <script>
-        $('.toast').toast('show');
-        $('#pingeveryone').prop('indeterminate', {{.pingEveryone}});
+        async function getSettings() {
+            const res = await axios.get('/api/{{.guildId}}/settings');
+            return res.data;
+        }
+
+        async function getChannels() {
+            const res = await axios.get('/api/{{.guildId}}/channels');
+            return res.data;
+        }
+
+        async function fillArchiveChannels(channels, archiveChannelId) {
+            const container = document.getElementById('archive_channel');
+            channels.filter((ch) => ch.type === 0).forEach((ch) => {
+                const node = document.createElement("option");
+                const text = document.createTextNode(ch.name);
+                node.appendChild(text);
+
+                node.value = ch.id;
+                if (archiveChannelId === ch.id) {
+                    node.selected = true;
+                }
+
+
+                container.appendChild(node);
+            });
+        }
+
+        async function fillCategories(channels, categoryId) {
+            const container = document.getElementById('category');
+            channels.filter((ch) => ch.type === 4).forEach((ch) => {
+                const node = document.createElement("option");
+                const text = document.createTextNode(ch.name);
+                node.appendChild(text);
+
+                node.value = ch.id;
+                if (categoryId === ch.id) {
+                    node.selected = true;
+                }
+
+                container.appendChild(node);
+            });
+        }
+
+        async function loadData() {
+            const settings = await getSettings();
+            document.getElementById("prefix").value = settings.prefix;
+            document.getElementById("welcome_message").value = settings.welcome_message;
+            document.getElementById("ticket_limit").value = settings.ticket_limit;
+            document.getElementById("ping_everyone").checked = settings.ping_everyone;
+            document.getElementById("users_can_close").checked = settings.users_can_close;
+
+            if (settings.naming_scheme === "username") {
+                document.getElementById("naming-by-username").checked = true;
+            } else {
+                document.getElementById("naming-by-id").checked = true;
+            }
+
+            const channels = await getChannels();
+            await fillArchiveChannels(channels, settings.archive_channel);
+            await fillCategories(channels, settings.category);
+        }
+
+        loadData();
+    </script>
+
+    <script>
+        async function updateSettings() {
+            const data = {
+                'prefix': document.getElementById('prefix').value,
+                'welcome_message': document.getElementById("welcome_message").value,
+                'ticket_limit': parseInt(document.getElementById('ticket_limit').value),
+                'ping_everyone': document.getElementById("ping_everyone").checked,
+                'users_can_close': document.getElementById("users_can_close").checked,
+                'naming_scheme': document.querySelector('input[name="namingscheme"]:checked').value,
+                'archive_channel': document.getElementById('archive_channel').options[document.getElementById('archive_channel').selectedIndex].value,
+                'category': document.getElementById('category').options[document.getElementById('category').selectedIndex].value
+            };
+
+            const res = await axios.post('/api/{{.guildId}}/settings', data);
+            if (res.status === 200) {
+                const success = showValidations(res.data);
+                if (success) {
+                    showToast("Success", "Your settings have been saved.")
+                }
+            } else {
+                showToast("Error", "A severe error occurred. Please check your console for more information.");
+                console.log(res);
+            }
+        }
+
+        function showValidations(data) {
+            let success = true;
+
+            if (!data.prefix) {
+                success = false;
+                showToast("Warning", "Your prefix has not been saved.<br />Prefixes must be between 1 - 8 characters in length.")
+            }
+
+            if (!data.welcome_message) {
+                success = false;
+                showToast("Warning", "Your welcome message has not been saved.<br />Welcome messages must be between 1 - 1000 characters in length.")
+            }
+
+            if (!data.ticket_limit) {
+                success = false;
+                showToast("Warning", "Your ticket limit has not been saved.<br />Ticket limits must be in the range 1 - 10.")
+            }
+
+            if (!data.archive_channel) {
+                success = false;
+                showToast("Warning", "Your archive channel has not been saved.")
+            }
+
+            if (!data.category) {
+                success = false;
+                showToast("Warning", "Your channel category has not been saved.")
+            }
+
+            if (!data.naming_scheme) {
+                success = false;
+                showToast("Warning", "Your archive channel has not been saved.")
+            }
+
+            return success;
+        }
     </script>
   </div>
 {{end}}

@@ -8,11 +8,8 @@
               <h4 class="card-title">Reaction Panels</h4>
             </div>
             <div class="card-body">
-              <p>Your panel quota: <b>{{.panelcount}} / {{if .premium}}∞{{else}}1{{end}}</b></p>
-
-                {{if not .premium}}
-                  <p>Note: You can expand your panel quote by purchasing premium</p>
-                {{end}}
+              <p class="white">Your panel quota: <b><span id="panel-count"></span> / <span id="panel-quota"></span></b></p>
+              <p class="white" id="premium-ad">Note: You can create unlimited panels with premium</p>
 
               <table class="table table-hover table-striped">
                 <thead>
@@ -24,16 +21,7 @@
                   <th>Delete</th>
                 </tr>
                 </thead>
-                <tbody>
-                {{range .panels}}
-                  <tr>
-                    <td>#{{.ChannelName}}</td>
-                    <td>{{.Title}}</td>
-                    <td>{{.Content}}</td>
-                    <td>{{.CategoryName}}</td>
-                    <td><a href="/manage/{{$.guildId}}/panels/delete/{{.MessageId}}?csrf={{$.csrf}}">Delete</a></td>
-                  </tr>
-                {{end}}
+                <tbody id="panel-container">
                 </tbody>
               </table>
             </div>
@@ -43,19 +31,19 @@
               <h4 class="card-title">Create A Panel</h4>
             </div>
             <div class="card-body">
-              <form method="post" action="/manage/{{.guildId}}/panels/create">
+              <form onsubmit="createPanel(); return false;">
                 <div class="row">
                   <div class="col-md-4 pr-1">
                     <div class="form-group">
                       <label class="black">Panel Title</label>
-                      <input name="title" type="text" class="form-control" placeholder="Open a ticket!">
+                      <input name="title" type="text" class="form-control" placeholder="Open a ticket!" id="title">
                     </div>
                   </div>
                   <div class="col-md-8 pr-1">
                     <div class="form-group">
                       <label class="black">Panel Content</label>
                       <textarea name="content" type="text" class="form-control"
-                                placeholder="By reacting to this ticket, a ticket will be opened for you."></textarea>
+                                placeholder="By reacting to this ticket, a ticket will be opened for you." id="content"></textarea>
                     </div>
                   </div>
                 </div>
@@ -63,7 +51,7 @@
                   <div class="col-md-3 pr-1">
                     <label class="black">Panel Colour</label>
                     <div class="input-group mb-3">
-                      <input name="colour" type="color" class="form-control input-fill" value="#23A31A">
+                      <input name="colour" type="color" class="form-control input-fill" value="#2ECC71" id="colour">
                     </div>
                   </div>
 
@@ -73,12 +61,7 @@
                       <div class="input-group-prepend">
                         <div class="input-group-text">#</div>
                       </div>
-                      <select class="form-control" name="channel">
-                          {{range .channels}}
-                            {{if eq .Type 0}} <!-- Check the channel is a text channel -->
-                              <option value="{{.Id}}">{{.Name}}</option>
-                            {{end}}
-                          {{end}}
+                      <select class="form-control" name="channel" id="channel-container">
                       </select>
                     </div>
                   </div>
@@ -89,12 +72,7 @@
                       <div class="input-group-prepend">
                         <div class="input-group-text">#</div>
                       </div>
-                      <select class="form-control" name="categories">
-                          {{range .channels}}
-                            {{if eq .Type 4}} <!-- Check the channel is a category -->
-                              <option value="{{.Id}}">{{.Name}}</option>
-                            {{end}}
-                          {{end}}
+                      <select class="form-control" name="categories" id="category-container">
                       </select>
                     </div>
                   </div>
@@ -102,16 +80,15 @@
                   <div class="col-md-3 pr-1">
                     <div class="form-group">
                       <label class="black">Reaction Emote</label>
-                      <input name="reaction" type="text" class="form-control" placeholder="envelope_with_arrow">
+                      <input name="reaction" type="text" class="form-control" placeholder="envelope_with_arrow" id="reaction">
                     </div>
                   </div>
                 </div>
 
                 <div class="row">
-                  <input name="csrf" type="hidden" value="{{.csrf}}">
                   <div class="col-md-2 pr-1 offset-md-5">
                     <div class="form-group">
-                      <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit</button>
+                      <button type="submit" class="btn btn-primary btn-fill"><i class="fas fa-paper-plane"></i> Submit</button>
                     </div>
                   </div>
                 </div>
@@ -123,119 +100,148 @@
     </div>
 
     <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
-      <div style="position: absolute; right: 10px; min-width: 300px">
-          {{if not .validTitle}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Panel titles must be between 1 and 255 characters long
-              </div>
-            </div>
-          {{end}}
-          {{if not .validContent}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Panel content must be between 1 and 1024 characters long
-              </div>
-            </div>
-          {{end}}
-          {{if not .validColour}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Invalid panel colour. You must use the hex value of the colour, which you can find <a
-                        href="https://www.google.co.uk/search?client=opera&q=html+colour+picker">here</a>.
-                <br/>Colour has defaulted to green.
-              </div>
-            </div>
-          {{end}}
-          {{if not .validChannel}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Invalid channel - please try again
-              </div>
-            </div>
-          {{end}}
-          {{if not .validCategory}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Invalid category - please try again
-              </div>
-            </div>
-          {{end}}
-          {{if not .validReaction}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Invalid reaction emote
-              </div>
-            </div>
-          {{end}}
-          {{if .created}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Success</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                Your panel has been created. You may need to refresh this page to see it displayed.
-              </div>
-            </div>
-          {{end}}
-          {{if .metQuota}}
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">Warning</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                You've hit your panel quota. Premium users can create <b>unlimited panels</b>. Click <a
-                        href="https://ticketsbot.net/premium">here</a> to learn more about premium.
-              </div>
-            </div>
-          {{end}}
+      <div style="position: absolute; right: 10px" id="toast-container">
       </div>
     </div>
 
     <script>
-        $('.toast').toast('show');
+      async function getChannels() {
+          const res = await axios.get('/api/{{.guildId}}/channels');
+          return res.data;
+      }
+
+      function getChannelName(channels, channelId) {
+          return channels.find(ch => ch.id === channelId);
+      }
+
+      async function deletePanel(messageId) {
+          const res = await axios.delete('/api/{{.guildId}}/panels/' + messageId);
+
+          if (res.status === 200 && res.data.success) {
+              showToast('Success', 'Panel deleted successfully');
+
+              const el = document.getElementById(messageId);
+              el.parentNode.removeChild(el);
+          } else {
+              showToast('Error', res.data.error);
+          }
+      }
+
+      async function createPanel() {
+          const data = {
+              title: document.getElementById('title').value,
+              content: document.getElementById('content').value,
+              emote: document.getElementById('reaction').value.replace(':', ''),
+              colour: parseInt(`0x${document.getElementById('colour').value.slice(1)}`),
+              channel_id: document.getElementById('channel-container').options[document.getElementById('channel-container').selectedIndex].value,
+              category_id: document.getElementById('category-container').options[document.getElementById('category-container').selectedIndex].value,
+          };
+
+          // fill defaults
+          if (data.title === '') {
+              data.title = 'Open a ticket!';
+          }
+          if (data.content === '') {
+              data.content = 'By reacting to this ticket, a ticket will be opened for you.';
+          }
+          if (data.emote === '') {
+              data.emote = 'envelope_with_arrow';
+          }
+
+          const res = await axios.put('/api/{{.guildId}}/panels', data);
+          if (res.status === 200 && res.data.success) {
+              appendPanel(data, await getChannels());
+              showToast('Success', 'Panel created successfully')
+          } else {
+              showToast('Error', res.data.error);
+          }
+      }
+
+      async function fillChannels(channels) {
+          const container = document.getElementById('channel-container');
+
+          channels.filter(ch => ch.type === 0).forEach(ch => {
+              const el = document.createElement('option');
+              el.value = ch.id;
+              el.appendChild(document.createTextNode(ch.name));
+              container.appendChild(el);
+          });
+      }
+
+      async function fillCategories(channels) {
+          const container = document.getElementById('category-container');
+
+          channels.filter(ch => ch.type === 4).forEach(ch => {
+              const el = document.createElement('option');
+              el.value = ch.id;
+              el.appendChild(document.createTextNode(ch.name));
+              container.appendChild(el);
+          });
+      }
+
+      // TODO: Update on append / delete
+      async function fillPanelQuota(panelCount) {
+          const res = await axios.get('/api/{{.guildId}}/premium');
+
+          const el = document.getElementById('panel-quota');
+          if (res.data.premium) {
+              el.appendChild(document.createTextNode('∞'));
+          } else {
+              el.appendChild(document.createTextNode('1'));
+              document.getElementById('premium-ad').style.display = 'block';
+          }
+
+          document.getElementById('panel-count').appendChild(document.createTextNode(panelCount));
+      }
+
+      function appendPanel(panel, channels) {
+          const container = document.getElementById('panel-container');
+
+          const tr = document.createElement('tr');
+          tr.id = panel.message_id; // TODO: When we call this after creating a panel, we don't know the message ID yet
+
+          appendTd(tr, `#${getChannelName(channels, panel.channel_id).name}`);
+          appendTd(tr, panel.title);
+          appendTd(tr, panel.content);
+          appendTd(tr, getChannelName(channels, panel.category_id).name);
+
+          // build remove button
+          const deleteTd = document.createElement('td');
+          const deleteButton = document.createElement('button');
+          deleteButton.type = 'submit';
+          deleteButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+          deleteButton.appendChild(document.createTextNode('Delete'));
+          deleteButton.onclick = () => {deletePanel(panel.message_id)};
+          deleteTd.appendChild(deleteButton);
+          tr.appendChild(deleteTd);
+
+          container.appendChild(tr);
+      }
+
+      async function fillPanels(channels) {
+          const res = await axios.get('/api/{{.guildId}}/panels');
+          if (res.status !== 200) {
+              showToast("Error", res.data);
+              return 0;
+          }
+
+          for (const panel of res.data) {
+              appendPanel(panel, channels);
+          }
+
+          return res.data.length;
+      }
+
+      async function loadData() {
+          const channels = await getChannels();
+
+          const panelCount = await fillPanels(channels);
+          await fillPanelQuota(panelCount);
+          await fillChannels(channels);
+          await fillCategories(channels);
+      }
+
+      loadData();
     </script>
   </div>
 {{end}}

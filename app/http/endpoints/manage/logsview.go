@@ -20,7 +20,6 @@ func LogViewHandler(ctx *gin.Context) {
 	if store == nil {
 		return
 	}
-	defer store.Save()
 
 	if utils.IsLoggedIn(store) {
 		userId := utils.GetUserId(store)
@@ -37,7 +36,7 @@ func LogViewHandler(ctx *gin.Context) {
 
 		// format ticket ID
 		ticketId, err := strconv.Atoi(ctx.Param("ticket")); if err != nil {
-			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs/page/1", guild.Id))
+			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
 			return
 		}
 
@@ -48,7 +47,7 @@ func LogViewHandler(ctx *gin.Context) {
 
 		// Verify this is a valid ticket and it is closed
 		if ticket.Uuid == "" || ticket.IsOpen {
-			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs/page/1", guild.Id))
+			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
 			return
 		}
 
