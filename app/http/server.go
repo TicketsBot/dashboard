@@ -11,7 +11,11 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/ulule/limiter/v3"
+	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
+	"github.com/ulule/limiter/v3/drivers/store/memory"
 	"log"
+	"time"
 )
 
 func StartServer() {
@@ -34,6 +38,7 @@ func StartServer() {
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
 	router.Use(gin.Recovery())
+	router.Use(createLimiter())
 
 	// Register templates
 	router.HTMLRender = createRenderer()
@@ -42,6 +47,7 @@ func StartServer() {
 	router.GET("/callback", root.CallbackHandler)
 
 	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler) // we check in the actual handler bc of a custom redirect
+	router.GET("/manage/:id/logs/modmail/view/:uuid", manage.ModmailLogViewHandler) // we check in the actual handler bc of a custom redirect
 
 	authorized := router.Group("/", middleware.AuthenticateCookie)
 	{
@@ -54,6 +60,7 @@ func StartServer() {
 
 		authenticateGuild.GET("/manage/:id/settings", manage.SettingsHandler)
 		authenticateGuild.GET("/manage/:id/logs", manage.LogsHandler)
+		authenticateGuild.GET("/manage/:id/logs/modmail", manage.ModmailLogsHandler)
 		authenticateGuild.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 		authenticateGuild.GET("/manage/:id/panels", manage.PanelHandler)
 
@@ -69,6 +76,7 @@ func StartServer() {
 	{
 		guildAuthApi.GET("/:id/channels", api.ChannelsHandler)
 		guildAuthApi.GET("/:id/premium", api.PremiumHandler)
+		guildAuthApi.GET("/:id/user/:user", api.UserHandler)
 
 		guildAuthApi.GET("/:id/settings", api.GetSettingsHandler)
 		guildAuthApi.POST("/:id/settings", api.UpdateSettingsHandler)
@@ -82,6 +90,7 @@ func StartServer() {
 		guildAuthApi.DELETE("/:id/panels/:message", api.DeletePanel)
 
 		guildAuthApi.GET("/:id/logs/:page", api.GetLogs)
+		guildAuthApi.GET("/:id/modmail/logs/:page", api.GetModmailLogs)
 
 		guildAuthApi.GET("/:id/tickets", api.GetTickets)
 		guildAuthApi.GET("/:id/tickets/:uuid", api.GetTicket)
@@ -106,6 +115,7 @@ func createRenderer() multitemplate.Renderer {
 
 	r = addManageTemplate(r, "blacklist")
 	r = addManageTemplate(r, "logs")
+	r = addManageTemplate(r, "modmaillogs")
 	r = addManageTemplate(r, "settings")
 	r = addManageTemplate(r, "ticketlist")
 	r = addManageTemplate(r, "ticketview")
@@ -135,3 +145,12 @@ func addManageTemplate(renderer multitemplate.Renderer, name string) multitempla
 	return renderer
 }
 
+func createLimiter() func(*gin.Context) {
+	store := memory.NewStore()
+	rate := limiter.Rate{
+		Period:    time.Minute * 10,
+		Limit:     600,
+	}
+
+	return mgin.NewMiddleware(limiter.New(store, rate))
+}

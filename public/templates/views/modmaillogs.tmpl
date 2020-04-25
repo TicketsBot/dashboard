@@ -14,12 +14,6 @@
                 <div class="card-body">
                   <form onsubmit="filterLogs(); return false;">
                     <div class="row">
-                      <div class="col-md-4 pr-1">
-                        <div class="form-group">
-                          <label>Ticket ID</label>
-                          <input name="ticketid" type="text" class="form-control" placeholder="Ticket ID" id="ticketid">
-                        </div>
-                      </div>
                       <div class="col-md-4 px-1">
                         <div class="form-group">
                           <label>Username</label>
@@ -58,10 +52,9 @@
                 <table class="table table-hover table-striped">
                   <thead>
                   <tr>
-                    <th>Ticket ID</th>
                     <th>Username</th>
                     <th>User ID</th>
-                    <th>Log URL</th>
+                    <th>Archive</th>
                   </tr>
                   </thead>
                   <tbody id="log-container">
@@ -84,23 +77,28 @@
       </div>
     </div>
 
-    <!--<div aria-live="polite" aria-atomic="true" style="position: relative">
+    <div aria-live="polite" aria-atomic="true" style="position: relative">
       <div style="position: absolute; right: 10px" id="toast-container">
       </div>
-    </div>-->
+    </div>
 
     <script>
       let currentPage = 1;
 
-      function appendLog(log) {
-          const container = document.getElementById('log-container');
+      async function getUsername(userId) {
+          const res = await axios.get('/api/{{.guildId}}/user/' + userId);
+          return res.data.username;
+      }
 
+      async function appendLog(log) {
+          const username = await getUsername(log.user_id);
+
+          const container = document.getElementById('log-container');
           const tr = document.createElement('tr');
 
-          appendTd(tr, log.ticketid);
-          appendTd(tr, log.username);
-          appendTd(tr, log.userid);
-          appendButton(tr, 'View', () => { location.href = '/manage/{{.guildId}}/logs/view/' + log.ticketid });
+          appendTd(tr, username);
+          appendTd(tr, log.user_id);
+          appendButton(tr, 'View', () => { location.href = '/manage/{{.guildId}}/logs/modmail/view/' + log.uuid });
 
           container.appendChild(tr);
       }
@@ -109,19 +107,21 @@
           const container = document.getElementById('log-container');
           container.innerHTML = '';
 
-          let  url = '/api/{{.guildId}}/logs/' + page;
+          let  url = '/api/{{.guildId}}/modmail/logs/' + page;
 
-          if (ticketId !== undefined) {
-              url += `?ticketid=${ticketId}`;
-          } else if (username !== undefined) {
+          if (username !== undefined) {
               url += `?username=${username}`;
           } else if (userId !== undefined) {
               url += `?userid=${userId}`;
           }
 
           const res = await axios.get(url);
-          for (log of res.data) {
-              appendLog(log);
+          if (res.status === 200) {
+              for (log of res.data) {
+                  await appendLog(log);
+              }
+          } else {
+              showToast('Error', res.data.error);
           }
 
           document.getElementById('page-number').innerText = page;
@@ -150,13 +150,10 @@
       }
 
       async function filterLogs() {
-          const ticketId = document.getElementById('ticketid').value;
           const username = document.getElementById('username').value;
           const userId = document.getElementById('userid').value;
 
-          if (ticketId > 0) {
-              await loadPage(1, ticketId);
-          } else if (username !== "") {
+          if (username !== "") {
               await loadPage(1, undefined, username);
           } else if (userId !== "") {
               await loadPage(1, undefined, undefined, userId);
