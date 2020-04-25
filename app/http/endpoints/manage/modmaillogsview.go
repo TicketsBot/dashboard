@@ -13,9 +13,7 @@ import (
 	"strconv"
 )
 
-var Archiver archiverclient.ArchiverClient
-
-func LogViewHandler(ctx *gin.Context) {
+func ModmailLogViewHandler(ctx *gin.Context) {
 	store := sessions.Default(ctx)
 	if store == nil {
 		return
@@ -34,33 +32,36 @@ func LogViewHandler(ctx *gin.Context) {
 		// Get object for selected guild
 		guild, _ := cache.Instance.GetGuild(guildId, false)
 
-		// format ticket ID
-		ticketId, err := strconv.Atoi(ctx.Param("ticket")); if err != nil {
-			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
+		// get ticket UUID
+		uuid := ctx.Param("uuid")
+
+		// get ticket object
+		archiveCh := make(chan table.ModMailArchive)
+		go table.GetModmailArchive(uuid, archiveCh)
+		archive := <-archiveCh
+
+		// Verify this is a valid ticket and it is closed
+		if archive.Uuid == "" {
+			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs/modmail", guild.Id))
 			return
 		}
 
-		// get ticket object
-		ticketChan := make(chan table.Ticket)
-		go table.GetTicketById(guildId, ticketId, ticketChan)
-		ticket := <-ticketChan
-
-		// Verify this is a valid ticket and it is closed
-		if ticket.Uuid == "" || ticket.IsOpen {
-			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
+		// Verify this modmail ticket was for this guild
+		if archive.Guild != guildId {
+			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs/modmail", guild.Id))
 			return
 		}
 
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
 		go utils.IsAdmin(guild, userId, isAdmin)
-		if !<-isAdmin && ticket.Owner != userId {
+		if !<-isAdmin && archive.User != userId {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
 		}
 
 		// retrieve ticket messages from bucket
-		messages, err := Archiver.Get(guildId, ticketId)
+		messages, err := Archiver.GetModmail(guildId, uuid)
 		if err != nil {
 			if errors.Is(err, archiverclient.ErrExpired) {
 				ctx.String(200, "Archives expired: Purchase premium for permanent log storage") // TODO: Actual error page
@@ -72,7 +73,7 @@ func LogViewHandler(ctx *gin.Context) {
 		}
 
 		// format to html
-		html, err := Archiver.Encode(messages, fmt.Sprintf("ticket-%d", ticketId))
+		html, err := Archiver.Encode(messages, fmt.Sprintf("modmail-%s", uuid))
 		if err != nil {
 			ctx.String(500, fmt.Sprintf("Failed to retrieve archive - please contact the developers: %s", err.Error()))
 			return

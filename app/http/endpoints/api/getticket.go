@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
@@ -56,9 +57,8 @@ func GetTicket(ctx *gin.Context) {
 					continue
 				}
 
-				ch := make(chan string)
-				go table.GetUsername(mentionedId, ch)
-				content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", <-ch))
+				user, _ := cache.Instance.GetUser(mentionedId)
+				content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", user.Username))
 			}
 		}
 

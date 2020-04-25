@@ -111,7 +111,12 @@
       }
 
       function getChannelName(channels, channelId) {
-          return channels.find(ch => ch.id === channelId);
+          const ch = channels.find(ch => ch.id === channelId);
+          if (ch === undefined) {
+              return "Unknown";
+          } else {
+              return ch.name;
+          }
       }
 
       async function deletePanel(messageId) {
@@ -200,10 +205,10 @@
           const tr = document.createElement('tr');
           tr.id = panel.message_id; // TODO: When we call this after creating a panel, we don't know the message ID yet
 
-          appendTd(tr, `#${getChannelName(channels, panel.channel_id).name}`);
+          appendTd(tr, `#${getChannelName(channels, panel.channel_id)}`);
           appendTd(tr, panel.title);
           appendTd(tr, panel.content);
-          appendTd(tr, getChannelName(channels, panel.category_id).name);
+          appendTd(tr, getChannelName(channels, panel.category_id));
 
           // build remove button
           const deleteTd = document.createElement('td');

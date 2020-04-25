@@ -33,7 +33,7 @@ func main() {
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
-	manage.Archiver = archiverclient.NewArchiverClient(config.Conf.Bot.ObjectStore)
+	manage.Archiver = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second * 15)
 
 	utils.LoadEmoji()
 
