@@ -111,3 +111,9 @@ body {
 #premium-ad {
     display: none;
 }
+
+.tag-content {
+    min-width: 300px;
+    max-width: 300px;
+    word-wrap: break-word;
+}

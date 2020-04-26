@@ -63,6 +63,7 @@ func StartServer() {
 		authenticateGuild.GET("/manage/:id/logs/modmail", manage.ModmailLogsHandler)
 		authenticateGuild.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 		authenticateGuild.GET("/manage/:id/panels", manage.PanelHandler)
+		authenticateGuild.GET("/manage/:id/tags", manage.TagsHandler)
 
 		authenticateGuild.GET("/manage/:id/tickets", manage.TicketListHandler)
 		authenticateGuild.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
@@ -96,6 +97,10 @@ func StartServer() {
 		guildAuthApi.GET("/:id/tickets/:uuid", api.GetTicket)
 		guildAuthApi.POST("/:id/tickets/:uuid", api.SendMessage)
 		guildAuthApi.DELETE("/:id/tickets/:uuid", api.CloseTicket)
+
+		guildAuthApi.GET("/:id/tags", api.TagsListHandler)
+		guildAuthApi.PUT("/:id/tags", api.CreateTag)
+		guildAuthApi.DELETE("/:id/tags/:tag", api.DeleteTag)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
@@ -120,6 +125,7 @@ func createRenderer() multitemplate.Renderer {
 	r = addManageTemplate(r, "ticketlist")
 	r = addManageTemplate(r, "ticketview")
 	r = addManageTemplate(r, "panels")
+	r = addManageTemplate(r, "tags")
 
 	return r
 }

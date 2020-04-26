@@ -22,6 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/rxdn/gdl v0.0.0-20200421193445-f200b9f466d7
+	github.com/satori/go.uuid v1.2.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 )
