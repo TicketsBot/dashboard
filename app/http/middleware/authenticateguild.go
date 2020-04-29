@@ -16,13 +16,13 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 			parsed, err := strconv.ParseUint(guildId, 10, 64)
 			if err != nil {
 				if isApiMethod {
-					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
-					ctx.Abort()
-				} else {
 					ctx.AbortWithStatusJSON(400, gin.H{
 						"success": false,
 						"error": "Invalid guild ID",
 					})
+				} else {
+					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
+					ctx.Abort()
 				}
 				return
 			}
