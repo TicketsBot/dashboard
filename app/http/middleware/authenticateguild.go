@@ -32,9 +32,9 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 			guild, found := cache.Instance.GetGuild(parsed, false)
 			if !found {
 				if isApiMethod {
-					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
-				} else {
 					ctx.Redirect(302, fmt.Sprintf("https://invite.ticketsbot.net/?guild_id=%d&disable_guild_select=true&response_type=code&scope=bot%%20identify&redirect_uri=%s", parsed, config.Conf.Server.BaseUrl))
+				} else {
+					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
 				}
 				ctx.Abort()
 				return
@@ -47,24 +47,24 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 			go utils.IsAdmin(guild, ctx.Keys["userid"].(uint64), isAdmin)
 			if !<-isAdmin {
 				if isApiMethod {
-					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
-					ctx.Abort()
-				} else {
 					ctx.AbortWithStatusJSON(403, gin.H{
 						"success": false,
 						"error": "Unauthorized",
 					})
+				} else {
+					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
+					ctx.Abort()
 				}
 			}
 		} else {
 			if isApiMethod {
-				ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
-				ctx.Abort()
-			} else {
 				ctx.AbortWithStatusJSON(400, gin.H{
 					"success": false,
 					"error": "Invalid guild ID",
 				})
+			} else {
+				ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
+				ctx.Abort()
 			}
 		}
 	}
