@@ -7,6 +7,7 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
+	"strings"
 )
 
 func CreatePanel(ctx *gin.Context) {
@@ -106,6 +107,8 @@ func (p *panel) verifyContent() bool {
 }
 
 func (p *panel) getEmoji() (string, bool) {
+	p.Emote = strings.Replace(p.Emote, ":", "", -1)
+
 	emoji := utils.GetEmojiByName(p.Emote)
 	return emoji, emoji != ""
 }
