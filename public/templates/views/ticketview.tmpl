@@ -115,8 +115,7 @@
     container.scrollTop = container.scrollHeight;
 
     async function startWebsocket(ticketId) {
-      //const ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
-      const ws = new WebSocket("ws://localhost:3000/webchat");
+      const ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
 
       ws.onopen = () => {
         ws.send(JSON.stringify({
