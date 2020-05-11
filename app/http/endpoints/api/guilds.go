@@ -1,28 +1,48 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 )
 
+type wrappedGuild struct {
+	Id   uint64 `json:"id,string"`
+	Name string `json:"name"`
+}
+
 func GetGuilds(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
-	userGuilds := table.GetGuilds(userId)
-	adminGuilds := make([]guild.Guild, 0)
-	for _, g := range userGuilds {
+	guilds, err := database.Client.UserGuilds.Get(userId)
+	if err != nil {
+		ctx.JSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	adminGuilds := make([]wrappedGuild, 0)
+	for _, g := range guilds {
 		fakeGuild := guild.Guild{
-			Id:          g.Id,
-			OwnerId:     g.OwnerId,
-			Permissions: g.Permissions,
+			Id:          g.GuildId,
+			Owner:       g.Owner,
+			Permissions: int(g.UserPermissions),
+		}
+
+		if g.Owner {
+			fakeGuild.OwnerId = userId
 		}
 
 		isAdmin := make(chan bool)
 		go utils.IsAdmin(fakeGuild, userId, isAdmin)
 		if <-isAdmin {
-			adminGuilds = append(adminGuilds, g)
+			adminGuilds = append(adminGuilds, wrappedGuild{
+				Id:   g.GuildId,
+				Name: g.Name,
+			})
 		}
 	}
 

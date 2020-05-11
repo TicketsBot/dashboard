@@ -16,12 +16,8 @@ id=
 secret=""
 redirectUri=""
 
-[mariadb]
-host="127.0.0.1"
-username="ryan"
-password="ryan"
-database="tickets"
-threads=5
+[database]
+uri="postgres://user:pwd@localhost:5432/database?pool_max_conns=10"
 
 [bot]
 token=""

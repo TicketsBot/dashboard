@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/dgrijalva/jwt-go"
@@ -22,6 +21,7 @@ func AuthenticateToken(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(403, gin.H{
+			"success": false,
 			"error": err.Error(),
 		})
 		return
@@ -31,7 +31,8 @@ func AuthenticateToken(ctx *gin.Context) {
 		userId, hasUserId := claims["userid"]
 		if !hasUserId {
 			ctx.AbortWithStatusJSON(403, gin.H{
-				"error": errors.New("token is invalid"),
+				"success": false,
+				"error": "Token is invalid",
 			})
 			return
 		}
@@ -39,7 +40,8 @@ func AuthenticateToken(ctx *gin.Context) {
 		parsedId, err := strconv.ParseUint(userId.(string), 10, 64)
 		if err != nil {
 			ctx.AbortWithStatusJSON(403, gin.H{
-				"error": errors.New("token is invalid"),
+				"success": false,
+				"error": "Token is invalid",
 			})
 			return
 		}
@@ -47,7 +49,8 @@ func AuthenticateToken(ctx *gin.Context) {
 		ctx.Keys["userid"] = parsedId
 	} else {
 		ctx.AbortWithStatusJSON(403, gin.H{
-			"error": errors.New("token is invalid"),
+			"success": false,
+			"error": "Token is invalid",
 		})
 		return
 	}

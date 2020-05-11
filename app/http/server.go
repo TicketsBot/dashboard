@@ -66,8 +66,7 @@ func StartServer() {
 		authenticateGuild.GET("/manage/:id/tags", manage.TagsHandler)
 
 		authenticateGuild.GET("/manage/:id/tickets", manage.TicketListHandler)
-		authenticateGuild.GET("/manage/:id/tickets/view/:uuid", manage.TicketViewHandler)
-		authenticateGuild.POST("/manage/:id/tickets/view/:uuid", api.SendMessage)
+		authenticateGuild.GET("/manage/:id/tickets/view/:ticketId", manage.TicketViewHandler)
 
 		authorized.GET("/webchat", manage.WebChatWs)
 	}
@@ -90,13 +89,13 @@ func StartServer() {
 		guildAuthApi.PUT("/:id/panels", api.CreatePanel)
 		guildAuthApi.DELETE("/:id/panels/:message", api.DeletePanel)
 
-		guildAuthApi.GET("/:id/logs/:page", api.GetLogs)
-		guildAuthApi.GET("/:id/modmail/logs/:page", api.GetModmailLogs)
+		guildAuthApi.GET("/:id/logs/", api.GetLogs)
+		guildAuthApi.GET("/:id/modmail/logs/", api.GetModmailLogs)
 
 		guildAuthApi.GET("/:id/tickets", api.GetTickets)
-		guildAuthApi.GET("/:id/tickets/:uuid", api.GetTicket)
-		guildAuthApi.POST("/:id/tickets/:uuid", api.SendMessage)
-		guildAuthApi.DELETE("/:id/tickets/:uuid", api.CloseTicket)
+		guildAuthApi.GET("/:id/tickets/:ticketId", api.GetTicket)
+		guildAuthApi.POST("/:id/tickets/:ticketId", api.SendMessage)
+		guildAuthApi.DELETE("/:id/tickets/:ticketId", api.CloseTicket)
 
 		guildAuthApi.GET("/:id/tags", api.TagsListHandler)
 		guildAuthApi.PUT("/:id/tags", api.CreateTag)

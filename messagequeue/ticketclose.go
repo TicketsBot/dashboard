@@ -6,23 +6,25 @@ import (
 )
 
 type TicketCloseMessage struct {
-	Uuid   string
-	User   uint64
-	Reason string
+	GuildId  uint64
+	TicketId int
+	User     uint64
+	Reason   string
 }
 
-func (c *RedisClient) PublishTicketClose(ticket string, userId uint64, reason string) {
+func (c *RedisClient) PublishTicketClose(guildId uint64, ticketId int, userId uint64, reason string) {
 	settings := TicketCloseMessage{
-		Uuid:   ticket,
-		User:   userId,
-		Reason: reason,
+		GuildId:  guildId,
+		TicketId: ticketId,
+		User:     userId,
+		Reason:   reason,
 	}
 
-	encoded, err := json.Marshal(settings); if err != nil {
+	encoded, err := json.Marshal(settings)
+	if err != nil {
 		log.Error(err.Error())
 		return
 	}
 
 	c.Publish("tickets:close", string(encoded))
 }
-

@@ -1,48 +1,71 @@
 package api
 
 import (
+	"context"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/errgroup"
 	"strconv"
-	"strings"
 )
 
 func GetTickets(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	tickets := table.GetOpenTickets(guildId)
-	ticketsFormatted := make([]map[string]interface{}, 0)
-
-	for _, ticket := range tickets {
-		membersFormatted := make([]map[string]interface{}, 0)
-		for index, memberIdStr := range strings.Split(ticket.Members, ",") {
-			if memberId, err := strconv.ParseUint(memberIdStr, 10, 64); err == nil {
-				if memberId != 0 {
-					var separator string
-					if index != len(strings.Split(ticket.Members, ","))-1 {
-						separator = ", "
-					}
-
-					member, _ := cache.Instance.GetUser(memberId)
-					membersFormatted = append(membersFormatted, map[string]interface{}{
-						"username": member.Username,
-						"discrim":  fmt.Sprintf("%04d", member.Discriminator),
-						"sep":      separator,
-					})
-				}
-			}
-		}
-
-		owner, _ := cache.Instance.GetUser(ticket.Owner)
-		ticketsFormatted = append(ticketsFormatted, map[string]interface{}{
-			"uuid":     ticket.Uuid,
-			"ticketId": ticket.TicketId,
-			"username": owner.Username,
-			"discrim":  fmt.Sprintf("%04d", owner.Discriminator),
-			"members":  membersFormatted,
+	tickets, err := database.Client.Tickets.GetGuildOpenTickets(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
 		})
+		return
+	}
+
+	ticketsFormatted := make([]map[string]interface{}, len(tickets))
+
+	group, _ := errgroup.WithContext(context.Background())
+
+	for i, ticket := range tickets {
+		i := i
+		ticket := ticket
+
+		group.Go(func() error {
+			members, err := database.Client.TicketMembers.Get(guildId, ticket.Id)
+			if err != nil {
+				return err
+			}
+
+			membersFormatted := make([]map[string]interface{}, 0)
+			for _, userId := range members {
+				user, _ := cache.Instance.GetUser(userId)
+
+				membersFormatted = append(membersFormatted, map[string]interface{}{
+					"id": strconv.FormatUint(userId, 10),
+					"username": user.Username,
+					"discrim":  fmt.Sprintf("%04d", user.Discriminator),
+				})
+			}
+
+			owner, _ := cache.Instance.GetUser(ticket.UserId)
+
+			ticketsFormatted[len(tickets) - 1 - i] =  map[string]interface{}{
+				"ticketId": ticket.Id,
+				"username": owner.Username,
+				"discrim":  fmt.Sprintf("%04d", owner.Discriminator),
+				"members":  membersFormatted,
+			}
+
+			return nil
+		})
+	}
+
+	if err := group.Wait(); err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
 	}
 
 	ctx.JSON(200, ticketsFormatted)

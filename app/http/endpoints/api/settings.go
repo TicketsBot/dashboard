@@ -1,56 +1,99 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"context"
+	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/errgroup"
 )
 
 type Settings struct {
-	Prefix          string             `json:"prefix"`
-	WelcomeMessaage string             `json:"welcome_message"`
-	TicketLimit     int                `json:"ticket_limit"`
-	Category        uint64             `json:"category,string"`
-	ArchiveChannel  uint64             `json:"archive_channel,string"`
-	NamingScheme    table.NamingScheme `json:"naming_scheme"`
-	PingEveryone    bool               `json:"ping_everyone"`
-	UsersCanClose   bool               `json:"users_can_close"`
+	Prefix          string                `json:"prefix"`
+	WelcomeMessaage string                `json:"welcome_message"`
+	TicketLimit     uint8                 `json:"ticket_limit"`
+	Category        uint64                `json:"category,string"`
+	ArchiveChannel  uint64                `json:"archive_channel,string"`
+	NamingScheme    database.NamingScheme `json:"naming_scheme"`
+	PingEveryone    bool                  `json:"ping_everyone"`
+	UsersCanClose   bool                  `json:"users_can_close"`
 }
 
 func GetSettingsHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	prefix := make(chan string)
-	go table.GetPrefix(guildId, prefix)
+	var prefix, welcomeMessage string
+	var ticketLimit uint8
+	var category, archiveChannel uint64
+	var allowUsersToClose, pingEveryone bool
+	var namingScheme database.NamingScheme
 
-	welcomeMessage := make(chan string)
-	go table.GetWelcomeMessage(guildId, welcomeMessage)
+	group, _ := errgroup.WithContext(context.Background())
 
-	ticketLimit := make(chan int)
-	go table.GetTicketLimit(guildId, ticketLimit)
+	// prefix
+	group.Go(func() (err error) {
+		prefix, err = dbclient.Client.Prefix.Get(guildId)
+		return
+	})
 
-	category := make(chan uint64)
-	go table.GetChannelCategory(guildId, category)
+	// welcome message
+	group.Go(func() (err error) {
+		welcomeMessage, err = dbclient.Client.WelcomeMessages.Get(guildId)
+		return
+	})
 
-	archiveChannel := make(chan uint64)
-	go table.GetArchiveChannel(guildId, archiveChannel)
+	// ticket limit
+	group.Go(func() (err error) {
+		ticketLimit, err = dbclient.Client.TicketLimit.Get(guildId)
+		return
+	})
 
-	allowUsersToClose := make(chan bool)
-	go table.IsUserCanClose(guildId, allowUsersToClose)
+	// category
+	group.Go(func() (err error) {
+		category, err = dbclient.Client.ChannelCategory.Get(guildId)
+		return
+	})
 
-	namingScheme := make(chan table.NamingScheme)
-	go table.GetTicketNamingScheme(guildId, namingScheme)
+	// archive channel
+	group.Go(func() (err error) {
+		archiveChannel, err = dbclient.Client.ArchiveChannel.Get(guildId)
+		return
+	})
 
-	pingEveryone := make(chan bool)
-	go table.GetPingEveryone(guildId, pingEveryone)
+	// allow users to close
+	group.Go(func() (err error) {
+		allowUsersToClose, err = dbclient.Client.UsersCanClose.Get(guildId)
+		return
+	})
+
+	// ping everyone
+	group.Go(func() (err error) {
+		pingEveryone, err = dbclient.Client.PingEveryone.Get(guildId)
+		return
+	})
+
+	// naming scheme
+	group.Go(func() (err error) {
+		namingScheme, err = dbclient.Client.NamingScheme.Get(guildId)
+		return
+	})
+
+	if err := group.Wait(); err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
 
 	ctx.JSON(200, Settings{
-		Prefix:          <-prefix,
-		WelcomeMessaage: <-welcomeMessage,
-		TicketLimit:     <-ticketLimit,
-		Category:        <-category,
-		ArchiveChannel:  <-archiveChannel,
-		NamingScheme:    <-namingScheme,
-		PingEveryone:    <-pingEveryone,
-		UsersCanClose:   <-allowUsersToClose,
+		Prefix:          prefix,
+		WelcomeMessaage: welcomeMessage,
+		TicketLimit:     ticketLimit,
+		Category:        category,
+		ArchiveChannel:  archiveChannel,
+		NamingScheme:    namingScheme,
+		PingEveryone:    pingEveryone,
+		UsersCanClose:   allowUsersToClose,
 	})
 }

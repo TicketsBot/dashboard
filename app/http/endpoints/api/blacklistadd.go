@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4"
@@ -50,11 +50,15 @@ func AddBlacklistHandler(ctx *gin.Context) {
 	}
 
 	// TODO: Don't blacklist staff or guild owner
-
-	go table.AddBlacklist(guildId, targetId)
-
-	ctx.JSON(200, gin.H{
-		"success": true,
-		"user_id": strconv.FormatUint(targetId, 10),
-	})
+	if err = database.Client.Blacklist.Add(guildId, targetId); err == nil {
+		ctx.JSON(200, gin.H{
+			"success": true,
+			"user_id": strconv.FormatUint(targetId, 10),
+		})
+	} else {
+		ctx.JSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+	}
 }

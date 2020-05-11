@@ -7,13 +7,13 @@ import (
 
 type (
 	Config struct {
-		Admins  []string
-		Server  Server
-		Oauth   Oauth
-		MariaDB MariaDB
-		Bot     Bot
-		Redis   Redis
-		Cache   Cache
+		Admins   []string
+		Server   Server
+		Oauth    Oauth
+		Database Database
+		Bot      Bot
+		Redis    Redis
+		Cache    Cache
 	}
 
 	Server struct {
@@ -41,12 +41,8 @@ type (
 		RedirectUri string
 	}
 
-	MariaDB struct {
-		Host     string
-		Username string
-		Password string
-		Database string
-		Threads  int
+	Database struct {
+		Uri string
 	}
 
 	Bot struct {

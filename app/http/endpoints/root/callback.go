@@ -1,14 +1,13 @@
 package root
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	userEndpoint "github.com/TicketsBot/GoPanel/utils/discord/endpoints/user"
+	"github.com/TicketsBot/database"
 	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -92,6 +91,8 @@ func CallbackHandler(ctx *gin.Context) {
 			return
 		}
 
+		var wrappedGuilds []database.UserGuild
+
 		// endpoint's partial guild doesn't include ownerid
 		// we only user cached guilds on the index page, so it doesn't matter if we don't have have the real owner id
 		// if the user isn't the owner, as we pull from the cache on other endpoints
@@ -99,16 +100,17 @@ func CallbackHandler(ctx *gin.Context) {
 			if guild.Owner {
 				guild.OwnerId = currentUser.Id
 			}
+
+			wrappedGuilds = append(wrappedGuilds, database.UserGuild{
+				GuildId:         guild.Id,
+				Name:            guild.Name,
+				Owner:           guild.Owner,
+				UserPermissions: int32(guild.Permissions),
+			})
 		}
 
-		marshalled, err := json.Marshal(guilds)
-		if err != nil {
-			log.Error(err.Error())
-			return
-		}
-
-		// TODO: unfuck this
-		table.UpdateGuilds(currentUser.Id, base64.StdEncoding.EncodeToString(marshalled))
+		// TODO: Error handling
+		go dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds)
 	}()
 }
 

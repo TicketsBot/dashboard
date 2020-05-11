@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +38,7 @@ func CreateTag(ctx *gin.Context) {
 		return
 	}
 
-	if err := table.AddTag(guildId, data.Id, data.Content); err != nil {
+	if err := database.Client.Tag.Set(guildId, data.Id, data.Content); err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
 			"error": err.Error(),

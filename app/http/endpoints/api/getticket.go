@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -18,13 +18,27 @@ var MentionRegex, _ = regexp.Compile("<@(\\d+)>")
 
 func GetTicket(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
-	uuid := ctx.Param("uuid")
 
-	ticketChan := make(chan table.Ticket)
-	go table.GetTicket(uuid, ticketChan)
-	ticket := <-ticketChan
+	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": true,
+			"error":   "Invalid ticket ID",
+		})
+		return
+	}
 
-	if ticket.Guild != guildId {
+	// Get the ticket struct
+	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": true,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if ticket.GuildId != guildId {
 		ctx.AbortWithStatusJSON(403, gin.H{
 			"success": false,
 			"error": "Guild ID doesn't match",
@@ -32,7 +46,7 @@ func GetTicket(ctx *gin.Context) {
 		return
 	}
 
-	if !ticket.IsOpen {
+	if !ticket.Open {
 		ctx.AbortWithStatusJSON(404, gin.H{
 			"success": false,
 			"error": "Ticket does not exist",
@@ -40,8 +54,16 @@ func GetTicket(ctx *gin.Context) {
 		return
 	}
 
+	if ticket.ChannelId == nil {
+		ctx.AbortWithStatusJSON(404, gin.H{
+			"success": false,
+			"error": "Ticket channel does not exist",
+		})
+		return
+	}
+
 	// Get messages
-	messages, _ := rest.GetChannelMessages(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Channel, rest.GetChannelMessagesData{Limit: 100})
+	messages, _ := rest.GetChannelMessages(config.Conf.Bot.Token, ratelimit.Ratelimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
 
 	// Format messages, exclude unneeded data
 	messagesFormatted := make([]map[string]interface{}, 0)

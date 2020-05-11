@@ -1,35 +1,31 @@
 package database
 
 import (
-	"fmt"
+	"context"
 	"github.com/TicketsBot/GoPanel/config"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
+	"github.com/TicketsBot/database"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/log/logrusadapter"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/sirupsen/logrus"
 )
 
-var (
-	Database gorm.DB
-)
+var Client *database.Database
 
 func ConnectToDatabase() {
-	uri := fmt.Sprintf(
-		"%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		config.Conf.MariaDB.Username,
-		config.Conf.MariaDB.Password,
-		config.Conf.MariaDB.Host,
-		config.Conf.MariaDB.Database,
-	)
+	config, err := pgxpool.ParseConfig(config.Conf.Database.Uri); if err != nil {
+		panic(err)
+	}
 
-	db, err := gorm.Open("mysql", uri)
+	// TODO: Sentry
+	config.ConnConfig.LogLevel = pgx.LogLevelWarn
+	config.ConnConfig.Logger = logrusadapter.NewLogger(logrus.New())
+
+	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		panic(err)
 	}
 
-	db.DB().SetMaxOpenConns(config.Conf.MariaDB.Threads)
-	db.DB().SetMaxIdleConns(0)
-
-	db.Set("gorm:table_options", "charset=utf8mb4")
-	db.BlockGlobalUpdate(true)
-
-	Database = *db
+	Client = database.NewDatabase(pool)
+	Client.CreateTables(pool)
 }

@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,7 +17,7 @@ func DeleteTag(ctx *gin.Context) {
 		return
 	}
 
-	if err := table.DeleteTag(guildId, tagId); err != nil {
+	if err := database.Client.Tag.Delete(guildId, tagId); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
 			"error": err.Error(),

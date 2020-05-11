@@ -1,12 +1,19 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/config"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
+	"github.com/rxdn/gdl/objects/channel/embed"
+	"github.com/rxdn/gdl/objects/channel/message"
+	"github.com/rxdn/gdl/rest"
+	"github.com/rxdn/gdl/rest/request"
+	"strconv"
 	"strings"
 )
 
@@ -25,12 +32,19 @@ func CreatePanel(ctx *gin.Context) {
 	data.MessageId = 0
 
 	// Check panel quota
-	premium := make(chan bool)
-	go utils.IsPremiumGuild(guildId, premium)
-	if !<-premium {
-		panels := make(chan []table.Panel)
-		go table.GetPanelsByGuild(guildId, panels)
-		if len(<-panels) > 0 {
+	premiumChan := make(chan bool)
+	go utils.IsPremiumGuild(guildId, premiumChan)
+	isPremium := <-premiumChan
+	if !isPremium {
+		panels, err := dbclient.Client.Panel.GetByGuild(guildId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+		}
+
+		if len(panels) > 0 {
 			ctx.AbortWithStatusJSON(402, gin.H{
 				"success": false,
 				"error":   "You have exceeded your panel quota. Purchase premium to unlock more panels.",
@@ -39,63 +53,118 @@ func CreatePanel(ctx *gin.Context) {
 		}
 	}
 
-	if !data.verifyTitle() {
+	if !data.doValidations(ctx, guildId) {
+		return
+	}
+
+	msgId, err := data.sendEmbed(isPremium)
+	if err != nil {
+		if err == request.ErrForbidden {
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error":   "I do not have permission to send messages in the specified channel",
+			})
+		} else {
+			// TODO: Most appropriate error?
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+		}
+
+		return
+	}
+
+	// Add reaction
+	emoji, _ := data.getEmoji() // already validated
+	if err = rest.CreateReaction(config.Conf.Bot.Token, ratelimit.Ratelimiter, data.ChannelId, msgId, emoji); err != nil {
+		if err == request.ErrForbidden {
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error":   "I do not have permission to add reactions in the specified channel",
+			})
+		} else {
+			// TODO: Most appropriate error?
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+		}
+
+		return
+	}
+
+	// Store in DB
+	panel := database.Panel{
+		MessageId:      msgId,
+		ChannelId:      data.ChannelId,
+		GuildId:        guildId,
+		Title:          data.Title,
+		Content:        data.Content,
+		Colour:         int32(data.Colour),
+		TargetCategory: data.CategoryId,
+		ReactionEmote:  emoji,
+	}
+
+	if err = dbclient.Client.Panel.Create(panel); err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"success": true,
+		"message_id": strconv.FormatUint(msgId, 10),
+	})
+}
+
+func (p *panel) doValidations(ctx *gin.Context, guildId uint64) bool {
+	if !p.verifyTitle() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error":   "Panel titles must be between 1 - 255 characters in length",
 		})
-		return
+		return false
 	}
 
-	if !data.verifyContent() {
+	if !p.verifyContent() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error":   "Panel content must be between 1 - 1024 characters in length",
 		})
-		return
+		return false
 	}
 
 	channels := cache.Instance.GetGuildChannels(guildId)
 
-	if !data.verifyChannel(channels) {
+	if !p.verifyChannel(channels) {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error":   "Invalid channel",
 		})
-		return
+		return false
 	}
 
-	if !data.verifyCategory(channels) {
+	if !p.verifyCategory(channels) {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error":   "Invalid channel category",
 		})
-		return
+		return false
 	}
 
-	emoji, validEmoji := data.getEmoji()
+	_, validEmoji := p.getEmoji()
 	if !validEmoji {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error":   "Invalid emoji. Simply use the emoji's name from Discord.",
 		})
-		return
+		return false
 	}
 
-	// TODO: Move panel create logic here
-	go messagequeue.Client.PublishPanelCreate(table.Panel{
-		ChannelId:      data.ChannelId,
-		GuildId:        guildId,
-		Title:          data.Title,
-		Content:        data.Content,
-		Colour:         data.Colour,
-		TargetCategory: data.CategoryId,
-		ReactionEmote:  emoji,
-	})
-
-	ctx.JSON(200, gin.H{
-		"success": true,
-	})
+	return true
 }
 
 func (p *panel) verifyTitle() bool {
@@ -135,4 +204,25 @@ func (p *panel) verifyCategory(channels []channel.Channel) bool {
 	}
 
 	return valid
+}
+
+func (p *panel) sendEmbed(isPremium bool) (messageId uint64, err error) {
+	e := embed.NewEmbed().
+		SetTitle(p.Title).
+		SetDescription(p.Content).
+		SetColor(int(p.Colour))
+
+	if !isPremium {
+		// TODO: Don't harcode
+		e.SetFooter("Powered by ticketsbot.net", "https://cdn.discordapp.com/avatars/508391840525975553/ac2647ffd4025009e2aa852f719a8027.png?size=256")
+	}
+
+	var msg message.Message
+	msg, err = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, p.ChannelId, rest.CreateMessageData{Embed: e})
+	if err != nil {
+		return
+	}
+
+	messageId = msg.Id
+	return
 }

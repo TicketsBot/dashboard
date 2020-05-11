@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,9 +18,14 @@ type panel struct {
 func ListPanels(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	panelsChan := make(chan []table.Panel)
-	go table.GetPanelsByGuild(guildId, panelsChan)
-	panels := <-panelsChan
+	panels, err := database.Client.Panel.GetByGuild(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
 
 	wrapped := make([]panel, len(panels))
 
@@ -30,7 +35,7 @@ func ListPanels(ctx *gin.Context) {
 			MessageId:  p.MessageId,
 			Title:      p.Title,
 			Content:    p.Content,
-			Colour:     p.Colour,
+			Colour:     uint32(p.Colour),
 			CategoryId: p.TargetCategory,
 			Emote:      p.ReactionEmote,
 		}

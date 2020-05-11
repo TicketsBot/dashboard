@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
+	"github.com/TicketsBot/GoPanel/database"
 	gocache "github.com/robfig/go-cache"
 	"github.com/rxdn/gdl/rest"
 	"io/ioutil"
@@ -20,6 +20,7 @@ type ProxyResponse struct {
 	Tier int
 }
 
+// TODO: Use Redis cache
 var premiumCache = gocache.New(10 * time.Minute, 10 * time.Minute)
 
 func IsPremiumGuild(guildId uint64, ch chan bool) {
@@ -31,10 +32,11 @@ func IsPremiumGuild(guildId uint64, ch chan bool) {
 	}
 
 	// First lookup by premium key, then votes, then patreon
-	keyLookup := make(chan bool)
-	go table.IsPremium(guildId, keyLookup)
+	// TODO: Lookup Patreon first
+	// TODO: Handle error
+	hasPremiumKey, _ := database.Client.PremiumGuilds.IsPremium(guildId)
 
-	if <-keyLookup {
+	if hasPremiumKey {
 		if err := premiumCache.Add(guildIdRaw, true, 10 * time.Minute); err != nil {
 			fmt.Println(err.Error())
 		}

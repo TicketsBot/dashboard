@@ -11,10 +11,10 @@ func TicketViewHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	ctx.HTML(200, "manage/ticketview", gin.H{
-		"name":    store.Get("name").(string),
-		"guildId": guildId,
-		"avatar":  store.Get("avatar").(string),
-		"baseUrl": config.Conf.Server.BaseUrl,
-		"uuid":    ctx.Param("uuid"),
+		"name":     store.Get("name").(string),
+		"guildId":  guildId,
+		"avatar":   store.Get("avatar").(string),
+		"baseUrl":  config.Conf.Server.BaseUrl,
+		"ticketId": ctx.Param("ticketId"),
 	})
 }

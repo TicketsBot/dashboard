@@ -4,12 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"strconv"
 )
 
@@ -33,21 +34,35 @@ func ModmailLogViewHandler(ctx *gin.Context) {
 		guild, _ := cache.Instance.GetGuild(guildId, false)
 
 		// get ticket UUID
-		uuid := ctx.Param("uuid")
+		archiveUuid, err := uuid.FromString(ctx.Param("uuid"))
+		if err != nil {
+			// TODO: 404 error page
+			ctx.AbortWithStatusJSON(404, gin.H{
+				"success": false,
+				"error": "Modmail archive not found",
+			})
+			return
+		}
 
 		// get ticket object
-		archiveCh := make(chan table.ModMailArchive)
-		go table.GetModmailArchive(uuid, archiveCh)
-		archive := <-archiveCh
+		archive, err := database.Client.ModmailArchive.Get(archiveUuid)
+		if err != nil {
+			// TODO: 500 error page
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+			return
+		}
 
 		// Verify this is a valid ticket and it is closed
-		if archive.Uuid == "" {
+		if archive.Uuid == uuid.Nil{
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs/modmail", guild.Id))
 			return
 		}
 
 		// Verify this modmail ticket was for this guild
-		if archive.Guild != guildId {
+		if archive.GuildId != guildId {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs/modmail", guild.Id))
 			return
 		}
@@ -55,13 +70,13 @@ func ModmailLogViewHandler(ctx *gin.Context) {
 		// Verify the user has permissions to be here
 		isAdmin := make(chan bool)
 		go utils.IsAdmin(guild, userId, isAdmin)
-		if !<-isAdmin && archive.User != userId {
+		if !<-isAdmin && archive.UserId != userId {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
 		}
 
 		// retrieve ticket messages from bucket
-		messages, err := Archiver.GetModmail(guildId, uuid)
+		messages, err := Archiver.GetModmail(guildId, archiveUuid.String())
 		if err != nil {
 			if errors.Is(err, archiverclient.ErrExpired) {
 				ctx.String(200, "Archives expired: Purchase premium for permanent log storage") // TODO: Actual error page
@@ -73,7 +88,7 @@ func ModmailLogViewHandler(ctx *gin.Context) {
 		}
 
 		// format to html
-		html, err := Archiver.Encode(messages, fmt.Sprintf("modmail-%s", uuid))
+		html, err := Archiver.Encode(messages, fmt.Sprintf("modmail-%s", archiveUuid))
 		if err != nil {
 			ctx.String(500, fmt.Sprintf("Failed to retrieve archive - please contact the developers: %s", err.Error()))
 			return

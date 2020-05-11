@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/database/table"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"regexp"
 	"strconv"
 )
@@ -18,15 +20,18 @@ type wrappedModLog struct {
 	UserId  uint64 `json:"user_id,string"`
 }
 
+// TODO: Take after param
 func GetModmailLogs(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	page, err := strconv.Atoi(ctx.Param("page"))
+	after, err := uuid.FromString(ctx.Query("after"))
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		after = uuid.Nil
+	}
+
+	before, err := uuid.FromString(ctx.Query("before"))
+	if err != nil {
+		before = uuid.Nil
 	}
 
 	// filter
@@ -53,27 +58,28 @@ func GetModmailLogs(ctx *gin.Context) {
 
 	shouldFilter := userId > 0
 
-	start := pageLimit * (page - 1)
-	end := start + pageLimit - 1
-
 	wrapped := make([]wrappedModLog, 0)
 
-	var archives []table.ModMailArchive
+	var archives []database.ModmailArchive
 	if shouldFilter {
-		archivesCh := make(chan []table.ModMailArchive)
-		go table.GetModmailArchivesByUser(userId, guildId, archivesCh)
-		archives = <-archivesCh
+		archives, err = dbclient.Client.ModmailArchive.GetByMember(guildId, userId, pageLimit, after, before)
 	} else {
-		archivesCh := make(chan []table.ModMailArchive)
-		go table.GetModmailArchivesByGuild(guildId, archivesCh)
-		archives = <-archivesCh
+		archives, err = dbclient.Client.ModmailArchive.GetByGuild(guildId, pageLimit, after, before)
 	}
 
-	for i := start; i < end && i < len(archives); i++ {
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
+
+	for _, archive := range archives {
 		wrapped = append(wrapped, wrappedModLog{
-			Uuid:    archives[i].Uuid,
-			GuildId: archives[i].Guild,
-			UserId:  archives[i].User,
+			Uuid:    archive.Uuid.String(),
+			GuildId: archive.GuildId,
+			UserId:  archive.UserId,
 		})
 	}
 

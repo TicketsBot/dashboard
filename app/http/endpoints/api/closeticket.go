@@ -1,9 +1,10 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 type closeBody struct {
@@ -13,7 +14,15 @@ type closeBody struct {
 func CloseTicket(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 	guildId := ctx.Keys["guildid"].(uint64)
-	uuid := ctx.Param("uuid")
+
+	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": true,
+			"error":   "Invalid ticket ID",
+		})
+		return
+	}
 
 	var data closeBody
 	if err := ctx.BindJSON(&data); err != nil {
@@ -24,12 +33,18 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	// Verify that the ticket exists
-	ticketChan := make(chan table.Ticket)
-	go table.GetTicket(uuid, ticketChan)
-	ticket := <-ticketChan
+	// Get the ticket struct
+	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": true,
+			"error":   err.Error(),
+		})
+		return
+	}
 
-	if ticket.Uuid == "" {
+	// Verify the ticket exists
+	if ticket.UserId == 0 {
 		ctx.AbortWithStatusJSON(404, gin.H{
 			"success": true,
 			"error":   "Ticket does not exist",
@@ -37,7 +52,7 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	if ticket.Guild != guildId {
+	if ticket.GuildId != guildId {
 		ctx.AbortWithStatusJSON(403, gin.H{
 			"success": true,
 			"error":   "Guild ID does not matched",
@@ -45,7 +60,7 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	go messagequeue.Client.PublishTicketClose(ticket.Uuid, userId, data.Reason)
+	go messagequeue.Client.PublishTicketClose(guildId, ticket.Id, userId, data.Reason)
 
 	ctx.JSON(200, gin.H{
 		"success": true,

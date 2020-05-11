@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/database"
 	"github.com/apex/log"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
@@ -15,15 +16,15 @@ import (
 )
 
 const (
-	pageLimit = 30
+	pageLimit = 2
 )
 
 func GetLogs(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	page, err := strconv.Atoi(ctx.Param("page"))
-	if page < 1 {
-		page = 1
+	before, err := strconv.Atoi(ctx.Query("before"))
+	if before < 0 {
+		before = 0
 	}
 
 	// Get ticket ID from URL
@@ -32,15 +33,20 @@ func GetLogs(ctx *gin.Context) {
 		ticketId, _ = strconv.Atoi(ctx.Query("ticketid"))
 	}
 
-	var tickets []table.Ticket
+	var tickets []database.Ticket
 
 	// Get tickets from DB
 	if ticketId > 0 {
-		ticketChan := make(chan table.Ticket)
-		go table.GetTicketById(guildId, ticketId, ticketChan)
-		ticket := <-ticketChan
+		ticket, err := dbclient.Client.Tickets.Get(ticketId, guildId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+			return
+		}
 
-		if ticket.Uuid != "" && !ticket.IsOpen {
+		if ticket.UserId != 0 && !ticket.Open {
 			tickets = append(tickets, ticket)
 		}
 	} else {
@@ -76,25 +82,27 @@ func GetLogs(ctx *gin.Context) {
 		}
 
 		if ctx.Query("userid") != "" || ctx.Query("username") != "" {
-			tickets = table.GetClosedTicketsByUserId(guildId, filteredIds)
+			tickets, err = dbclient.Client.Tickets.GetMemberClosedTickets(guildId, filteredIds, pageLimit, before)
 		} else {
-			tickets = table.GetClosedTickets(guildId)
+			tickets, err = dbclient.Client.Tickets.GetGuildClosedTickets(guildId, pageLimit, before)
+		}
+
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+			return
 		}
 	}
 
 	// Select 30 logs + format them
 	formattedLogs := make([]map[string]interface{}, 0)
-	for i := (page - 1) * pageLimit; i < (page-1)*pageLimit+pageLimit; i++ {
-		if i >= len(tickets) {
-			break
-		}
-
-		ticket := tickets[i]
-
+	for _, ticket := range tickets {
 		// get username
-		user, found := cache.Instance.GetUser(ticket.Owner)
+		user, found := cache.Instance.GetUser(ticket.UserId)
 		if !found {
-			user, err = rest.GetUser(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Owner)
+			user, err = rest.GetUser(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.UserId)
 			if err != nil {
 				log.Error(err.Error())
 			}
@@ -102,8 +110,8 @@ func GetLogs(ctx *gin.Context) {
 		}
 
 		formattedLogs = append(formattedLogs, map[string]interface{}{
-			"ticketid": ticket.TicketId,
-			"userid":   strconv.FormatUint(ticket.Owner, 10),
+			"ticketid": ticket.Id,
+			"userid":   strconv.FormatUint(ticket.UserId, 10),
 			"username": user.Username,
 		})
 	}

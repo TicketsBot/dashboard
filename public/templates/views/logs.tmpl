@@ -84,13 +84,16 @@
       </div>
     </div>
 
-    <!--<div aria-live="polite" aria-atomic="true" style="position: relative">
+    <div aria-live="polite" aria-atomic="true" style="position: relative">
       <div style="position: absolute; right: 10px" id="toast-container">
       </div>
-    </div>-->
+    </div>
 
     <script>
+      // TODO: Implement before param
+      const pageLimit = 30;
       let currentPage = 1;
+      let logs = [];
 
       function appendLog(log) {
           const container = document.getElementById('log-container');
@@ -105,30 +108,35 @@
           container.appendChild(tr);
       }
 
-      async function loadPage(page, ticketId, username, userId) {
+      async function loadData(before, ticketId, username, userId) {
+          if (before === undefined) {
+              before = 0;
+          }
+
           const container = document.getElementById('log-container');
           container.innerHTML = '';
 
-          let  url = '/api/{{.guildId}}/logs/' + page;
+          let url = '/api/{{.guildId}}/logs?before=' + before;
 
           if (ticketId !== undefined) {
-              url += `?ticketid=${ticketId}`;
+              url += `&ticketid=${ticketId}`;
           } else if (username !== undefined) {
-              url += `?username=${username}`;
+              url += `&username=${username}`;
           } else if (userId !== undefined) {
-              url += `?userid=${userId}`;
+              url += `&userid=${userId}`;
           }
 
           const res = await axios.get(url);
-          for (log of res.data) {
-              appendLog(log);
+          if (res.status === 200) {
+              logs = res.data;
+              for (log of res.data) {
+                  appendLog(log);
+              }
+          } else {
+              showToast('Error', res.data.error);
           }
 
-          document.getElementById('page-number').innerText = page;
-      }
-
-      async function loadData() {
-          await loadPage(currentPage);
+          document.getElementById('page-number').innerText = currentPage;
       }
 
       loadData();
@@ -136,8 +144,12 @@
 
     <script>
       async function next() {
+          if (logs.length === 0) {
+              return;
+          }
+
           currentPage += 1;
-          await loadPage(currentPage);
+          await loadData(logs[logs.length - 1].ticketid);
       }
 
       async function previous() {
@@ -145,8 +157,13 @@
               return
           }
 
+          let before = pageLimit;
+          if (logs.length > 0) {
+              before = logs[0] + pageLimit;
+          }
+
           currentPage -= 1;
-          await loadPage(currentPage);
+          await loadData(before);
       }
 
       async function filterLogs() {
@@ -155,13 +172,13 @@
           const userId = document.getElementById('userid').value;
 
           if (ticketId > 0) {
-              await loadPage(1, ticketId);
+              await loadData(0, ticketId);
           } else if (username !== "") {
-              await loadPage(1, undefined, username);
+              await loadData(0, undefined, username);
           } else if (userId !== "") {
-              await loadPage(1, undefined, undefined, userId);
+              await loadData(0, undefined, undefined, userId);
           } else {
-              await loadPage(1);
+              await loadData(0);
           }
       }
     </script>

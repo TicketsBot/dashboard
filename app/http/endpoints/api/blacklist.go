@@ -1,11 +1,14 @@
 package api
 
 import (
+	"context"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/errgroup"
 	"strconv"
+	"sync"
 )
 
 type userData struct {
@@ -16,18 +19,38 @@ type userData struct {
 func GetBlacklistHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	data := make(map[string]userData)
-
-	blacklistedUsers := table.GetBlacklistNodes(guildId)
-	for _, row := range blacklistedUsers {
-		formattedId := strconv.FormatUint(row.User, 10)
-		user, _ := cache.Instance.GetUser(row.User)
-
-		data[formattedId] = userData{
-			Username:      user.Username,
-			Discriminator: fmt.Sprintf("%04d", user.Discriminator),
-		}
+	blacklistedUsers, err := database.Client.Blacklist.GetBlacklistedUsers(guildId)
+	if err != nil {
+		ctx.JSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
 	}
+
+	data := make(map[string]userData)
+	var lock sync.Mutex
+
+	group, _ := errgroup.WithContext(context.Background())
+	for _, userId := range blacklistedUsers {
+		group.Go(func() error {
+			user, _ := cache.Instance.GetUser(userId)
+
+			lock.Lock()
+
+			// JS cant do big ints
+			data[strconv.FormatUint(userId, 10)] = userData{
+				Username:      user.Username,
+				Discriminator: fmt.Sprintf("%04d", user.Discriminator),
+			}
+
+			lock.Unlock()
+
+			return nil
+		})
+	}
+
+	_ = group.Wait()
 
 	ctx.JSON(200, data)
 }

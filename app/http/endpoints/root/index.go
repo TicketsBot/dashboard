@@ -2,7 +2,7 @@ package root
 
 import (
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -13,19 +13,31 @@ func IndexHandler(ctx *gin.Context) {
 	store := sessions.Default(ctx)
 	userId := utils.GetUserId(store)
 
-	userGuilds := table.GetGuilds(userId)
+	userGuilds, err := database.Client.UserGuilds.Get(userId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	adminGuilds := make([]guild.Guild, 0)
 	for _, g := range userGuilds {
 		fakeGuild := guild.Guild{
-			Id:          g.Id,
-			OwnerId:     g.OwnerId,
-			Permissions: g.Permissions,
+			Id:          g.GuildId,
+			Owner:       g.Owner,
+			Permissions: int(g.UserPermissions),
+		}
+
+		if g.Owner {
+			fakeGuild.OwnerId = userId
 		}
 
 		isAdmin := make(chan bool)
 		go utils.IsAdmin(fakeGuild, userId, isAdmin)
 		if <-isAdmin {
-			adminGuilds = append(adminGuilds, g)
+			adminGuilds = append(adminGuilds, fakeGuild)
 		}
 	}
 

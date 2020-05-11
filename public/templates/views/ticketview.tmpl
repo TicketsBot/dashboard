@@ -45,7 +45,7 @@
         const reason = document.getElementById('reason').value;
         document.getElementById('reason').value = '';
 
-        const res = await axios.delete('/api/{{.guildId}}/tickets/{{.uuid}}', {
+        const res = await axios.delete('/api/{{.guildId}}/tickets/{{.ticketId}}', {
             data: {
                 reason: reason
             }
@@ -86,20 +86,20 @@
     async function loadData() {
         const premium = await isPremium();
 
-        const res = await axios.get('/api/{{.guildId}}/tickets/{{.uuid}}');
+        const res = await axios.get('/api/{{.guildId}}/tickets/{{.ticketId}}');
         if (res.status === 200 && res.data.success) {
             const data = res.data;
-            document.getElementById('channel-name').innerText = `#ticket-${data.ticket.TicketId}`;
+            document.getElementById('channel-name').innerText = `#ticket-${data.ticket.Id}`;
             await appendMessages(data.messages);
 
-            startWebsocket(data.ticket.TicketId);
+            startWebsocket(data.ticket.Id);
         } else {
             showToast('Error', res.data.error);
         }
 
         const el = document.getElementById('message');
         if (premium) {
-            el.placeholder = `Message #ticket-${res.data.ticket.TicketId}`;
+            el.placeholder = `Message #ticket-${res.data.ticket.Id}`;
         } else {
             el.disabled = true;
             el.placeholder = 'Premium users get live messages and can respond through webchat'
@@ -110,12 +110,13 @@
   </script>
 
   <script>
-      // Scroll to bottom
+    // Scroll to bottom
     const container = document.getElementById("message-container");
     container.scrollTop = container.scrollHeight;
 
     async function startWebsocket(ticketId) {
-      const ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
+      //const ws = new WebSocket("wss://panel.ticketsbot.net/webchat");
+      const ws = new WebSocket("ws://localhost:3000/webchat");
 
       ws.onopen = () => {
         ws.send(JSON.stringify({
@@ -138,7 +139,7 @@
       const msg = document.getElementById("message").value;
       document.getElementById("message").value = "";
 
-      const res = await axios.post('/api/{{.guildId}}/tickets/{{.uuid}}', {message: msg});
+      const res = await axios.post('/api/{{.guildId}}/tickets/{{.ticketId}}', {message: msg});
       if (res.status !== 200 || !res.data.success) {
           showToast('Error', res.data.error);
       }

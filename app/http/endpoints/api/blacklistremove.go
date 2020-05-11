@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -18,9 +18,14 @@ func RemoveBlacklistHandler(ctx *gin.Context) {
 		return
 	}
 
-	go table.RemoveBlacklist(guildId, userId)
-
-	ctx.JSON(200, gin.H{
-		"success": true,
-	})
+	if err := database.Client.Blacklist.Remove(guildId, userId); err == nil {
+		ctx.JSON(200, gin.H{
+			"success": true,
+		})
+	} else {
+		ctx.JSON(200, gin.H{
+			"success": false,
+			"err": err.Error(),
+		})
+	}
 }

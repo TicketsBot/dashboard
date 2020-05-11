@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
@@ -41,20 +41,27 @@ func LogViewHandler(ctx *gin.Context) {
 		}
 
 		// get ticket object
-		ticketChan := make(chan table.Ticket)
-		go table.GetTicketById(guildId, ticketId, ticketChan)
-		ticket := <-ticketChan
+		ticket, err := database.Client.Tickets.Get(ticketId, guildId)
+		if err != nil {
+			// TODO: 500 error page
+			ctx.AbortWithStatusJSON(500, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+			return
+		}
 
 		// Verify this is a valid ticket and it is closed
-		if ticket.Uuid == "" || ticket.IsOpen {
+		if ticket.UserId == 0 || ticket.Open {
 			ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
 			return
 		}
 
 		// Verify the user has permissions to be here
+		// TODO: Allow support reps to view
 		isAdmin := make(chan bool)
 		go utils.IsAdmin(guild, userId, isAdmin)
-		if !<-isAdmin && ticket.Owner != userId {
+		if !<-isAdmin && ticket.UserId != userId {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
 		}

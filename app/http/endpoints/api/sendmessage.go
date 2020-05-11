@@ -1,18 +1,16 @@
 package api
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
-	"net/http"
-	"time"
+	"github.com/rxdn/gdl/rest/request"
+	"strconv"
 )
 
 type sendMessageBody struct {
@@ -22,6 +20,16 @@ type sendMessageBody struct {
 func SendMessage(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 	userId := ctx.Keys["userid"].(uint64)
+
+	// Get ticket ID
+	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
+	if err != nil {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": false,
+			"error":   "Invalid ticket ID",
+		})
+		return
+	}
 
 	var body sendMessageBody
 	if err := ctx.BindJSON(&body); err != nil {
@@ -44,12 +52,10 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Get ticket
-	ticketChan := make(chan table.Ticket)
-	go table.GetTicket(ctx.Param("uuid"), ticketChan)
-	ticket := <-ticketChan
+	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
 
 	// Verify the ticket exists
-	if ticket.TicketId == 0 {
+	if ticket.UserId == 0 {
 		ctx.AbortWithStatusJSON(404, gin.H{
 			"success": false,
 			"error":   "Ticket not found",
@@ -58,7 +64,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Verify the user has permission to send to this guild
-	if ticket.Guild != guildId {
+	if ticket.GuildId != guildId {
 		ctx.AbortWithStatusJSON(403, gin.H{
 			"success": false,
 			"error":   "Guild ID doesn't match",
@@ -73,60 +79,61 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Preferably send via a webhook
-	webhookChan := make(chan *string)
-	go table.GetWebhookByUuid(ticket.Uuid, webhookChan)
-	webhook := <-webhookChan
-
-	success := false
-	if webhook != nil {
-		// TODO: Use gdl execute webhook wrapper
-		success = executeWebhook(ticket.Uuid, *webhook, body.Message, user.Username, user.AvatarUrl(256))
+	webhook, err := database.Client.Webhooks.Get(guildId, ticketId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
 	}
 
-	if !success {
-		body.Message = fmt.Sprintf("**%s**: %s", user.Username, body.Message)
-		if len(body.Message) > 2000 {
-			body.Message = body.Message[0:1999]
-		}
+	if webhook.Id != 0 {
+		// TODO: Use gdl execute webhook wrapper
+		_, err = rest.ExecuteWebhook(webhook.Token, ratelimit.Ratelimiter, webhook.Id, true, rest.WebhookBody{
+			Content:   body.Message,
+			Username:  user.Username,
+			AvatarUrl: user.AvatarUrl(256),
+		})
 
-		_, _ = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.Channel, rest.CreateMessageData{Content: body.Message})
+		if err != nil {
+			fmt.Println(err.Error())
+			// We can delete the webhook in this case
+			if err == request.ErrNotFound || err == request.ErrForbidden {
+				go database.Client.Webhooks.Delete(guildId, ticketId)
+			}
+		} else {
+			ctx.JSON(200, gin.H{
+				"success": true,
+			})
+			return
+		}
+	}
+
+	fmt.Println(1)
+
+	body.Message = fmt.Sprintf("**%s**: %s", user.Username, body.Message)
+	if len(body.Message) > 2000 {
+		body.Message = body.Message[0:1999]
+	}
+
+	if ticket.ChannelId == nil {
+		ctx.AbortWithStatusJSON(404, gin.H{
+			"success": false,
+			"error":   "Ticket channel ID is nil",
+		})
+		return
+	}
+
+	if _, err = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, *ticket.ChannelId, rest.CreateMessageData{Content: body.Message}); err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
 	}
 
 	ctx.JSON(200, gin.H{
 		"success": true,
 	})
-}
-
-func executeWebhook(uuid, webhook, content, username, avatar string) bool {
-	body := map[string]interface{}{
-		"content":    content,
-		"username":   username,
-		"avatar_url": avatar,
-	}
-	encoded, err := json.Marshal(&body)
-	if err != nil {
-		return false
-	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://canary.discordapp.com/api/webhooks/%s", webhook), bytes.NewBuffer(encoded))
-	if err != nil {
-		return false
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	client.Timeout = 3 * time.Second
-
-	res, err := client.Do(req)
-	if err != nil {
-		return false
-	}
-
-	if res.StatusCode == 404 || res.StatusCode == 403 {
-		go table.DeleteWebhookByUuid(uuid)
-	} else {
-		return true
-	}
-
-	return false
 }

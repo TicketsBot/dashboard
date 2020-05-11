@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/database/table"
+	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/apex/log"
@@ -16,17 +16,22 @@ import (
 	"sync"
 )
 
+// TODO: Use Redis cache
+// TODO: Error handling
 func IsAdmin(g guild.Guild, userId uint64, res chan bool) {
-	if Contains(config.Conf.Admins, strconv.Itoa(int(userId))) {
+	if Contains(config.Conf.Admins, strconv.FormatUint(userId, 10)) {
 		res <- true
+		return
 	}
 
 	if g.OwnerId == userId {
 		res <- true
+		return
 	}
 
-	if table.IsAdmin(g.Id, userId) {
+	if isAdmin, _ := database.Client.Permissions.IsAdmin(g.Id, userId); isAdmin {
 		res <- true
+		return
 	}
 
 	userRoles, _ := getRoles(g.Id, userId)
@@ -34,11 +39,10 @@ func IsAdmin(g guild.Guild, userId uint64, res chan bool) {
 	// check if user has administrator permission
 	if hasAdministratorPermission(g.Id, userRoles) {
 		res <- true
+		return
 	}
 
-	adminRolesChan := make(chan []uint64)
-	go table.GetAdminRoles(g.Id, adminRolesChan)
-	adminRoles := <-adminRolesChan
+	adminRoles, _ := database.Client.RolePermissions.GetAdminRoles(g.Id)
 
 	hasTicketAdminRole := false
 	for _, userRole := range userRoles {
@@ -52,6 +56,7 @@ func IsAdmin(g guild.Guild, userId uint64, res chan bool) {
 
 	if hasTicketAdminRole {
 		res <- true
+		return
 	}
 
 	res <- false

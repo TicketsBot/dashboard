@@ -84,6 +84,7 @@
 
     <script>
       let currentPage = 1;
+      let archives = [];
 
       async function getUsername(userId) {
           const res = await axios.get('/api/{{.guildId}}/user/' + userId);
@@ -103,41 +104,57 @@
           container.appendChild(tr);
       }
 
-      async function loadPage(page, ticketId, username, userId) {
-          const container = document.getElementById('log-container');
-          container.innerHTML = '';
+      async function loadData(after, before, username, userId) {
+          if (after === undefined) after = '';
+          if (before === undefined) before = '';
 
-          let  url = '/api/{{.guildId}}/modmail/logs/' + page;
+          let  url = '/api/{{.guildId}}/modmail/logs?after=' + after + '&before=' + before;
 
           if (username !== undefined) {
-              url += `?username=${username}`;
+              url += `&username=${username}`;
           } else if (userId !== undefined) {
-              url += `?userid=${userId}`;
+              url += `&userid=${userId}`;
           }
 
           const res = await axios.get(url);
           if (res.status === 200) {
+              if (res.data.length === 0 && username === "" && userId === "") {
+                  return false;
+              }
+
+              const container = document.getElementById('log-container');
+              container.innerHTML = '';
+
+              archives = res.data;
+
               for (log of res.data) {
                   await appendLog(log);
               }
           } else {
               showToast('Error', res.data.error);
+              return false;
           }
 
-          document.getElementById('page-number').innerText = page;
-      }
-
-      async function loadData() {
-          await loadPage(currentPage);
+          return true;
       }
 
       loadData();
     </script>
 
     <script>
+      function updatePageNumber() {
+          document.getElementById('page-number').innerText = currentPage;
+      }
+
       async function next() {
-          currentPage += 1;
-          await loadPage(currentPage);
+          if (archives.length === 0) {
+              return;
+          }
+
+          if (await loadData(undefined, archives[archives.length - 1].uuid)) {
+              currentPage += 1;
+              updatePageNumber();
+          }
       }
 
       async function previous() {
@@ -145,21 +162,32 @@
               return
           }
 
-          currentPage -= 1;
-          await loadPage(currentPage);
+          let after = '';
+          if (archives.length > 0) {
+              after = archives[0].uuid;
+          }
+
+          if (await loadData(after)) {
+              currentPage -= 1;
+              updatePageNumber();
+          }
       }
 
+      // TODO: Paginate filtered logs
       async function filterLogs() {
           const username = document.getElementById('username').value;
           const userId = document.getElementById('userid').value;
 
           if (username !== "") {
-              await loadPage(1, undefined, username);
+              await loadData(undefined, undefined, username);
           } else if (userId !== "") {
-              await loadPage(1, undefined, undefined, userId);
+              await loadData(undefined, undefined, undefined, userId);
           } else {
-              await loadPage(1);
+              await loadData(undefined);
           }
+
+          currentPage = 1;
+          updatePageNumber();
       }
     </script>
   </div>

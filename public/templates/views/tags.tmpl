@@ -76,7 +76,7 @@
 
           const res = await axios.put('/api/{{.guildId}}/tags', data);
 
-          if (res.status === 200 && res.data.success) {
+          if (res.status === 200) {
               document.getElementById('id').value = '';
               document.getElementById('content').value = '';
 
@@ -96,14 +96,14 @@
           }
       }
 
-      function appendTag(tag) {
+      function appendTag(id, content) {
           const container = document.getElementById('tag-container');
           const tr = document.createElement('tr');
-          tr.id = tag.id;
+          tr.id = id;
 
-          appendTd(tr, tag.id);
-          appendTd(tr, tag.content).classList.add('tag-content');
-          appendButton(tr, 'Delete', () => { deleteTag(tag.id); });
+          appendTd(tr, id);
+          appendTd(tr, content).classList.add('tag-content');
+          appendButton(tr, 'Delete', () => { deleteTag(id); });
 
           container.appendChild(tr);
       }
@@ -112,8 +112,8 @@
           const res = await axios.get('/api/{{.guildId}}/tags');
 
           if (res.status === 200) {
-              for (tag of res.data) {
-                  appendTag(tag);
+              for (const [id, content] of Object.entries(res.data)) {
+                  appendTag(id, content);
               }
           }
       }

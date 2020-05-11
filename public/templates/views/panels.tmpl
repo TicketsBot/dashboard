@@ -155,6 +155,7 @@
 
           const res = await axios.put('/api/{{.guildId}}/panels', data);
           if (res.status === 200 && res.data.success) {
+              data.message_id = res.data.message_id;
               appendPanel(data, await getChannels());
               showToast('Success', 'Panel created successfully')
           } else {

@@ -1,7 +1,8 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/database/table"
+	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
@@ -42,12 +43,13 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	})
 }
 
+// TODO: Return error
 func (s *Settings) updatePrefix(guildId uint64) bool {
 	if s.Prefix == "" || len(s.Prefix) > 8 {
 		return false
 	}
 
-	go table.UpdatePrefix(guildId, s.Prefix)
+	go dbclient.Client.Prefix.Set(guildId, s.Prefix)
 	return true
 }
 
@@ -56,7 +58,7 @@ func (s *Settings) updateWelcomeMessage(guildId uint64) bool {
 		return false
 	}
 
-	go table.UpdateWelcomeMessage(guildId, s.WelcomeMessaage)
+	go dbclient.Client.WelcomeMessages.Set(guildId, s.WelcomeMessaage)
 	return true
 }
 
@@ -65,7 +67,7 @@ func (s *Settings) updateTicketLimit(guildId uint64) bool {
 		return false
 	}
 
-	go table.UpdateTicketLimit(guildId, s.TicketLimit)
+	go dbclient.Client.TicketLimit.Set(guildId, s.TicketLimit)
 	return true
 }
 
@@ -82,7 +84,7 @@ func (s *Settings) updateCategory(channels []channel.Channel, guildId uint64) bo
 		return false
 	}
 
-	go table.UpdateChannelCategory(guildId, s.Category)
+	go dbclient.Client.ChannelCategory.Set(guildId, s.Category)
 	return true
 }
 
@@ -99,11 +101,11 @@ func (s *Settings) updateArchiveChannel(channels []channel.Channel, guildId uint
 		return false
 	}
 
-	go table.UpdateArchiveChannel(guildId, s.ArchiveChannel)
+	go dbclient.Client.ArchiveChannel.Set(guildId, s.ArchiveChannel)
 	return true
 }
 
-var validScheme = []table.NamingScheme{table.Id, table.Username}
+var validScheme = []database.NamingScheme{database.Id, database.Username}
 func (s *Settings) updateNamingScheme(guildId uint64) bool {
 	var valid bool
 	for _, scheme := range validScheme {
@@ -117,14 +119,14 @@ func (s *Settings) updateNamingScheme(guildId uint64) bool {
 		return false
 	}
 
-	go table.SetTicketNamingScheme(guildId, s.NamingScheme)
+	go dbclient.Client.NamingScheme.Set(guildId, s.NamingScheme)
 	return true
 }
 
 func (s *Settings) updatePingEveryone(guildId uint64) {
-	go table.UpdatePingEveryone(guildId, s.PingEveryone)
+	go dbclient.Client.PingEveryone.Set(guildId, s.PingEveryone)
 }
 
 func (s *Settings) updateUsersCanClose(guildId uint64) {
-	go table.SetUserCanClose(guildId, s.UsersCanClose)
+	go dbclient.Client.UsersCanClose.Set(guildId, s.UsersCanClose)
 }
