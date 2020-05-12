@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	pageLimit = 2
+	pageLimit = 30
 )
 
 func GetLogs(ctx *gin.Context) {
