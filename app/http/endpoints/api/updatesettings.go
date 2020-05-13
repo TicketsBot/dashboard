@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
@@ -21,17 +22,27 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	}
 
 	// Get a list of all channel IDs
+	fmt.Println(1)
 	channels := cache.Instance.GetGuildChannels(guildId)
 
 	// Get prefix
+	fmt.Println(2)
 	validPrefix := settings.updatePrefix(guildId)
+	fmt.Println(3)
 	validWelcomeMessage := settings.updateWelcomeMessage(guildId)
+	fmt.Println(4)
 	validTicketLimit := settings.updateTicketLimit(guildId)
+	fmt.Println(5)
 	validArchiveChannel := settings.updateArchiveChannel(channels, guildId)
+	fmt.Println(6)
 	validCategory := settings.updateCategory(channels, guildId)
+	fmt.Println(7)
 	validNamingScheme := settings.updateNamingScheme(guildId)
+	fmt.Println(8)
 	settings.updatePingEveryone(guildId)
+	fmt.Println(9)
 	settings.updateUsersCanClose(guildId)
+	fmt.Println(10)
 
 	ctx.JSON(200, gin.H{
 		"prefix": validPrefix,
