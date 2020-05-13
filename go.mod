@@ -14,17 +14,14 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
 	github.com/gin-gonic/gin v1.6.2
 	github.com/go-redis/redis v6.15.7+incompatible
-	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgx/v4 v4.6.0
-	github.com/jinzhu/gorm v1.9.12
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/go-cache v0.0.0-20130306151617-9fc39e0dbf62
 	github.com/rxdn/gdl v0.0.0-20200511170555-8ab2206d70df
-	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.5.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

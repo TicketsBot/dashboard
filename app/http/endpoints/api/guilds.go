@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,9 @@ type wrappedGuild struct {
 func GetGuilds(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
+	fmt.Println("getting guilds")
 	guilds, err := database.Client.UserGuilds.Get(userId)
+	fmt.Println("got guilds")
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
@@ -37,8 +40,10 @@ func GetGuilds(ctx *gin.Context) {
 		}
 
 		isAdmin := make(chan bool)
+		fmt.Println("getting admin")
 		go utils.IsAdmin(fakeGuild, userId, isAdmin)
 		if <-isAdmin {
+			fmt.Println("got admin")
 			adminGuilds = append(adminGuilds, wrappedGuild{
 				Id:   g.GuildId,
 				Name: g.Name,
