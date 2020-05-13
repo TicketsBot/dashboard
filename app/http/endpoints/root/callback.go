@@ -84,7 +84,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	// Cache guilds because Discord takes like 2 whole seconds to return then
 	go func() {
-		var guilds []*guild.Guild
+		var guilds []guild.Guild
 		err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
 		if err != nil {
 			log.Error(err.Error())
@@ -109,7 +109,6 @@ func CallbackHandler(ctx *gin.Context) {
 			})
 		}
 
-		// TODO: Error handling
 		if err := dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds); err != nil {
 			log.Error(err.Error())
 		}

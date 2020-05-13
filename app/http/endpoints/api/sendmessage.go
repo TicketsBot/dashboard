@@ -110,8 +110,6 @@ func SendMessage(ctx *gin.Context) {
 		}
 	}
 
-	fmt.Println(1)
-
 	body.Message = fmt.Sprintf("**%s**: %s", user.Username, body.Message)
 	if len(body.Message) > 2000 {
 		body.Message = body.Message[0:1999]
