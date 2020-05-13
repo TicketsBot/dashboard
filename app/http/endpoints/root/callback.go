@@ -111,7 +111,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 		// TODO: Error handling
 		if err := dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds); err != nil {
-			log.Error(err)
+			log.Error(err.Error())
 		}
 	}()
 }
