@@ -87,7 +87,7 @@
       }
 
       async function deleteTag(id) {
-          const res = await axios.delete('/api/{{.guildId}}/tags/' + id);
+          const res = await axios.delete('/api/{{.guildId}}/tags/' + encodeURI(id));
           if (res.status === 200 && res.data.success) {
               const tr = document.getElementById(id);
               tr.parentNode.removeChild(tr);
