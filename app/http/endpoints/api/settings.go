@@ -21,7 +21,6 @@ type Settings struct {
 
 func GetSettingsHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
-	ctx.Done()
 	var prefix, welcomeMessage string
 	var ticketLimit uint8
 	var category, archiveChannel uint64

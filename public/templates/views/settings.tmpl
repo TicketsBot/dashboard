@@ -6,9 +6,6 @@
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Settings</h4>
-                {{if .empty}}
-                  <p class="card-category">Select a server to manage below</p>
-                {{end}}
             </div>
             <div class="card-body">
               <form onsubmit="updateSettings(); return false;">
@@ -102,6 +99,49 @@
           </div>
         </div>
       </div>
+
+      <!-- Claim settings -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Claim Settings</h4>
+            </div>
+            <div class="card-body">
+              <form onsubmit="updateClaimSettings(); return false;">
+                <div class="row">
+                  <div class="col-md-2 pr-1">
+                    <div class="form-group">
+                      <label>Support Reps Can View Claimed Tickets</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="can_view" value="on" id="can_view" style="width:30px;height:30px;" onclick="canViewChanged();">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-2 pr-1">
+                    <div class="form-group">
+                      <label>Support Reps Can Type In Claimed Tickets</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="can_type" value="on" id="can_type" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row" style="padding-top: 20px">
+                  <div class="col-md-2 pr-1">
+                    <div class="form-group">
+                      <button class="btn btn-primary btn-fill" type="submit"><i class="fas fa-paper-plane"></i>
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div aria-live="polite" aria-atomic="true" style="position: relative;">
@@ -176,6 +216,45 @@
     </script>
 
     <script>
+        async function getClaimSettings() {
+            const res = await axios.get('/api/{{.guildId}}/claimsettings');
+            return res.data;
+        }
+
+        async function loadClaimSettings() {
+            const settings = await getClaimSettings();
+            document.getElementById('can_view').checked = settings.support_can_view;
+            document.getElementById('can_type').checked = settings.support_can_type;
+        }
+
+        loadClaimSettings();
+
+        async function updateClaimSettings() {
+            const data = {
+                support_can_view: document.getElementById('can_view').checked,
+                support_can_type: document.getElementById('can_type').checked
+            };
+
+            const res = await axios.post('/api/{{.guildId}}/claimsettings', data);
+            if (res.status === 200 && res.data.success) {
+                showToast("Success", "Your settings have been saved.");
+            } else {
+                showToast("Error", res.data.error);
+            }
+        }
+
+        function canViewChanged() {
+            const isChecked = document.getElementById('can_view').checked;
+            if (isChecked) {
+                document.getElementById('can_type').disabled = false;
+            } else {
+                document.getElementById('can_type').disabled = true;
+                document.getElementById('can_type').checked = false;
+            }
+        }
+    </script>
+
+    <script>
         async function updateSettings() {
             const data = {
                 'prefix': document.getElementById('prefix').value,
@@ -192,7 +271,7 @@
             if (res.status === 200) {
                 const success = showValidations(res.data);
                 if (success) {
-                    showToast("Success", "Your settings have been saved.")
+                    showToast("Success", "Your settings have been saved.");
                 }
             } else {
                 showToast("Error", "A severe error occurred. Please check your console for more information.");

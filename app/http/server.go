@@ -100,6 +100,9 @@ func StartServer() {
 		guildAuthApi.GET("/:id/tags", api.TagsListHandler)
 		guildAuthApi.PUT("/:id/tags", api.CreateTag)
 		guildAuthApi.DELETE("/:id/tags/:tag", api.DeleteTag)
+
+		guildAuthApi.GET("/:id/claimsettings", api.GetClaimSettings)
+		guildAuthApi.POST("/:id/claimsettings", api.PostClaimSettings)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
