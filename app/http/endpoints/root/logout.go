@@ -13,5 +13,6 @@ func LogoutHandler(ctx *gin.Context) {
 	defer store.Save()
 
 	store.Clear()
+
 	ctx.Redirect(302, "https://ticketsbot.net")
 }

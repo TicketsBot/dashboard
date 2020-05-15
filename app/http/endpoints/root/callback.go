@@ -43,7 +43,7 @@ func CallbackHandler(ctx *gin.Context) {
 	}
 	defer store.Save()
 
-	if utils.IsLoggedIn(store) {
+	if utils.IsLoggedIn(store) && store.Get("has_guilds") == true {
 		ctx.Redirect(302, config.Conf.Server.BaseUrl)
 		return
 	}
@@ -76,9 +76,7 @@ func CallbackHandler(ctx *gin.Context) {
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)
 	store.Set("avatar", currentUser.AvatarUrl(256))
-	if err = store.Save(); err != nil {
-		log.Error(err.Error())
-	}
+	store.Save()
 
 	var guilds []guild.Guild
 	err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
@@ -88,6 +86,7 @@ func CallbackHandler(ctx *gin.Context) {
 	}
 
 	store.Set("has_guilds", true)
+	store.Save()
 
 	var wrappedGuilds []database.UserGuild
 
