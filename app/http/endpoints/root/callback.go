@@ -80,39 +80,38 @@ func CallbackHandler(ctx *gin.Context) {
 		log.Error(err.Error())
 	}
 
+	var guilds []guild.Guild
+	err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
+	if err != nil {
+		handleRedirect(ctx)
+		return
+	}
+
+	store.Set("has_guilds", true)
+
+	var wrappedGuilds []database.UserGuild
+
+	// endpoint's partial guild doesn't include ownerid
+	// we only user cached guilds on the index page, so it doesn't matter if we don't have have the real owner id
+	// if the user isn't the owner, as we pull from the cache on other endpoints
+	for _, guild := range guilds {
+		if guild.Owner {
+			guild.OwnerId = currentUser.Id
+		}
+
+		wrappedGuilds = append(wrappedGuilds, database.UserGuild{
+			GuildId:         guild.Id,
+			Name:            guild.Name,
+			Owner:           guild.Owner,
+			UserPermissions: int32(guild.Permissions),
+		})
+	}
+
+	if err := dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds); err != nil {
+		log.Error(err.Error())
+	}
+
 	handleRedirect(ctx)
-
-	// Cache guilds because Discord takes like 2 whole seconds to return then
-	go func() {
-		var guilds []guild.Guild
-		err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
-		if err != nil {
-			log.Error(err.Error())
-			return
-		}
-
-		var wrappedGuilds []database.UserGuild
-
-		// endpoint's partial guild doesn't include ownerid
-		// we only user cached guilds on the index page, so it doesn't matter if we don't have have the real owner id
-		// if the user isn't the owner, as we pull from the cache on other endpoints
-		for _, guild := range guilds {
-			if guild.Owner {
-				guild.OwnerId = currentUser.Id
-			}
-
-			wrappedGuilds = append(wrappedGuilds, database.UserGuild{
-				GuildId:         guild.Id,
-				Name:            guild.Name,
-				Owner:           guild.Owner,
-				UserPermissions: int32(guild.Permissions),
-			})
-		}
-
-		if err := dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds); err != nil {
-			log.Error(err.Error())
-		}
-	}()
 }
 
 func handleRedirect(ctx *gin.Context) {
