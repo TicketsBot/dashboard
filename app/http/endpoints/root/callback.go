@@ -80,14 +80,18 @@ func CallbackHandler(ctx *gin.Context) {
 
 	var guilds []guild.Guild
 	err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
+	log.Info("1")
+	log.Infof("size: %d", len(guilds))
 	if err != nil {
 		log.Error(err.Error())
 		handleRedirect(ctx)
 		return
 	}
+	log.Info("2")
 
 	store.Set("has_guilds", true)
 	store.Save()
+	log.Info("3")
 
 	var wrappedGuilds []database.UserGuild
 
@@ -106,6 +110,8 @@ func CallbackHandler(ctx *gin.Context) {
 			UserPermissions: int32(guild.Permissions),
 		})
 	}
+	log.Info("4")
+	log.Infof("size wrapped: %d", len(wrappedGuilds))
 
 	if err := dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds); err != nil {
 		log.Error(err.Error())
