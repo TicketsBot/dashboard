@@ -10,23 +10,45 @@
             <div class="card-body">
               <form onsubmit="updateSettings(); return false;">
                 <div class="row">
-                  <div class="col-md-5 pr-1">
+                  <div class="col-md-2 pr-1">
                     <div class="form-group">
                       <label>Prefix (Max len. 8)</label>
                       <input name="prefix" type="text" class="form-control" placeholder="t!" id="prefix">
                     </div>
                   </div>
-                  <div class="col-md-5 px-1">
+
+                  <div class="col-md-1 px-1">
                     <div class="form-group">
                       <label>Ticket Limit (1-10)</label>
                       <input name="ticketlimit" type="text" class="form-control" placeholder="5" id="ticket_limit">
                     </div>
                   </div>
+
                   <div class="col-md-2 px-1">
                     <div class="form-group">
                       <label>Ping @everyone on ticket open</label>
                       <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="pingeveryone" value="on" id="ping_everyone" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-2 px-1">
+                    <div class="form-group">
+                      <label>Allow users to close tickets</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="userscanclose" value="on"
+                               id="users_can_close" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-2 px-1">
+                    <div class="form-group">
+                      <label>Ticket close confirmation</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="close_confirmation" value="on"
+                               id="close_confirmation" style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -40,7 +62,7 @@
                 </div>
 
                 <div class="row">
-                  <div class="col-md-5 pr-1">
+                  <div class="col-md-4 pr-1">
                     <label>Archive Channel</label>
                     <div class="input-group mb-3">
                       <div class="input-group-prepend">
@@ -51,21 +73,11 @@
                     </div>
                   </div>
 
-                  <div class="col-md-5 px-1">
+                  <div class="col-md-4 px-1">
                     <div class="form-group">
                       <label>Channel Category</label>
                       <select class="form-control" name="category" id="category">
                       </select>
-                    </div>
-                  </div>
-
-                  <div class="col-md-2 px-1">
-                    <div class="form-group">
-                      <label>Allow users to close tickets</label>
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="userscanclose" value="on"
-                               id="users_can_close" style="width:30px;height:30px;">
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -200,6 +212,7 @@
             document.getElementById("ticket_limit").value = settings.ticket_limit;
             document.getElementById("ping_everyone").checked = settings.ping_everyone;
             document.getElementById("users_can_close").checked = settings.users_can_close;
+            document.getElementById("close_confirmation").checked = settings.close_confirmation;
 
             if (settings.naming_scheme === "username") {
                 document.getElementById("naming-by-username").checked = true;
@@ -262,6 +275,7 @@
                 'ticket_limit': parseInt(document.getElementById('ticket_limit').value),
                 'ping_everyone': document.getElementById("ping_everyone").checked,
                 'users_can_close': document.getElementById("users_can_close").checked,
+                'close_confirmation': document.getElementById("close_confirmation").checked,
                 'naming_scheme': document.querySelector('input[name="namingscheme"]:checked').value,
                 'archive_channel': document.getElementById('archive_channel').options[document.getElementById('archive_channel').selectedIndex].value,
                 'category': document.getElementById('category').options[document.getElementById('category').selectedIndex].value

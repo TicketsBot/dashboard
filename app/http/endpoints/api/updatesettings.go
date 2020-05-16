@@ -32,6 +32,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	validNamingScheme := settings.updateNamingScheme(guildId)
 	settings.updatePingEveryone(guildId)
 	settings.updateUsersCanClose(guildId)
+	settings.updateCloseConfirmation(guildId)
 
 	ctx.JSON(200, gin.H{
 		"prefix": validPrefix,
@@ -129,4 +130,8 @@ func (s *Settings) updatePingEveryone(guildId uint64) {
 
 func (s *Settings) updateUsersCanClose(guildId uint64) {
 	go dbclient.Client.UsersCanClose.Set(guildId, s.UsersCanClose)
+}
+
+func (s *Settings) updateCloseConfirmation(guildId uint64) {
+	go dbclient.Client.CloseConfirmation.Set(guildId, s.CloseConfirmation)
 }

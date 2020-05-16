@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200425115930-0ca198cc8306
-	github.com/TicketsBot/database v0.0.0-20200514152605-f7a83711930c
+	github.com/TicketsBot/database v0.0.0-20200516145701-e13f7e204cc6
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
