@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/TicketsBot/GoPanel/config"
+	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/pasztorpisti/qs"
 	"github.com/pkg/errors"
@@ -117,5 +118,6 @@ func (e *Endpoint) Request(store sessions.Session, contentType *ContentType, bod
 		return err, nil
 	}
 
+	log.Info(string(content))
 	return json.Unmarshal(content, response), res
 }
