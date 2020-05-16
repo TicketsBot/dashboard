@@ -81,6 +81,7 @@ func CallbackHandler(ctx *gin.Context) {
 	var guilds []guild.Guild
 	err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
 	if err != nil {
+		log.Error(err.Error())
 		handleRedirect(ctx)
 		return
 	}
