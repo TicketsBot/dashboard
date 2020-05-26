@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
-	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
@@ -41,9 +42,9 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Verify guild is premium
-	isPremium := make(chan bool)
-	go utils.IsPremiumGuild(guildId, isPremium)
-	if !<-isPremium {
+	// TODO: Whitelabel tokens & ratelimiters
+	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, config.Conf.Bot.Token, ratelimit.Ratelimiter)
+	if premiumTier == premium.None {
 		ctx.AbortWithStatusJSON(402, gin.H{
 			"success": false,
 			"error":   "Guild is not premium",

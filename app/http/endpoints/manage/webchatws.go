@@ -2,8 +2,12 @@ package manage
 
 import (
 	"fmt"
+	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -122,9 +126,9 @@ func WebChatWs(ctx *gin.Context) {
 			}
 
 			// Verify the guild is premium
-			premium := make(chan bool)
-			go utils.IsPremiumGuild(guildIdParsed, premium)
-			if !<-premium {
+			// TODO: Whitelabel tokens & ratelimiters
+			premiumTier := rpc.PremiumClient.GetTierByGuildId(guildIdParsed, true, config.Conf.Bot.Token, ratelimit.Ratelimiter)
+			if premiumTier == premium.None {
 				conn.Close()
 				return
 			}

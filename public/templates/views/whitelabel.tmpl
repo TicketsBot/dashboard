@@ -1,0 +1,66 @@
+{{define "content"}}
+  <div class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Whitelabel</h4>
+            </div>
+            <div class="card-body" id="card">
+              <form onsubmit="updateSettings(); return false;">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group">
+                      <label>Bot Token</label>
+                      <input name="token" type="text" class="form-control"
+                             placeholder="9ViiGeUZlFJKIfSzodnzZT6W.bX8IAh.p9gG0tElMXg1EqwAChqaYz3swFY" id="token">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 ">
+                    <p class="white">Note: You will not be able to view the token after submitting it</p>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-2 pr-1">
+                    <div class="form-group">
+                      <button class="btn btn-primary btn-fill" type="submit"><i class="fas fa-paper-plane"></i>
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div aria-live="polite" aria-atomic="true" style="position: relative">
+      <div style="position: absolute; right: 10px" id="toast-container">
+      </div>
+    </div>
+  </div>
+
+  <script>
+      async function updateSettings() {
+          const token = document.getElementById('token').value;
+          const data = {
+              token: token
+          };
+
+          const res = await axios.post('/user/whitelabel', data);
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
+      }
+  </script>
+{{end}}

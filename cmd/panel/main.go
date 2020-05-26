@@ -9,10 +9,12 @@ import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
+	"github.com/TicketsBot/common/premium"
 	"github.com/apex/log"
 	gdlratelimit "github.com/rxdn/gdl/rest/ratelimit"
 	"math/rand"
@@ -33,12 +35,19 @@ func main() {
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
-	manage.Archiver = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second * 15)
+	manage.Archiver = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15)
 
 	utils.LoadEmoji()
 
 	messagequeue.Client = messagequeue.NewRedisClient()
 	go Listen(messagequeue.Client)
+
+	rpc.PremiumClient = premium.NewPremiumLookupClient(
+		premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
+		messagequeue.Client.Client,
+		cache.Instance.PgCache,
+		database.Client,
+	)
 
 	ratelimit.Ratelimiter = gdlratelimit.NewRateLimiter(gdlratelimit.NewRedisStore(messagequeue.Client.Client, "ratelimit"), 1) // TODO: Use values from config
 

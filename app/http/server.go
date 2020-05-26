@@ -56,6 +56,7 @@ func StartServer() {
 		authenticateGuild := authorized.Group("/", middleware.AuthenticateGuild(false))
 
 		authorized.GET("/", root.IndexHandler)
+		authorized.GET("/whitelabel", root.WhitelabelHandler)
 		authorized.GET("/logout", root.LogoutHandler)
 
 		authenticateGuild.GET("/manage/:id/settings", manage.SettingsHandler)
@@ -108,6 +109,7 @@ func StartServer() {
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
 	{
 		userGroup.GET("/guilds", api.GetGuilds)
+		userGroup.POST("/whitelabel", api.WhitelabelHandler)
 	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {
@@ -119,6 +121,7 @@ func createRenderer() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 
 	r = addMainTemplate(r, "index")
+	r = addMainTemplate(r, "whitelabel")
 
 	r = addManageTemplate(r, "blacklist")
 	r = addManageTemplate(r, "logs")

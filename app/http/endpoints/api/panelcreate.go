@@ -3,9 +3,11 @@ package api
 import (
 	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
@@ -32,10 +34,10 @@ func CreatePanel(ctx *gin.Context) {
 	data.MessageId = 0
 
 	// Check panel quota
-	premiumChan := make(chan bool)
-	go utils.IsPremiumGuild(guildId, premiumChan)
-	isPremium := <-premiumChan
-	if !isPremium {
+	// TODO: Whitelabel tokens & ratelimiters
+	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, config.Conf.Bot.Token, ratelimit.Ratelimiter)
+
+	if premiumTier == premium.None {
 		panels, err := dbclient.Client.Panel.GetByGuild(guildId)
 		if err != nil {
 			ctx.AbortWithStatusJSON(500, gin.H{
@@ -57,7 +59,7 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
-	msgId, err := data.sendEmbed(isPremium)
+	msgId, err := data.sendEmbed(premiumTier > premium.None)
 	if err != nil {
 		if err == request.ErrForbidden {
 			ctx.AbortWithStatusJSON(500, gin.H{
