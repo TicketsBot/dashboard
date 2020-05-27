@@ -3,10 +3,9 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/apex/log"
@@ -21,6 +20,15 @@ const (
 
 func GetLogs(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
+
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
 
 	before, err := strconv.Atoi(ctx.Query("before"))
 	if before < 0 {
@@ -102,7 +110,7 @@ func GetLogs(ctx *gin.Context) {
 		// get username
 		user, found := cache.Instance.GetUser(ticket.UserId)
 		if !found {
-			user, err = rest.GetUser(config.Conf.Bot.Token, ratelimit.Ratelimiter, ticket.UserId)
+			user, err = rest.GetUser(botContext.Token, botContext.RateLimiter, ticket.UserId)
 			if err != nil {
 				log.Error(err.Error())
 			}

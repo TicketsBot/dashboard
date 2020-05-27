@@ -2,11 +2,10 @@ package api
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
@@ -21,6 +20,15 @@ type sendMessageBody struct {
 func SendMessage(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 	userId := ctx.Keys["userid"].(uint64)
+
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Get ticket ID
 	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
@@ -42,8 +50,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Verify guild is premium
-	// TODO: Whitelabel tokens & ratelimiters
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, config.Conf.Bot.Token, ratelimit.Ratelimiter)
+	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 	if premiumTier == premium.None {
 		ctx.AbortWithStatusJSON(402, gin.H{
 			"success": false,
@@ -90,8 +97,8 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	if webhook.Id != 0 {
-		// TODO: Use gdl execute webhook wrapper
-		_, err = rest.ExecuteWebhook(webhook.Token, ratelimit.Ratelimiter, webhook.Id, true, rest.WebhookBody{
+		// TODO: Ratelimit
+		_, err = rest.ExecuteWebhook(webhook.Token, nil, webhook.Id, true, rest.WebhookBody{
 			Content:   body.Message,
 			Username:  user.Username,
 			AvatarUrl: user.AvatarUrl(256),
@@ -124,7 +131,7 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	if _, err = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, *ticket.ChannelId, rest.CreateMessageData{Content: body.Message}); err != nil {
+	if _, err = rest.CreateMessage(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.CreateMessageData{Content: body.Message}); err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),

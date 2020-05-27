@@ -1,9 +1,8 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"strconv"
@@ -11,6 +10,15 @@ import (
 
 func DeletePanel(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
+
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
 
 	messageId, err := strconv.ParseUint(ctx.Param("message"), 10, 64)
 	if err != nil {
@@ -47,7 +55,7 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	if err := rest.DeleteMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, panel.ChannelId, panel.MessageId); err != nil {
+	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
 			"error": err.Error(),

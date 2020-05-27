@@ -5,6 +5,7 @@ import (
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -43,9 +44,8 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 			ctx.Keys["guild"] = guild
 
 			// Verify the user has permissions to be here
-			isAdmin := make(chan bool)
-			go utils.IsAdmin(guild, ctx.Keys["userid"].(uint64), isAdmin)
-			if !<-isAdmin {
+			userId := ctx.Keys["userid"].(uint64)
+			if utils.GetPermissionLevel(guild.Id, userId) != permission.Admin {
 				if isApiMethod {
 					ctx.AbortWithStatusJSON(403, gin.H{
 						"success": false,

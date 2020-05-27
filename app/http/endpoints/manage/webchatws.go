@@ -2,11 +2,11 @@ package manage
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -117,17 +117,23 @@ func WebChatWs(ctx *gin.Context) {
 			guild, _ := cache.Instance.GetGuild(guildIdParsed, false)
 
 			// Verify the user has permissions to be here
-			isAdmin := make(chan bool)
-			go utils.IsAdmin(guild, userId, isAdmin)
-			if !<-isAdmin {
+			if utils.GetPermissionLevel(guild.Id, userId) < permission.Admin {
 				fmt.Println(err.Error())
 				conn.Close()
 				return
 			}
 
+			botContext, err := botcontext.ContextForGuild(guildIdParsed)
+			if err != nil {
+				ctx.AbortWithStatusJSON(500, gin.H{
+					"success": false,
+					"error": err.Error(),
+				})
+				return
+			}
+
 			// Verify the guild is premium
-			// TODO: Whitelabel tokens & ratelimiters
-			premiumTier := rpc.PremiumClient.GetTierByGuildId(guildIdParsed, true, config.Conf.Bot.Token, ratelimit.Ratelimiter)
+			premiumTier := rpc.PremiumClient.GetTierByGuildId(guildIdParsed, true, botContext.Token, botContext.RateLimiter)
 			if premiumTier == premium.None {
 				conn.Close()
 				return

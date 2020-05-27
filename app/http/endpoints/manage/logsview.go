@@ -8,6 +8,7 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -58,10 +59,7 @@ func LogViewHandler(ctx *gin.Context) {
 		}
 
 		// Verify the user has permissions to be here
-		// TODO: Allow support reps to view
-		isAdmin := make(chan bool)
-		go utils.IsAdmin(guild, userId, isAdmin)
-		if !<-isAdmin && ticket.UserId != userId {
+		if utils.GetPermissionLevel(guildId, userId) < permission.Support && ticket.UserId != userId {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
 		}

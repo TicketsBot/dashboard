@@ -1,11 +1,10 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
@@ -21,6 +20,16 @@ import (
 
 func CreatePanel(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
+
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
+
 	var data panel
 
 	if err := ctx.BindJSON(&data); err != nil {
@@ -34,8 +43,7 @@ func CreatePanel(ctx *gin.Context) {
 	data.MessageId = 0
 
 	// Check panel quota
-	// TODO: Whitelabel tokens & ratelimiters
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, config.Conf.Bot.Token, ratelimit.Ratelimiter)
+	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 
 	if premiumTier == premium.None {
 		panels, err := dbclient.Client.Panel.GetByGuild(guildId)
@@ -59,7 +67,7 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
-	msgId, err := data.sendEmbed(premiumTier > premium.None)
+	msgId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
 	if err != nil {
 		if err == request.ErrForbidden {
 			ctx.AbortWithStatusJSON(500, gin.H{
@@ -79,7 +87,7 @@ func CreatePanel(ctx *gin.Context) {
 
 	// Add reaction
 	emoji, _ := data.getEmoji() // already validated
-	if err = rest.CreateReaction(config.Conf.Bot.Token, ratelimit.Ratelimiter, data.ChannelId, msgId, emoji); err != nil {
+	if err = rest.CreateReaction(botContext.Token, botContext.RateLimiter, data.ChannelId, msgId, emoji); err != nil {
 		if err == request.ErrForbidden {
 			ctx.AbortWithStatusJSON(500, gin.H{
 				"success": false,
@@ -208,7 +216,7 @@ func (p *panel) verifyCategory(channels []channel.Channel) bool {
 	return valid
 }
 
-func (p *panel) sendEmbed(isPremium bool) (messageId uint64, err error) {
+func (p *panel) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messageId uint64, err error) {
 	e := embed.NewEmbed().
 		SetTitle(p.Title).
 		SetDescription(p.Content).
@@ -220,7 +228,7 @@ func (p *panel) sendEmbed(isPremium bool) (messageId uint64, err error) {
 	}
 
 	var msg message.Message
-	msg, err = rest.CreateMessage(config.Conf.Bot.Token, ratelimit.Ratelimiter, p.ChannelId, rest.CreateMessageData{Embed: e})
+	msg, err = rest.CreateMessage(ctx.Token, ctx.RateLimiter, p.ChannelId, rest.CreateMessageData{Embed: e})
 	if err != nil {
 		return
 	}

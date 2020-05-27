@@ -7,7 +7,7 @@ import (
 
 type (
 	Config struct {
-		Admins   []string
+		Admins   []uint64
 		Server   Server
 		Oauth    Oauth
 		Database Database

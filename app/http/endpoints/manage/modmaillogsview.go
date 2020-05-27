@@ -8,6 +8,7 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -68,9 +69,7 @@ func ModmailLogViewHandler(ctx *gin.Context) {
 		}
 
 		// Verify the user has permissions to be here
-		isAdmin := make(chan bool)
-		go utils.IsAdmin(guild, userId, isAdmin)
-		if !<-isAdmin && archive.UserId != userId {
+		if utils.GetPermissionLevel(guildId, userId) < permission.Support && archive.UserId != userId {
 			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
 			return
 		}

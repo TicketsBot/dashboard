@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 )
@@ -36,9 +37,7 @@ func GetGuilds(ctx *gin.Context) {
 			fakeGuild.OwnerId = userId
 		}
 
-		isAdmin := make(chan bool)
-		go utils.IsAdmin(fakeGuild, userId, isAdmin)
-		if <-isAdmin {
+		if utils.GetPermissionLevel(g.GuildId, userId) >= permission.Admin {
 			adminGuilds = append(adminGuilds, wrappedGuild{
 				Id:   g.GuildId,
 				Name: g.Name,

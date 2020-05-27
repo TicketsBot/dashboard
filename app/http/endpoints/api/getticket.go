@@ -2,10 +2,9 @@ package api
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/rpc/ratelimit"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
@@ -18,6 +17,15 @@ var MentionRegex, _ = regexp.Compile("<@(\\d+)>")
 
 func GetTicket(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
+
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"success": false,
+			"error": err.Error(),
+		})
+		return
+	}
 
 	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
 	if err != nil {
@@ -63,7 +71,7 @@ func GetTicket(ctx *gin.Context) {
 	}
 
 	// Get messages
-	messages, _ := rest.GetChannelMessages(config.Conf.Bot.Token, ratelimit.Ratelimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
+	messages, _ := rest.GetChannelMessages(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
 
 	// Format messages, exclude unneeded data
 	messagesFormatted := make([]map[string]interface{}, 0)
