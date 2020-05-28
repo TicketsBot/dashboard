@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -16,11 +17,21 @@ func WhitelabelHandler(ctx *gin.Context) {
 
 	premiumTier := rpc.PremiumClient.GetTierByUser(userId, false)
 	if premiumTier < premium.Whitelabel {
-		ctx.JSON(402, gin.H{
-			"success": false,
-			"error":   "You must have the whitelabel premium tier",
-		})
-		return
+		var isForced bool
+		for _, forced := range config.Conf.ForceWhitelabel {
+			if forced == userId {
+				isForced = true
+				break
+			}
+		}
+
+		if !isForced {
+			ctx.JSON(402, gin.H{
+				"success": false,
+				"error":   "You must have the whitelabel premium tier",
+			})
+			return
+		}
 	}
 
 	// Get token

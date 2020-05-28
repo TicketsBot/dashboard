@@ -7,13 +7,14 @@ import (
 
 type (
 	Config struct {
-		Admins   []uint64
-		Server   Server
-		Oauth    Oauth
-		Database Database
-		Bot      Bot
-		Redis    Redis
-		Cache    Cache
+		Admins          []uint64
+		ForceWhitelabel []uint64
+		Server          Server
+		Oauth           Oauth
+		Database        Database
+		Bot             Bot
+		Redis           Redis
+		Cache           Cache
 	}
 
 	Server struct {

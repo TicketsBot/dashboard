@@ -20,8 +20,18 @@ func WhitelabelHandler(ctx *gin.Context) {
 
 	premiumTier := rpc.PremiumClient.GetTierByUser(userId, false)
 	if premiumTier < premium.Whitelabel {
-		ctx.Redirect(302, fmt.Sprintf("%s/premium", config.Conf.Server.MainSite))
-		return
+		var isForced bool
+		for _, forced := range config.Conf.ForceWhitelabel {
+			if forced == userId {
+				isForced = true
+				break
+			}
+		}
+
+		if !isForced {
+			ctx.Redirect(302, fmt.Sprintf("%s/premium", config.Conf.Server.MainSite))
+			return
+		}
 	}
 
 	ctx.HTML(200, "main/whitelabel", gin.H{
