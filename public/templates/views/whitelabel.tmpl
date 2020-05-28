@@ -26,12 +26,19 @@
                 </div>
 
                 <div class="row">
-                  <div class="col-md-2 pr-1">
+                  <div class="col-md-1">
                     <div class="form-group">
-                      <button class="btn btn-primary btn-fill" type="submit"><i class="fas fa-paper-plane"></i>
+                      <button class="btn btn-primary btn-fill" type="submit">
+                        <i class="fas fa-paper-plane"></i>
                         Submit
                       </button>
                     </div>
+                  </div>
+                  <div class="col-md-2">
+                    <button class="btn btn-primary btn-fill" id="invite" type="button">
+                      <i class="fas fa-plus"></i>
+                      Generate Invite Link
+                    </button>
                   </div>
                 </div>
               </form>
@@ -45,22 +52,38 @@
       <div style="position: absolute; right: 10px" id="toast-container">
       </div>
     </div>
+
+    <script>
+        // invite button
+        document.getElementById('invite').addEventListener('click', async () => {
+            // get bot ID
+            const res = await axios.get('/user/whitelabel');
+            if (res.status !== 200 || !res.data.success) {
+                showToast('Error', res.data.error);
+                return;
+            }
+
+            const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot&permissions=805825648';
+
+            window.open(inviteUrl, '_blank');
+        }, false);
+    </script>
+
+    <script>
+        async function updateSettings() {
+            const token = document.getElementById('token').value;
+            const data = {
+                token: token
+            };
+
+            const res = await axios.post('/user/whitelabel', data);
+            if (res.status !== 200 || !res.data.success) {
+                showToast('Error', res.data.error);
+                return;
+            }
+
+            showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
+        }
+    </script>
   </div>
-
-  <script>
-      async function updateSettings() {
-          const token = document.getElementById('token').value;
-          const data = {
-              token: token
-          };
-
-          const res = await axios.post('/user/whitelabel', data);
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
-
-          showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
-      }
-  </script>
 {{end}}

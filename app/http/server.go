@@ -109,7 +109,9 @@ func StartServer() {
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
 	{
 		userGroup.GET("/guilds", api.GetGuilds)
-		userGroup.POST("/whitelabel", api.WhitelabelHandler)
+
+		userGroup.GET("/whitelabel", api.WhitelabelGet)
+		userGroup.POST("/whitelabel", api.WhitelabelPost)
 	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {

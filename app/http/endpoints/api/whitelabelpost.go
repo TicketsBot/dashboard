@@ -12,7 +12,7 @@ import (
 	"github.com/rxdn/gdl/rest"
 )
 
-func WhitelabelHandler(ctx *gin.Context) {
+func WhitelabelPost(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
 	premiumTier := rpc.PremiumClient.GetTierByUser(userId, false)
@@ -81,14 +81,14 @@ func WhitelabelHandler(ctx *gin.Context) {
 		return
 	}
 
-	if existing.Token == token {
+	/*if existing.Token == token {
 		// Respond with 200 to prevent information disclosure attack
 		ctx.JSON(200, gin.H{
 			"success": true,
 			"bot": bot,
 		})
 		return
-	}
+	}*/
 
 	if err = dbclient.Client.Whitelabel.Set(database.WhitelabelBot{
 		UserId: userId,

@@ -1,0 +1,33 @@
+package api
+
+import (
+	"github.com/TicketsBot/GoPanel/database"
+	"github.com/gin-gonic/gin"
+	"strconv"
+)
+
+func WhitelabelGet(ctx *gin.Context) {
+	userId := ctx.Keys["userid"].(uint64)
+
+	// Check if this is a different token
+	bot, err := database.Client.Whitelabel.GetByUserId(userId)
+	if err != nil {
+		ctx.JSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if bot.BotId == 0 {
+		ctx.JSON(404, gin.H{
+			"success": false,
+			"error": "No bot found",
+		})
+	} else {
+		ctx.JSON(200, gin.H{
+			"success": true,
+			"id": strconv.FormatUint(bot.BotId, 10),
+		})
+	}
+}
