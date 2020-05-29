@@ -160,7 +160,7 @@ func addManageTemplate(renderer multitemplate.Renderer, name string) multitempla
 	return renderer
 }
 
-func createLimiter(limit int, period time.Duration) func(*gin.Context) {
+func createLimiter(limit int64, period time.Duration) func(*gin.Context) {
 	store := memory.NewStore()
 	rate := limiter.Rate{
 		Period: period,
