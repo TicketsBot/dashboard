@@ -34,6 +34,8 @@ func GetGuilds(ctx *gin.Context) {
 	var lock sync.Mutex
 
 	for _, g := range guilds {
+		g := g
+
 		group.Go(func() error {
 			fakeGuild := guild.Guild{
 				Id:          g.GuildId,
