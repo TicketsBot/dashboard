@@ -112,6 +112,7 @@ func StartServer() {
 
 		userGroup.GET("/whitelabel", api.WhitelabelGet)
 		userGroup.POST("/whitelabel", api.WhitelabelPost)
+		userGroup.POST("/whitelabel/status", api.WhitelabelStatusPost)
 	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {

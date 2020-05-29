@@ -5,7 +5,7 @@
         <div class="col-md-12">
           <div class="card">
             <div class="card-header">
-              <h4 class="card-title">Whitelabel</h4>
+              <h4 class="card-title">Bot Token</h4>
             </div>
             <div class="card-body" id="card">
               <form onsubmit="updateSettings(); return false;">
@@ -46,6 +46,38 @@
           </div>
         </div>
       </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Custom Status</h4>
+            </div>
+            <div class="card-body" id="card">
+              <form onsubmit="updateStatus(); return false;">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group">
+                      <label>Status</label>
+                      <input name="status" type="text" class="form-control" placeholder="DM for help | t!help" id="status">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-2">
+                    <div class="form-group">
+                      <button class="btn btn-primary btn-fill" type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div aria-live="polite" aria-atomic="true" style="position: relative">
@@ -71,9 +103,8 @@
 
     <script>
         async function updateSettings() {
-            const token = document.getElementById('token').value;
             const data = {
-                token: token
+                token: document.getElementById('token').value
             };
 
             const res = await axios.post('/user/whitelabel', data);
@@ -84,6 +115,32 @@
 
             showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
         }
+
+        async function updateStatus() {
+            const data = {
+                status: document.getElementById('status').value
+            };
+
+            const res = await axios.post('/user/whitelabel/status', data);
+            if (res.status !== 200 || !res.data.success) {
+                showToast('Error', res.data.error);
+                return;
+            }
+
+            showToast('Success', 'Updated status successfully')
+        }
+
+        async function loadStatus() {
+            const res = await axios.get('/user/whitelabel');
+            if (res.status !== 200 || !res.data.success) {
+                showToast('Error', res.data.error);
+                return;
+            }
+
+            document.getElementById('status').value = res.data.status;
+        }
+
+        loadStatus();
     </script>
   </div>
 {{end}}

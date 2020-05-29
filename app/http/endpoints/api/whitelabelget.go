@@ -25,9 +25,20 @@ func WhitelabelGet(ctx *gin.Context) {
 			"error": "No bot found",
 		})
 	} else {
+		// Get status
+		status, err := database.Client.WhitelabelStatuses.Get(bot.BotId)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+			return
+		}
+
 		ctx.JSON(200, gin.H{
 			"success": true,
 			"id": strconv.FormatUint(bot.BotId, 10),
+			"status": status,
 		})
 	}
 }
