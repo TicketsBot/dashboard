@@ -38,7 +38,7 @@ func StartServer() {
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
 	router.Use(gin.Recovery())
-	router.Use(createLimiter())
+	router.Use(createLimiter(600, time.Minute * 10))
 
 	// Register templates
 	router.HTMLRender = createRenderer()
@@ -46,7 +46,7 @@ func StartServer() {
 	router.GET("/login", root.LoginHandler)
 	router.GET("/callback", root.CallbackHandler)
 
-	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler) // we check in the actual handler bc of a custom redirect
+	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler)              // we check in the actual handler bc of a custom redirect
 	router.GET("/manage/:id/logs/modmail/view/:uuid", manage.ModmailLogViewHandler) // we check in the actual handler bc of a custom redirect
 
 	authorized := router.Group("/", middleware.AuthenticateCookie)
@@ -111,8 +111,9 @@ func StartServer() {
 		userGroup.GET("/guilds", api.GetGuilds)
 
 		userGroup.GET("/whitelabel", api.WhitelabelGet)
-		userGroup.POST("/whitelabel", api.WhitelabelPost)
-		userGroup.POST("/whitelabel/status", api.WhitelabelStatusPost)
+
+		userGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/whitelabel", api.WhitelabelPost)
+		userGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/whitelabel/status", api.WhitelabelStatusPost)
 	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {
@@ -144,7 +145,7 @@ func addMainTemplate(renderer multitemplate.Renderer, name string) multitemplate
 		"./public/templates/includes/head.tmpl",
 		"./public/templates/includes/sidebar.tmpl",
 		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
-		)
+	)
 	return renderer
 }
 
@@ -159,11 +160,11 @@ func addManageTemplate(renderer multitemplate.Renderer, name string) multitempla
 	return renderer
 }
 
-func createLimiter() func(*gin.Context) {
+func createLimiter(limit int, period time.Duration) func(*gin.Context) {
 	store := memory.NewStore()
 	rate := limiter.Rate{
-		Period:    time.Minute * 10,
-		Limit:     600,
+		Period: period,
+		Limit:  limit,
 	}
 
 	return mgin.NewMiddleware(limiter.New(store, rate))
