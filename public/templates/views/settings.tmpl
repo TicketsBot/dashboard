@@ -35,7 +35,7 @@
                     </div>
                   </div>
 
-                  <div class="col-md-3 px-1">
+                  <div class="col-md-2 px-1">
                     <div class="form-group">
                       <label>Ping @everyone on ticket open</label>
                       <div class="form-check">
@@ -58,8 +58,18 @@
                     <div class="form-group">
                       <label>Ticket close confirmation</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="close_confirmation" value="on"
+                        <input class="form-check-input" type="checkbox" value="on"
                                id="close_confirmation" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-2 px-1">
+                    <div class="form-group">
+                      <label>Enable modmail</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="on"
+                               id="enable_modmail" style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -311,6 +321,7 @@
             document.getElementById("ping_everyone").checked = settings.ping_everyone;
             document.getElementById("users_can_close").checked = settings.users_can_close;
             document.getElementById("close_confirmation").checked = settings.close_confirmation;
+            document.getElementById("enable_modmail").checked = settings.modmail_enabled;
 
             if (settings.naming_scheme === "username") {
                 document.getElementById("naming-by-username").checked = true;
@@ -433,7 +444,8 @@
                 'close_confirmation': document.getElementById("close_confirmation").checked,
                 'naming_scheme': document.querySelector('input[name="namingscheme"]:checked').value,
                 'archive_channel': document.getElementById('archive_channel').options[document.getElementById('archive_channel').selectedIndex].value,
-                'category': document.getElementById('category').options[document.getElementById('category').selectedIndex].value
+                'category': document.getElementById('category').options[document.getElementById('category').selectedIndex].value,
+                'modmail_enabled': document.getElementById('enable_modmail').checked
             };
 
             const res = await axios.post('/api/{{.guildId}}/settings', data);
