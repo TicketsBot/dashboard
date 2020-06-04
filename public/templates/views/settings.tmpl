@@ -2,7 +2,7 @@
   <div class="content">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-8">
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Settings</h4>
@@ -19,12 +19,23 @@
 
                   <div class="col-md-1 px-1">
                     <div class="form-group">
-                      <label>Ticket Limit (1-10)</label>
-                      <input name="ticketlimit" type="text" class="form-control" placeholder="5" id="ticket_limit">
+                      <label>Ticket Limit</label>
+                      <select class="custom-select mr-sm-2" id="ticket_limit" name="ticketlimit">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                      </select>
                     </div>
                   </div>
 
-                  <div class="col-md-2 px-1">
+                  <div class="col-md-3 px-1">
                     <div class="form-group">
                       <label>Ping @everyone on ticket open</label>
                       <div class="form-check">
@@ -110,11 +121,9 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Claim settings -->
-      <div class="row">
-        <div class="col-md-12">
+        <!-- Claim settings -->
+        <div class="col-md-4">
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Claim Settings</h4>
@@ -122,7 +131,7 @@
             <div class="card-body">
               <form onsubmit="updateClaimSettings(); return false;">
                 <div class="row">
-                  <div class="col-md-2 pr-1">
+                  <div class="col-md-6 pr-1">
                     <div class="form-group">
                       <label>Support Reps Can View Claimed Tickets</label>
                       <div class="form-check">
@@ -130,11 +139,101 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-2 pr-1">
+                  <div class="col-md-6 pr-1">
                     <div class="form-group">
                       <label>Support Reps Can Type In Claimed Tickets</label>
                       <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="can_type" value="on" id="can_type" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row" style="padding-top: 20px">
+                  <div class="col-md-12 pr-1">
+                    <div class="form-group">
+                      <button class="btn btn-primary btn-fill" type="submit"><i class="fas fa-paper-plane"></i>
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div aria-live="polite" aria-atomic="true" style="position: relative;">
+        <div style="position: absolute; right: 10px" id="toast-container">
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Autoclose settings -->
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Auto-Close</h4>
+            </div>
+            <div class="card-body">
+              <form onsubmit="updateAutoCloseSettings(); return false;">
+                <div class="row">
+                  <div class="col-md-2 pr-1">
+                    <div class="form-group">
+                      <label>Enabled</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="on" id="autoclose_enabled" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label>Time since open with no message</label>
+                      <div class="row">
+                        <div class="input-group col-md-4">
+                          <input type="text" class="form-control" id="sinceopen_days">
+                          <div class="input-group-append">
+                            <div class="input-group-text">d</div>
+                          </div>
+                        </div>
+                        <div class="input-group col-md-4">
+                          <input type="text" class="form-control" id="sinceopen_hours">
+                          <div class="input-group-append">
+                            <div class="input-group-text">h</div>
+                          </div>
+                        </div>
+                        <div class="input-group col-md-4">
+                          <input type="text" class="form-control" id="sinceopen_minutes">
+                          <div class="input-group-append">
+                            <div class="input-group-text">m</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-5">
+                    <div class="form-group">
+                      <label>Time since last message</label>
+                      <div class="row">
+                        <div class="input-group col-md-4">
+                          <input type="text" class="form-control" id="sincelast_days">
+                          <div class="input-group-append">
+                            <div class="input-group-text">d</div>
+                          </div>
+                        </div>
+                        <div class="input-group col-md-4">
+                          <input type="text" class="form-control" id="sincelast_hours">
+                          <div class="input-group-append">
+                            <div class="input-group-text">h</div>
+                          </div>
+                        </div>
+                        <div class="input-group col-md-4">
+                          <input type="text" class="form-control" id="sincelast_minutes">
+                          <div class="input-group-append">
+                            <div class="input-group-text">m</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -153,11 +252,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div aria-live="polite" aria-atomic="true" style="position: relative;">
-      <div style="position: absolute; right: 10px" id="toast-container">
       </div>
     </div>
 
@@ -207,9 +301,13 @@
 
         async function loadData() {
             const settings = await getSettings();
+            if (settings.ticket_limit < 1) {
+                settings.ticket_limit = 5;
+            }
+
             document.getElementById("prefix").value = settings.prefix;
             document.getElementById("welcome_message").value = settings.welcome_message;
-            document.getElementById("ticket_limit").value = settings.ticket_limit;
+            document.getElementById("ticket_limit").selectedIndex = settings.ticket_limit - 1;
             document.getElementById("ping_everyone").checked = settings.ping_everyone;
             document.getElementById("users_can_close").checked = settings.users_can_close;
             document.getElementById("close_confirmation").checked = settings.close_confirmation;
@@ -268,11 +366,68 @@
     </script>
 
     <script>
+      const minuteNanos = 60 * 1000 * 1000 * 1000;
+      const hourNanos = 60 * minuteNanos;
+      const dayNanos = 24 * hourNanos;
+
+      function fromNanoSeconds(nanoseconds) {
+          const days = Math.floor(nanoseconds / dayNanos);
+          nanoseconds -= (days * dayNanos);
+
+          const hours = Math.floor(nanoseconds / hourNanos);
+          nanoseconds -= (hours * hourNanos);
+
+          const minutes = Math.floor(nanoseconds / minuteNanos);
+          
+          return [days, hours, minutes];
+      }
+
+      async function loadAutoClaimSettings() {
+          const res = await axios.get('/api/{{.guildId}}/autoclose');
+          const settings = res.data;
+
+          document.getElementById('autoclose_enabled').checked = settings.enabled;
+
+          const sinceOpen = fromNanoSeconds(settings.since_open_with_no_response);
+          document.getElementById('sinceopen_days').value = sinceOpen[0];
+          document.getElementById('sinceopen_hours').value = sinceOpen[1];
+          document.getElementById('sinceopen_minutes').value = sinceOpen[2];
+
+          const sinceLast = fromNanoSeconds(settings.since_last_message);
+          document.getElementById('sincelast_days').value = sinceLast[0];
+          document.getElementById('sincelast_hours').value = sinceLast[1];
+          document.getElementById('sincelast_minutes').value = sinceLast[2];
+      }
+
+      function toNanoSeconds(days, hours, minutes) {
+          return days * dayNanos + hours * hourNanos + minutes * minuteNanos;
+      }
+
+      async function updateAutoCloseSettings() {
+          const data = {
+              enabled: document.getElementById('autoclose_enabled').checked,
+              since_open_with_no_response: toNanoSeconds(document.getElementById('sinceopen_days').value, document.getElementById('sinceopen_hours').value, document.getElementById('sinceopen_minutes').value),
+              since_last_message: toNanoSeconds(document.getElementById('sincelast_days').value, document.getElementById('sincelast_hours').value, document.getElementById('sincelast_minutes').value),
+          };
+
+          const res = await axios.post('/api/{{.guildId}}/autoclose', data);
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          showToast('Success', 'Auto close settings updated');
+      }
+
+      loadAutoClaimSettings();
+    </script>
+
+    <script>
         async function updateSettings() {
             const data = {
                 'prefix': document.getElementById('prefix').value,
                 'welcome_message': document.getElementById("welcome_message").value,
-                'ticket_limit': parseInt(document.getElementById('ticket_limit').value),
+                'ticket_limit': parseInt(document.getElementById('ticket_limit').options[document.getElementById('ticket_limit').selectedIndex].value),
                 'ping_everyone': document.getElementById("ping_everyone").checked,
                 'users_can_close': document.getElementById("users_can_close").checked,
                 'close_confirmation': document.getElementById("close_confirmation").checked,

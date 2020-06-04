@@ -73,37 +73,40 @@ func StartServer() {
 	}
 
 	apiGroup := router.Group("/api", middleware.AuthenticateToken)
-	guildAuthApi := apiGroup.Group("/", middleware.AuthenticateGuild(true))
+	guildAuthApi := apiGroup.Group("/:id", middleware.AuthenticateGuild(true))
 	{
-		guildAuthApi.GET("/:id/channels", api.ChannelsHandler)
-		guildAuthApi.GET("/:id/premium", api.PremiumHandler)
-		guildAuthApi.GET("/:id/user/:user", api.UserHandler)
+		guildAuthApi.GET("/channels", api.ChannelsHandler)
+		guildAuthApi.GET("/premium", api.PremiumHandler)
+		guildAuthApi.GET("/user/:user", api.UserHandler)
 
-		guildAuthApi.GET("/:id/settings", api.GetSettingsHandler)
-		guildAuthApi.POST("/:id/settings", api.UpdateSettingsHandler)
+		guildAuthApi.GET("/settings", api.GetSettingsHandler)
+		guildAuthApi.POST("/settings", api.UpdateSettingsHandler)
 
-		guildAuthApi.GET("/:id/blacklist", api.GetBlacklistHandler)
-		guildAuthApi.PUT("/:id/blacklist", api.AddBlacklistHandler)
-		guildAuthApi.DELETE("/:id/blacklist/:user", api.RemoveBlacklistHandler)
+		guildAuthApi.GET("/blacklist", api.GetBlacklistHandler)
+		guildAuthApi.PUT("/blacklist", api.AddBlacklistHandler)
+		guildAuthApi.DELETE("/blacklist/:user", api.RemoveBlacklistHandler)
 
-		guildAuthApi.GET("/:id/panels", api.ListPanels)
-		guildAuthApi.PUT("/:id/panels", api.CreatePanel)
-		guildAuthApi.DELETE("/:id/panels/:message", api.DeletePanel)
+		guildAuthApi.GET("/panels", api.ListPanels)
+		guildAuthApi.PUT("/panels", api.CreatePanel)
+		guildAuthApi.DELETE("/panels/:message", api.DeletePanel)
 
-		guildAuthApi.GET("/:id/logs/", api.GetLogs)
-		guildAuthApi.GET("/:id/modmail/logs/", api.GetModmailLogs)
+		guildAuthApi.GET("/logs/", api.GetLogs)
+		guildAuthApi.GET("/modmail/logs/", api.GetModmailLogs)
 
-		guildAuthApi.GET("/:id/tickets", api.GetTickets)
-		guildAuthApi.GET("/:id/tickets/:ticketId", api.GetTicket)
-		guildAuthApi.POST("/:id/tickets/:ticketId", api.SendMessage)
-		guildAuthApi.DELETE("/:id/tickets/:ticketId", api.CloseTicket)
+		guildAuthApi.GET("/tickets", api.GetTickets)
+		guildAuthApi.GET("/tickets/:ticketId", api.GetTicket)
+		guildAuthApi.POST("/tickets/:ticketId", api.SendMessage)
+		guildAuthApi.DELETE("/tickets/:ticketId", api.CloseTicket)
 
-		guildAuthApi.GET("/:id/tags", api.TagsListHandler)
-		guildAuthApi.PUT("/:id/tags", api.CreateTag)
-		guildAuthApi.DELETE("/:id/tags/:tag", api.DeleteTag)
+		guildAuthApi.GET("/tags", api.TagsListHandler)
+		guildAuthApi.PUT("/tags", api.CreateTag)
+		guildAuthApi.DELETE("/tags/:tag", api.DeleteTag)
 
-		guildAuthApi.GET("/:id/claimsettings", api.GetClaimSettings)
-		guildAuthApi.POST("/:id/claimsettings", api.PostClaimSettings)
+		guildAuthApi.GET("/claimsettings", api.GetClaimSettings)
+		guildAuthApi.POST("/claimsettings", api.PostClaimSettings)
+
+		guildAuthApi.GET("/autoclose", api.GetAutoClose)
+		guildAuthApi.POST("/autoclose", api.PostAutoClose)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
