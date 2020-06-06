@@ -189,7 +189,7 @@
             <div class="card-body">
               <form onsubmit="updateAutoCloseSettings(); return false;">
                 <div class="row">
-                  <div class="col-md-2 pr-1">
+                  <div class="col-md-1 pr-1">
                     <div class="form-group">
                       <label>Enabled</label>
                       <div class="form-check">
@@ -197,7 +197,15 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-5">
+                  <div class="col-md-2 pr-1">
+                    <div class="form-group">
+                      <label>Close on user leave</label>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="on" id="autoclose_on_user_leave" style="width:30px;height:30px;">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
                     <div class="form-group">
                       <label>Time since open with no message</label>
                       <div class="row">
@@ -222,7 +230,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-5">
+                  <div class="col-md-4">
                     <div class="form-group">
                       <label>Time since last message</label>
                       <div class="row">
@@ -393,11 +401,12 @@
           return [days, hours, minutes];
       }
 
-      async function loadAutoClaimSettings() {
+      async function loadAutoCloseSettings() {
           const res = await axios.get('/api/{{.guildId}}/autoclose');
           const settings = res.data;
 
           document.getElementById('autoclose_enabled').checked = settings.enabled;
+          document.getElementById('autoclose_on_user_leave').checked = settings.on_user_leave;
 
           const sinceOpen = fromNanoSeconds(settings.since_open_with_no_response);
           document.getElementById('sinceopen_days').value = sinceOpen[0];
@@ -417,6 +426,7 @@
       async function updateAutoCloseSettings() {
           const data = {
               enabled: document.getElementById('autoclose_enabled').checked,
+              on_user_leave: document.getElementById('autoclose_on_user_leave').checked,
               since_open_with_no_response: toNanoSeconds(document.getElementById('sinceopen_days').value, document.getElementById('sinceopen_hours').value, document.getElementById('sinceopen_minutes').value),
               since_last_message: toNanoSeconds(document.getElementById('sincelast_days').value, document.getElementById('sincelast_hours').value, document.getElementById('sincelast_minutes').value),
           };
@@ -430,7 +440,7 @@
           showToast('Success', 'Auto close settings updated');
       }
 
-      loadAutoClaimSettings();
+      loadAutoCloseSettings();
     </script>
 
     <script>

@@ -18,7 +18,7 @@ func PostAutoClose(ctx *gin.Context) {
 		return
 	}
 
-	if settings.Enabled && (settings.SinceLastMessage == nil || settings.SinceOpenWithNoResponse == nil) {
+	if settings.Enabled && (settings.SinceLastMessage == nil || settings.SinceOpenWithNoResponse == nil || settings.OnUserLeave == nil) {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error": "No time period provided",
@@ -32,6 +32,12 @@ func PostAutoClose(ctx *gin.Context) {
 			"error": "Negative time period provided",
 		})
 		return
+	}
+
+	if !settings.Enabled {
+		settings.SinceLastMessage = nil
+		settings.SinceOpenWithNoResponse = nil
+		settings.OnUserLeave = nil
 	}
 
 	if err := dbclient.Client.AutoClose.Set(guildId, settings); err != nil {
