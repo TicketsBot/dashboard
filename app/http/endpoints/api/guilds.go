@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 	"golang.org/x/sync/errgroup"
+	"sort"
 	"sync"
 )
 
@@ -63,10 +64,15 @@ func GetGuilds(ctx *gin.Context) {
 	if err := group.Wait(); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
+
+	// sort guilds
+	sort.Slice(adminGuilds, func(i, j int) bool {
+		return adminGuilds[i].Name < adminGuilds[j].Name
+	})
 
 	ctx.JSON(200, adminGuilds)
 }
