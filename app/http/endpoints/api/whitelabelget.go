@@ -36,7 +36,7 @@ func WhitelabelGet(ctx *gin.Context) {
 		}
 
 		// Get errors
-		errors, err := database.Client.WhitelabelErrors.GetRecent(bot.BotId, 10)
+		errors, err := database.Client.WhitelabelErrors.GetRecent(bot.UserId, 10)
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"success": false,
