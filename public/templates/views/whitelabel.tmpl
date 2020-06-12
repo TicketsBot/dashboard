@@ -46,8 +46,9 @@
           </div>
         </div>
       </div>
+
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-6">
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Custom Status</h4>
@@ -58,7 +59,8 @@
                   <div class="col-md-12">
                     <div class="form-group">
                       <label>Status</label>
-                      <input name="status" type="text" class="form-control" placeholder="DM for help | t!help" id="status">
+                      <input name="status" type="text" class="form-control" placeholder="DM for help | t!help"
+                             id="status">
                     </div>
                   </div>
                 </div>
@@ -77,70 +79,96 @@
             </div>
           </div>
         </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Error Logs</h4>
+            </div>
+            <div class="card-body" id="card">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th scope="col">Error</th>
+                </tr>
+                </thead>
+                <tbody id="error_body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-
-    <div aria-live="polite" aria-atomic="true" style="position: relative">
-      <div style="position: absolute; right: 10px" id="toast-container">
-      </div>
-    </div>
-
-    <script>
-        // invite button
-        document.getElementById('invite').addEventListener('click', async () => {
-            // get bot ID
-            const res = await axios.get('/user/whitelabel');
-            if (res.status !== 200 || !res.data.success) {
-                showToast('Error', res.data.error);
-                return;
-            }
-
-            const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot&permissions=805825648';
-
-            window.open(inviteUrl, '_blank');
-        }, false);
-    </script>
-
-    <script>
-        async function updateSettings() {
-            const data = {
-                token: document.getElementById('token').value
-            };
-
-            const res = await axios.post('/user/whitelabel', data);
-            if (res.status !== 200 || !res.data.success) {
-                showToast('Error', res.data.error);
-                return;
-            }
-
-            showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
-        }
-
-        async function updateStatus() {
-            const data = {
-                status: document.getElementById('status').value
-            };
-
-            const res = await axios.post('/user/whitelabel/status', data);
-            if (res.status !== 200 || !res.data.success) {
-                showToast('Error', res.data.error);
-                return;
-            }
-
-            showToast('Success', 'Updated status successfully')
-        }
-
-        async function loadStatus() {
-            const res = await axios.get('/user/whitelabel');
-            if (res.status !== 200 || !res.data.success) {
-                showToast('Error', res.data.error);
-                return;
-            }
-
-            document.getElementById('status').value = res.data.status;
-        }
-
-        loadStatus();
-    </script>
   </div>
+
+  <div aria-live="polite" aria-atomic="true" style="position: relative">
+    <div style="position: absolute; right: 10px" id="toast-container">
+    </div>
+  </div>
+
+  <script>
+      // invite button
+      document.getElementById('invite').addEventListener('click', async () => {
+          // get bot ID
+          const res = await axios.get('/user/whitelabel');
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot&permissions=805825648';
+
+          window.open(inviteUrl, '_blank');
+      }, false);
+  </script>
+
+  <script>
+      async function updateSettings() {
+          const data = {
+              token: document.getElementById('token').value
+          };
+
+          const res = await axios.post('/user/whitelabel', data);
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
+      }
+
+      async function updateStatus() {
+          const data = {
+              status: document.getElementById('status').value
+          };
+
+          const res = await axios.post('/user/whitelabel/status', data);
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          showToast('Success', 'Updated status successfully')
+      }
+
+      async function loadDetails() {
+          const res = await axios.get('/user/whitelabel');
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          // set status
+          document.getElementById('status').value = res.data.status;
+
+          // append errors
+          for (error of res.data.errors) {
+              const tr = document.createElement('tr');
+              appendTd(tr, error);
+              document.getElementById('error_body').appendChild(tr);
+          }
+      }
+
+      loadDetails();
+  </script>
 {{end}}
