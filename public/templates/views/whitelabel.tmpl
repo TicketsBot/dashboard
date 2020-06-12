@@ -151,7 +151,7 @@
           showToast('Success', 'Updated status successfully')
       }
 
-      async function loadDetails() {
+      async function loadStatus() {
           const res = await axios.get('/user/whitelabel');
           if (res.status !== 200 || !res.data.success) {
               showToast('Error', res.data.error);
@@ -160,6 +160,16 @@
 
           // set status
           document.getElementById('status').value = res.data.status;
+      }
+
+      loadStatus();
+
+      async function loadErrors() {
+          const res = await axios.get('/user/whitelabel/errors');
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
 
           // append errors
           for (error of res.data.errors) {
@@ -169,6 +179,6 @@
           }
       }
 
-      loadDetails();
+      loadErrors();
   </script>
 {{end}}
