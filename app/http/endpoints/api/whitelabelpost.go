@@ -15,25 +15,6 @@ import (
 func WhitelabelPost(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
-	premiumTier := rpc.PremiumClient.GetTierByUser(userId, false)
-	if premiumTier < premium.Whitelabel {
-		var isForced bool
-		for _, forced := range config.Conf.ForceWhitelabel {
-			if forced == userId {
-				isForced = true
-				break
-			}
-		}
-
-		if !isForced {
-			ctx.JSON(402, gin.H{
-				"success": false,
-				"error":   "You must have the whitelabel premium tier",
-			})
-			return
-		}
-	}
-
 	// Get token
 	var data map[string]interface{}
 	if err := ctx.BindJSON(&data); err != nil {

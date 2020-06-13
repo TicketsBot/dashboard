@@ -113,11 +113,16 @@ func StartServer() {
 	{
 		userGroup.GET("/guilds", api.GetGuilds)
 
-		userGroup.GET("/whitelabel", api.WhitelabelGet)
-		userGroup.GET("/whitelabel/errors", api.WhitelabelGetErrors)
+		{
+			whitelabelGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(false))
+			whitelabelApiGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(true))
 
-		userGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/whitelabel", api.WhitelabelPost)
-		userGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/whitelabel/status", api.WhitelabelStatusPost)
+			whitelabelGroup.GET("/", api.WhitelabelGet)
+			whitelabelApiGroup.GET("/errors", api.WhitelabelGetErrors)
+
+			whitelabelApiGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/", api.WhitelabelPost)
+			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/status", api.WhitelabelStatusPost)
+		}
 	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {
