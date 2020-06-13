@@ -1,11 +1,8 @@
 package api
 
 import (
-	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
-	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/common/statusupdates"
 	"github.com/gin-gonic/gin"
 )
