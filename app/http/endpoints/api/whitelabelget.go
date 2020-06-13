@@ -22,7 +22,7 @@ func WhitelabelGet(ctx *gin.Context) {
 	if bot.BotId == 0 {
 		ctx.JSON(404, gin.H{
 			"success": false,
-			"error": "No bot found",
+			"error":   "No bot found",
 		})
 	} else {
 		// Get status
@@ -35,8 +35,8 @@ func WhitelabelGet(ctx *gin.Context) {
 			return
 		}
 
-		// Get errors
-		errors, err := database.Client.WhitelabelErrors.GetRecent(bot.UserId, 10)
+		// Get forced modmail guild
+		forcedGuild, err := database.Client.ModmailForcedGuilds.Get(bot.BotId)
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"success": false,
@@ -46,10 +46,10 @@ func WhitelabelGet(ctx *gin.Context) {
 		}
 
 		ctx.JSON(200, gin.H{
-			"success": true,
-			"id": strconv.FormatUint(bot.BotId, 10),
-			"status": status,
-			"errors": errors,
+			"success":              true,
+			"id":                   strconv.FormatUint(bot.BotId, 10),
+			"status":               status,
+			"modmail_forced_guild": strconv.FormatUint(forcedGuild, 10),
 		})
 	}
 }

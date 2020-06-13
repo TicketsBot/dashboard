@@ -119,6 +119,8 @@ func StartServer() {
 
 			whitelabelGroup.GET("/", api.WhitelabelGet)
 			whitelabelApiGroup.GET("/errors", api.WhitelabelGetErrors)
+			whitelabelApiGroup.GET("/guilds", api.WhitelabelGetGuilds)
+			whitelabelApiGroup.POST("/modmail", api.WhitelabelModmailPost)
 
 			whitelabelApiGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/", api.WhitelabelPost)
 			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/status", api.WhitelabelStatusPost)

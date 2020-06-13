@@ -2,7 +2,7 @@
   <div class="content">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-6">
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Bot Token</h4>
@@ -20,13 +20,13 @@
                 </div>
 
                 <div class="row">
-                  <div class="col-md-12 ">
+                  <div class="col-md-12">
                     <p class="white">Note: You will not be able to view the token after submitting it</p>
                   </div>
                 </div>
 
                 <div class="row">
-                  <div class="col-md-1">
+                  <div class="col-md-3">
                     <div class="form-group">
                       <button class="btn btn-primary btn-fill" type="submit">
                         <i class="fas fa-paper-plane"></i>
@@ -34,11 +34,44 @@
                       </button>
                     </div>
                   </div>
-                  <div class="col-md-2">
+                  <div class="col-md-4">
                     <button class="btn btn-primary btn-fill" id="invite" type="button">
                       <i class="fas fa-plus"></i>
                       Generate Invite Link
                     </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Modmail</h4>
+            </div>
+            <div class="card-body" id="card">
+              <form onsubmit="updateForcedModmail(); return false;">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group">
+                      <label>Server</label>
+                      <select class="form-control" id="forced_modmail">
+                        <option value="0">Allow user to select</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <button class="btn btn-primary btn-fill" type="submit">
+                        <i class="fas fa-paper-plane"></i>
+                        Submit
+                      </button>
+                    </div>
                   </div>
                 </div>
               </form>
@@ -66,7 +99,7 @@
                 </div>
 
                 <div class="row">
-                  <div class="col-md-2">
+                  <div class="col-md-3">
                     <div class="form-group">
                       <button class="btn btn-primary btn-fill" type="submit">
                         <i class="fas fa-paper-plane"></i>
@@ -137,6 +170,21 @@
           showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
       }
 
+      async function updateForcedModmail() {
+          const select = document.getElementById('forced_modmail');
+          const data = {
+              guild: select.options[select.selectedIndex].value
+          };
+
+          const res = await axios.post('/user/whitelabel/modmail', data);
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          showToast('Success', 'Updated modmail settings successfully')
+      }
+
       async function updateStatus() {
           const data = {
               status: document.getElementById('status').value
@@ -154,7 +202,9 @@
       async function loadStatus() {
           const res = await axios.get('/user/whitelabel');
           if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
+              if (res.status !== 404) {
+                  showToast('Error', res.data.error);
+              }
               return;
           }
 
@@ -180,5 +230,41 @@
       }
 
       loadErrors();
+
+      async function loadGuilds() {
+          // get selected guild
+          const settingsRes = await axios.get('/user/whitelabel');
+          if (settingsRes.status !== 200 || !settingsRes.data.success) {
+              showToast('Error', settingsRes.data.error);
+              return;
+          }
+
+          const guildId = settingsRes.data.modmail_forced_guild;
+
+          // get guild list
+          const guildsRes = await axios.get('/user/whitelabel/guilds');
+          if (guildsRes.status !== 200 || !guildsRes.data.success) {
+              if (guildsRes.status !== 404) {
+                  showToast('Error', guildsRes.data.error);
+              }
+              return;
+          }
+
+          // append guilds to dropdown
+          const select = document.getElementById('forced_modmail');
+          for (let [id, name] of Object.entries(guildsRes.data.guilds)) {
+              const option = document.createElement('option');
+              option.value = id;
+              option.text = name;
+
+              if (id === guildId) {
+                  option.selected = true;
+              }
+
+              select.add(option);
+          }
+      }
+
+      loadGuilds();
   </script>
 {{end}}
