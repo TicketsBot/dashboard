@@ -86,8 +86,29 @@
                 </div>
 
                 <div class="row">
+                  <div class="col-md-4 pr-1 offset-md-4">
+                    <div class="text-center">
+                      <button class="btn btn-primary btn-fill" type="button" data-toggle="collapse" data-target="#advanced" aria-expanded="false" aria-controls="advanced">
+                        Expand advanced settings
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="collapse" id="advanced" style="width: 100%">
+                    <div class="col-md-6 pr-1">
+                      <div class="form-group">
+                        <label class="black">Welcome Message</label>
+                        <textarea type="text" class="form-control" placeholder="If not provided, your server's default welcome message will be used" id="welcome_message"></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
                   <div class="col-md-2 pr-1 offset-md-5">
-                    <div class="form-group">
+                    <div class="form-group text-center">
                       <button type="submit" class="btn btn-primary btn-fill"><i class="fas fa-paper-plane"></i> Submit</button>
                     </div>
                   </div>
@@ -133,25 +154,20 @@
       }
 
       async function createPanel() {
+          const title = document.getElementById('title').value;
+          const content = document.getElementById('content').value;
+          const emote = document.getElementById('reaction').value.replace(':', '');
+          const welcomeMessage = document.getElementById('welcome_message').value;
+
           const data = {
-              title: document.getElementById('title').value,
-              content: document.getElementById('content').value,
-              emote: document.getElementById('reaction').value.replace(':', ''),
+              title: title === '' ? 'Open a ticket!' : title,
+              content: content === '' ? 'By reacting to this ticket, a message will be opened for you.' : content,
+              emote: emote === '' ? 'envelope_with_arrow' : emote,
               colour: parseInt(`0x${document.getElementById('colour').value.slice(1)}`),
               channel_id: document.getElementById('channel-container').options[document.getElementById('channel-container').selectedIndex].value,
               category_id: document.getElementById('category-container').options[document.getElementById('category-container').selectedIndex].value,
+              welcome_message: welcomeMessage === '' ? null : welcomeMessage
           };
-
-          // fill defaults
-          if (data.title === '') {
-              data.title = 'Open a ticket!';
-          }
-          if (data.content === '') {
-              data.content = 'By reacting to this ticket, a ticket will be opened for you.';
-          }
-          if (data.emote === '') {
-              data.emote = 'envelope_with_arrow';
-          }
 
           const res = await axios.put('/api/{{.guildId}}/panels', data);
           if (res.status === 200 && res.data.success) {

@@ -112,6 +112,7 @@
             </div>
           </div>
         </div>
+
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
@@ -121,7 +122,8 @@
               <table class="table">
                 <thead>
                 <tr>
-                  <th scope="col">Error</th>
+                  <th scope="col" span="2">Error</th>
+                  <th scope="col">Date</th>
                 </tr>
                 </thead>
                 <tbody id="error_body">
@@ -223,8 +225,12 @@
 
           // append errors
           for (error of res.data.errors) {
+              const message = error.Message;
+              const time = new Date(error.Time);
+
               const tr = document.createElement('tr');
-              appendTd(tr, error);
+              appendTd(tr, message);
+              appendTd(tr, time.toDateString());
               document.getElementById('error_body').appendChild(tr);
           }
       }

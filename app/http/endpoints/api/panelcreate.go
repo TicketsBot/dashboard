@@ -25,7 +25,7 @@ func CreatePanel(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -114,6 +114,7 @@ func CreatePanel(ctx *gin.Context) {
 		Colour:         int32(data.Colour),
 		TargetCategory: data.CategoryId,
 		ReactionEmote:  emoji,
+		WelcomeMessage: data.WelcomeMessage,
 	}
 
 	if err = dbclient.Client.Panel.Create(panel); err != nil {
@@ -125,7 +126,7 @@ func CreatePanel(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"success": true,
+		"success":    true,
 		"message_id": strconv.FormatUint(msgId, 10),
 	})
 }
@@ -174,6 +175,14 @@ func (p *panel) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
+	if !p.verifyWelcomeMessage() {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": false,
+			"error":   "Welcome message must be null or between 1 - 1024 characters",
+		})
+		return false
+	}
+
 	return true
 }
 
@@ -214,6 +223,10 @@ func (p *panel) verifyCategory(channels []channel.Channel) bool {
 	}
 
 	return valid
+}
+
+func (p *panel) verifyWelcomeMessage() bool {
+	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) < 1025)
 }
 
 func (p *panel) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messageId uint64, err error) {
