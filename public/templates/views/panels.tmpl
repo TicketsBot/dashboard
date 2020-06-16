@@ -99,7 +99,9 @@
                   <div class="collapse" id="advanced" style="width: 100%">
                     <div class="col-md-6 pr-1">
                       <div class="form-group">
-                        <label class="black">Welcome Message</label>
+                        <label class="black">Welcome Message
+                          <i class="fas fa-question pointer" data-toggle="modal" data-target="#modal-substitutions"></i>
+                        </label>
                         <textarea type="text" class="form-control" placeholder="If not provided, your server's default welcome message will be used" id="welcome_message"></textarea>
                       </div>
                     </div>
@@ -266,4 +268,5 @@
       loadData();
     </script>
   </div>
+
 {{end}}

@@ -166,6 +166,7 @@ func addManageTemplate(renderer multitemplate.Renderer, name string) multitempla
 		"./public/templates/includes/head.tmpl",
 		"./public/templates/includes/sidebar.tmpl",
 		"./public/templates/includes/navbar.tmpl",
+		"./public/templates/includes/substitutionmodal.tmpl",
 		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
 	)
 	return renderer

@@ -121,3 +121,16 @@ body {
     max-width: 300px;
     word-wrap: break-word;
 }
+
+.pointer {
+    cursor: pointer;
+}
+
+.modal-content {
+    color: white !important;
+    background-color: #272727 !important;
+}
+
+.modal-footer, .modal-header {
+    border-color: #2e3136 !important;
+}
