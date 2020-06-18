@@ -267,10 +267,10 @@
           }
       }
 
-      withLoadingScreen(() => {
-          loadStatus();
-          loadErrors();
-          loadGuilds();
+      withLoadingScreen(async () => {
+          await loadStatus();
+          await loadErrors();
+          await loadGuilds();
       });
   </script>
 {{end}}
