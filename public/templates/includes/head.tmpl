@@ -63,6 +63,33 @@
       setDefaultHeader();
   </script>
 
+  <script>
+    function showLoadingScreen() {
+      const content = document.getElementsByClassName('content')[0];
+      content.style.display = 'none';
+      document.getElementById('loading-container').style.display = 'block';
+    }
+
+    function hideLoadingScreen() {
+        document.getElementById('loading-container').style.display = 'none';
+
+        const content = document.getElementsByClassName('content')[0];
+        content.style.display = 'block';
+        content.classList.add('fade-in');
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function withLoadingScreen(func) {
+        showLoadingScreen();
+        await func();
+        await sleep(200);
+        hideLoadingScreen();
+    }
+  </script>
+
   <!-- Bootstrap -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">

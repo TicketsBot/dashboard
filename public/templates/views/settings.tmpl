@@ -39,7 +39,8 @@
                     <div class="form-group">
                       <label>Ping @everyone on ticket open</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="pingeveryone" value="on" id="ping_everyone" style="width:30px;height:30px;">
+                        <input class="form-check-input" type="checkbox" name="pingeveryone" value="on"
+                               id="ping_everyone" style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -147,7 +148,8 @@
                     <div class="form-group">
                       <label>Support Reps Can View Claimed Tickets</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="can_view" value="on" id="can_view" style="width:30px;height:30px;" onclick="canViewChanged();">
+                        <input class="form-check-input" type="checkbox" name="can_view" value="on" id="can_view"
+                               style="width:30px;height:30px;" onclick="canViewChanged();">
                       </div>
                     </div>
                   </div>
@@ -155,7 +157,8 @@
                     <div class="form-group">
                       <label>Support Reps Can Type In Claimed Tickets</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="can_type" value="on" id="can_type" style="width:30px;height:30px;">
+                        <input class="form-check-input" type="checkbox" name="can_type" value="on" id="can_type"
+                               style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -195,7 +198,8 @@
                     <div class="form-group">
                       <label>Enabled</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="enabled" value="on" id="autoclose_enabled" style="width:30px;height:30px;">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="on" id="autoclose_enabled"
+                               style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -203,7 +207,8 @@
                     <div class="form-group">
                       <label>Close on user leave</label>
                       <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="enabled" value="on" id="autoclose_on_user_leave" style="width:30px;height:30px;">
+                        <input class="form-check-input" type="checkbox" name="enabled" value="on"
+                               id="autoclose_on_user_leave" style="width:30px;height:30px;">
                       </div>
                     </div>
                   </div>
@@ -343,8 +348,6 @@
             await fillArchiveChannels(channels, settings.archive_channel);
             await fillCategories(channels, settings.category);
         }
-
-        loadData();
     </script>
 
     <script>
@@ -358,8 +361,6 @@
             document.getElementById('can_view').checked = settings.support_can_view;
             document.getElementById('can_type').checked = settings.support_can_type;
         }
-
-        loadClaimSettings();
 
         async function updateClaimSettings() {
             const data = {
@@ -387,62 +388,60 @@
     </script>
 
     <script>
-      const minuteNanos = 60 * 1000 * 1000 * 1000;
-      const hourNanos = 60 * minuteNanos;
-      const dayNanos = 24 * hourNanos;
+        const minuteNanos = 60 * 1000 * 1000 * 1000;
+        const hourNanos = 60 * minuteNanos;
+        const dayNanos = 24 * hourNanos;
 
-      function fromNanoSeconds(nanoseconds) {
-          const days = Math.floor(nanoseconds / dayNanos);
-          nanoseconds -= (days * dayNanos);
+        function fromNanoSeconds(nanoseconds) {
+            const days = Math.floor(nanoseconds / dayNanos);
+            nanoseconds -= (days * dayNanos);
 
-          const hours = Math.floor(nanoseconds / hourNanos);
-          nanoseconds -= (hours * hourNanos);
+            const hours = Math.floor(nanoseconds / hourNanos);
+            nanoseconds -= (hours * hourNanos);
 
-          const minutes = Math.floor(nanoseconds / minuteNanos);
-          
-          return [days, hours, minutes];
-      }
+            const minutes = Math.floor(nanoseconds / minuteNanos);
 
-      async function loadAutoCloseSettings() {
-          const res = await axios.get('/api/{{.guildId}}/autoclose');
-          const settings = res.data;
+            return [days, hours, minutes];
+        }
 
-          document.getElementById('autoclose_enabled').checked = settings.enabled;
-          document.getElementById('autoclose_on_user_leave').checked = settings.on_user_leave;
+        async function loadAutoCloseSettings() {
+            const res = await axios.get('/api/{{.guildId}}/autoclose');
+            const settings = res.data;
 
-          const sinceOpen = fromNanoSeconds(settings.since_open_with_no_response);
-          document.getElementById('sinceopen_days').value = sinceOpen[0];
-          document.getElementById('sinceopen_hours').value = sinceOpen[1];
-          document.getElementById('sinceopen_minutes').value = sinceOpen[2];
+            document.getElementById('autoclose_enabled').checked = settings.enabled;
+            document.getElementById('autoclose_on_user_leave').checked = settings.on_user_leave;
 
-          const sinceLast = fromNanoSeconds(settings.since_last_message);
-          document.getElementById('sincelast_days').value = sinceLast[0];
-          document.getElementById('sincelast_hours').value = sinceLast[1];
-          document.getElementById('sincelast_minutes').value = sinceLast[2];
-      }
+            const sinceOpen = fromNanoSeconds(settings.since_open_with_no_response);
+            document.getElementById('sinceopen_days').value = sinceOpen[0];
+            document.getElementById('sinceopen_hours').value = sinceOpen[1];
+            document.getElementById('sinceopen_minutes').value = sinceOpen[2];
 
-      function toNanoSeconds(days, hours, minutes) {
-          return days * dayNanos + hours * hourNanos + minutes * minuteNanos;
-      }
+            const sinceLast = fromNanoSeconds(settings.since_last_message);
+            document.getElementById('sincelast_days').value = sinceLast[0];
+            document.getElementById('sincelast_hours').value = sinceLast[1];
+            document.getElementById('sincelast_minutes').value = sinceLast[2];
+        }
 
-      async function updateAutoCloseSettings() {
-          const data = {
-              enabled: document.getElementById('autoclose_enabled').checked,
-              on_user_leave: document.getElementById('autoclose_on_user_leave').checked,
-              since_open_with_no_response: toNanoSeconds(document.getElementById('sinceopen_days').value, document.getElementById('sinceopen_hours').value, document.getElementById('sinceopen_minutes').value),
-              since_last_message: toNanoSeconds(document.getElementById('sincelast_days').value, document.getElementById('sincelast_hours').value, document.getElementById('sincelast_minutes').value),
-          };
+        function toNanoSeconds(days, hours, minutes) {
+            return days * dayNanos + hours * hourNanos + minutes * minuteNanos;
+        }
 
-          const res = await axios.post('/api/{{.guildId}}/autoclose', data);
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
+        async function updateAutoCloseSettings() {
+            const data = {
+                enabled: document.getElementById('autoclose_enabled').checked,
+                on_user_leave: document.getElementById('autoclose_on_user_leave').checked,
+                since_open_with_no_response: toNanoSeconds(document.getElementById('sinceopen_days').value, document.getElementById('sinceopen_hours').value, document.getElementById('sinceopen_minutes').value),
+                since_last_message: toNanoSeconds(document.getElementById('sincelast_days').value, document.getElementById('sincelast_hours').value, document.getElementById('sincelast_minutes').value),
+            };
 
-          showToast('Success', 'Auto close settings updated');
-      }
+            const res = await axios.post('/api/{{.guildId}}/autoclose', data);
+            if (res.status !== 200 || !res.data.success) {
+                showToast('Error', res.data.error);
+                return;
+            }
 
-      loadAutoCloseSettings();
+            showToast('Success', 'Auto close settings updated');
+        }
     </script>
 
     <script>
@@ -507,6 +506,14 @@
 
             return success;
         }
+    </script>
+
+    <script>
+        withLoadingScreen(() => {
+            loadData();
+            loadClaimSettings();
+            loadAutoCloseSettings();
+        });
     </script>
   </div>
 {{end}}

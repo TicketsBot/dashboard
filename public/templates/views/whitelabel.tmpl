@@ -214,8 +214,6 @@
           document.getElementById('status').value = res.data.status;
       }
 
-      loadStatus();
-
       async function loadErrors() {
           const res = await axios.get('/user/whitelabel/errors');
           if (res.status !== 200 || !res.data.success) {
@@ -234,8 +232,6 @@
               document.getElementById('error_body').appendChild(tr);
           }
       }
-
-      loadErrors();
 
       async function loadGuilds() {
           // get selected guild
@@ -271,6 +267,10 @@
           }
       }
 
-      loadGuilds();
+      withLoadingScreen(() => {
+          loadStatus();
+          loadErrors();
+          loadGuilds();
+      });
   </script>
 {{end}}
