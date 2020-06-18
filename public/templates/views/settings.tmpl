@@ -509,10 +509,10 @@
     </script>
 
     <script>
-        withLoadingScreen(() => {
-            loadData();
-            loadClaimSettings();
-            loadAutoCloseSettings();
+        withLoadingScreen(async () => {
+            await loadData();
+            await loadClaimSettings();
+            await loadAutoCloseSettings();
         });
     </script>
   </div>

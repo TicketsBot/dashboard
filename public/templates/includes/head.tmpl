@@ -85,7 +85,6 @@
     async function withLoadingScreen(func) {
         showLoadingScreen();
         await func();
-        await sleep(200);
         hideLoadingScreen();
     }
   </script>
