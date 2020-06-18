@@ -222,14 +222,16 @@
           }
 
           // append errors
-          for (error of res.data.errors) {
-              const message = error.Message;
-              const time = new Date(error.Time);
+          if (res.data.errors !== null) {
+              for (error of res.data.errors) {
+                  const message = error.Message;
+                  const time = new Date(error.Time);
 
-              const tr = document.createElement('tr');
-              appendTd(tr, message);
-              appendTd(tr, time.toDateString());
-              document.getElementById('error_body').appendChild(tr);
+                  const tr = document.createElement('tr');
+                  appendTd(tr, message);
+                  appendTd(tr, time.toDateString());
+                  document.getElementById('error_body').appendChild(tr);
+              }
           }
       }
 
