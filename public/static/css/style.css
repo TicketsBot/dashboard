@@ -157,3 +157,7 @@ body {
         opacity: 1;
     }
 }
+
+.content {
+    display: none;
+}
