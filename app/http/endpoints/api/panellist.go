@@ -39,6 +39,8 @@ func ListPanels(ctx *gin.Context) {
 
 	for i, p := range panels {
 		i := i
+		p := p
+
 		group.Go(func() error {
 			var mentions []string
 
