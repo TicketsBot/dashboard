@@ -38,7 +38,8 @@ func ListPanels(ctx *gin.Context) {
 	group, _ := errgroup.WithContext(context.Background())
 
 	for i, p := range panels {
-		group.Go(func() (err error) {
+		i := i
+		group.Go(func() error {
 			var mentions []string
 
 			// get role mentions
