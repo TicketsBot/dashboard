@@ -97,12 +97,24 @@
 
                 <div class="row">
                   <div class="collapse" id="advanced" style="width: 100%">
-                    <div class="col-md-6 pr-1">
-                      <div class="form-group">
-                        <label class="black">Welcome Message
-                          <i class="fas fa-question pointer" data-toggle="modal" data-target="#modal-substitutions"></i>
-                        </label>
-                        <textarea type="text" class="form-control" placeholder="If not provided, your server's default welcome message will be used" id="welcome_message"></textarea>
+                    <div class="container-fluid">
+                      <div class="row">
+                        <div class="col-md-6 pr-1">
+                          <div class="form-group">
+                            <label class="black">Welcome Message
+                              <i class="fas fa-question pointer" data-toggle="modal" data-target="#modal-substitutions"></i>
+                            </label>
+                            <textarea type="text" class="form-control" placeholder="If not provided, your server's default welcome message will be used" id="welcome_message"></textarea>
+                          </div>
+                        </div>
+
+                        <div class="col-md-6 pr-1">
+                          <div class="form-group">
+                            <label class="black" for="mentions">Mention On Open</label>
+                            <select class="selectpicker form-control" id="mentions" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
+                            </select>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -168,7 +180,8 @@
               colour: parseInt(`0x${document.getElementById('colour').value.slice(1)}`),
               channel_id: document.getElementById('channel-container').options[document.getElementById('channel-container').selectedIndex].value,
               category_id: document.getElementById('category-container').options[document.getElementById('category-container').selectedIndex].value,
-              welcome_message: welcomeMessage === '' ? null : welcomeMessage
+              welcome_message: welcomeMessage === '' ? null : welcomeMessage,
+              mentions: $('.selectpicker').val()
           };
 
           const res = await axios.put('/api/{{.guildId}}/panels', data);
@@ -256,13 +269,42 @@
           return res.data.length;
       }
 
+      async function fillMentions() {
+          const select = document.getElementById('mentions');
+
+          // ticket opener
+          const ticketOpener = document.createElement('option');
+          ticketOpener.value = 'user';
+          ticketOpener.appendChild(document.createTextNode('Ticket Opener'));
+          select.appendChild(ticketOpener);
+
+          // roles
+          const res = await axios.get('/api/{{.guildId}}/roles');
+          if (res.status !== 200 || !res.data.success) {
+              showToast("Error", res.data);
+              return;
+          }
+
+          if (res.data.roles !== null) {
+              for (const role of res.data.roles) {
+                  const option = document.createElement('option');
+                  option.value = role.id;
+                  option.appendChild(document.createTextNode(role.name));
+                  select.appendChild(option);
+              }
+          }
+
+          $('.selectpicker').selectpicker('refresh');
+      }
+
       async function loadData() {
           const channels = await getChannels();
-
           const panelCount = await fillPanels(channels);
+
           await fillPanelQuota(panelCount);
           await fillChannels(channels);
           await fillCategories(channels);
+          await fillMentions();
       }
 
       withLoadingScreen(loadData);

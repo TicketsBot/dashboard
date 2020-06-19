@@ -125,6 +125,40 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
+	// insert role mention data
+	// string is role ID or "user" to mention the ticket opener
+	for _, mention := range data.Mentions {
+		if mention == "user" {
+			if err = dbclient.Client.PanelUserMention.Set(msgId, true); err != nil {
+				ctx.AbortWithStatusJSON(500, gin.H{
+					"success": false,
+					"error":   err.Error(),
+				})
+				return
+			}
+		} else {
+			roleId, err := strconv.ParseUint(mention, 10, 64)
+			if err != nil {
+				ctx.AbortWithStatusJSON(500, gin.H{
+					"success": false,
+					"error":   err.Error(),
+				})
+				return
+			}
+
+			// should we check the role is a valid role in the guild?
+			// not too much of an issue if it isnt
+
+			if err = dbclient.Client.PanelRoleMentions.Add(msgId, roleId); err != nil {
+				ctx.AbortWithStatusJSON(500, gin.H{
+					"success": false,
+					"error":   err.Error(),
+				})
+				return
+			}
+		}
+	}
+
 	ctx.JSON(200, gin.H{
 		"success":    true,
 		"message_id": strconv.FormatUint(msgId, 10),

@@ -78,6 +78,7 @@ func StartServer() {
 		guildAuthApi.GET("/channels", api.ChannelsHandler)
 		guildAuthApi.GET("/premium", api.PremiumHandler)
 		guildAuthApi.GET("/user/:user", api.UserHandler)
+		guildAuthApi.GET("/roles", api.RolesHandler)
 
 		guildAuthApi.GET("/settings", api.GetSettingsHandler)
 		guildAuthApi.POST("/settings", api.UpdateSettingsHandler)

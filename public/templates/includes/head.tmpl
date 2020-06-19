@@ -14,95 +14,51 @@
   <link href="/assets/css/style.css" rel="stylesheet">
 
   <style>
-    #avatar-sidebar {
-      background: url("{{.avatar}}?size=256") center center;
-      width: 32px;
-      height: 32px;
-      display: block;
-      background-size: cover;
-      border-radius: 50%;
-      float: right;
-
-    }
+      #avatar-sidebar {
+          background: url("{{.avatar}}?size=256") center center;
+          width: 32px;
+          height: 32px;
+          display: block;
+          background-size: cover;
+          border-radius: 50%;
+          float: right;
+      }
   </style>
-
-  <!-- Vue
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
-  <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>-->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.min.js"
           integrity="sha256-T/f7Sju1ZfNNfBh7skWn0idlCBcI3RwdLSS4/I7NQKQ=" crossorigin="anonymous"></script>
 
-  <script>
-      async function getToken() {
-          let token = window.localStorage.getItem('token');
-          if (token == null) {
-              let res = await axios.post('/token', {
-                  withCredentials: true
-              });
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/loadingscreen.js"></script>
+  <script src="/assets/js/utils.js"></script>
 
-              if (res.status !== 200 || !res.data.success) {
-                  console.log("An error occurred whilst retrieving an authentication token. Please contact the developer");
-                  console.log(res);
-                  return;
-              }
-
-              token = res.data.token;
-              localStorage.setItem('token', token);
-          }
-
-          return token;
-      }
-
-      async function setDefaultHeader() {
-          const token = await getToken();
-          axios.defaults.headers.common['Authorization'] = token;
-          axios.defaults.validateStatus = false;
-      }
-
-      setDefaultHeader();
-  </script>
-
-  <script>
-    function showLoadingScreen() {
-      const content = document.getElementsByClassName('content')[0];
-      content.style.display = 'none';
-      document.getElementById('loading-container').style.display = 'block';
-    }
-
-    function hideLoadingScreen() {
-        document.getElementById('loading-container').style.display = 'none';
-
-        const content = document.getElementsByClassName('content')[0];
-        content.style.display = 'block';
-        content.classList.add('fade-in');
-    }
-
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async function withLoadingScreen(func) {
-        showLoadingScreen();
-        await func();
-        hideLoadingScreen();
-    }
-  </script>
+  <!-- Jquery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.slim.min.js"
+          integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
 
   <!-- Bootstrap -->
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link href="/assets/css/light-bootstrap-dashboard.css?v=1.4.0" rel="stylesheet"/>
-  <link href="/assets/css/animate.min.css" rel="stylesheet"/>
-  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-          integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-          crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha256-aAr2Zpq8MZ+YA/D6JtRD3xtrwpEz2IqOS+pWD/7XKIw=" crossorigin="anonymous"/>
+  <link href="/assets/css/light-bootstrap-dashboard.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.0/animate.min.css"
+        integrity="sha256-6hqHMqXTVEds1R8HgKisLm3l/doneQs+rS1a5NLmwwo=" crossorigin="anonymous"/>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
           integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
           crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
-          integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
-          crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.min.js"
+          integrity="sha256-OFRAJNoaD8L3Br5lglV7VyLRf0itmoBzWUoM+Sji4/8=" crossorigin="anonymous"></script>
+
+  <!-- Bootstrap select -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.17/css/bootstrap-select.min.css"
+        integrity="sha256-VMPhaMmJn7coDSbzwqB0jflvb+CDnoAlfStC5RogOQo=" crossorigin="anonymous"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.17/js/bootstrap-select.min.js"
+          integrity="sha256-QOE02Glo1C1gHzP96JOaxyIMt4XSFv/exZaYLY4dwO0=" crossorigin="anonymous"></script>
+
+  <script>
+      $.fn.selectpicker.Constructor.BootstrapVersion = '4';
+  </script>
 
   <!-- Discord theme -->
   <link href="/assets/css/discordmock.css" rel="stylesheet"/>
@@ -112,54 +68,15 @@
         integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 
   <!-- GA -->
+  <script async src='https://www.google-analytics.com/analytics.js'
+          type="80be96f83bbfbba3d4097e23-text/javascript"></script>
+
   <script type="80be96f83bbfbba3d4097e23-text/javascript">
       window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
       ga('create', 'UA-161945537-1', 'auto');
       ga('send', 'pageview');
 
 
-  </script>
-  <script async src='https://www.google-analytics.com/analytics.js'
-          type="80be96f83bbfbba3d4097e23-text/javascript"></script>
 
-  <script>
-      function showToast(title, content) {
-          const container = document.getElementById('toast-container');
-
-          container.innerHTML += `
-            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="false">
-              <div class="toast-header">
-                <strong class="mr-auto">${title}</strong>
-                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="toast-body">
-                ${content}
-              </div>
-            </div>
-          `;
-
-          $('.toast').toast('show');
-      }
-
-      function appendTd(tr, content) {
-          const td = document.createElement('td');
-          td.appendChild(document.createTextNode(content));
-          td.classList.add('white');
-          tr.appendChild(td);
-          return td
-      }
-
-      function appendButton(tr, content, onclick) {
-          const tdRemove = document.createElement('td');
-          const removeButton = document.createElement('button');
-          removeButton.type = 'submit';
-          removeButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
-          removeButton.appendChild(document.createTextNode(content));
-          removeButton.onclick = onclick;
-          tdRemove.appendChild(removeButton);
-          tr.appendChild(tdRemove);
-      }
   </script>
 {{end}}

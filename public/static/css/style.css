@@ -15,7 +15,7 @@ body {
     color: white;
 }
 
-::-webkit-scrollbar {
+html > ::-webkit-scrollbar {
     display: none;
 }
 
@@ -160,4 +160,38 @@ body {
 
 .content {
     display: none;
+}
+
+/* drop down menu */
+.dropdown-menu {
+    background-color: #2e3136 !important;
+}
+
+.btn-light:not(:disabled):not(.disabled).active, .btn-light:not(:disabled):not(.disabled):active, .show>.btn-light.dropdown-toggle {
+    background-color: #2e3136 !important;
+}
+
+.bs-searchbox input {
+    background-color: white !important;
+    color: #2e3136 !important;
+}
+
+.dropdown-item > .text {
+    color: white !important;
+}
+
+.dropdown-item:hover {
+    background-color: #272727 !important;
+}
+
+.filter-option-inner-inner {
+    color: white !important;
+}
+
+.dropdown-toggle {
+    border-color: #2e3136 !important;
+}
+
+.bootstrap-select .bs-ok-default:after {
+    color: #2ECC71 !important;
 }
