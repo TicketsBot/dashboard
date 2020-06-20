@@ -179,6 +179,7 @@
       function setActiveMentions(panel) {
           if (panel.mentions !== null) {
               $('#edit-mentions').selectpicker('val', panel.mentions);
+              $('#edit-mentions').selectpicker('refresh');
           }
       }
 
