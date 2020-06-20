@@ -31,4 +31,13 @@
       </div>
     </div>
   </div>
+
+  <script>
+      registerHideListener('modal-substitutions');
+
+      function showSubstitutionModal() {
+          $('#modal-substitutions').modal('show');
+          showBackdrop();
+      }
+  </script>
 {{end}}

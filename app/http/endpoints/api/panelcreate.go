@@ -228,11 +228,11 @@ func (p *panel) verifyContent() bool {
 	return len(p.Content) > 0 && len(p.Content) < 1025
 }
 
-func (p *panel) getEmoji() (string, bool) {
+func (p *panel) getEmoji() (emoji string, ok bool) {
 	p.Emote = strings.Replace(p.Emote, ":", "", -1)
 
-	emoji := utils.GetEmojiByName(p.Emote)
-	return emoji, emoji != ""
+	emoji, ok = utils.GetEmoji(p.Emote)
+	return
 }
 
 func (p *panel) verifyChannel(channels []channel.Channel) bool {

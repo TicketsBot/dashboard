@@ -195,3 +195,7 @@ html > ::-webkit-scrollbar {
 .bootstrap-select .bs-ok-default:after {
     color: #2ECC71 !important;
 }
+
+.wrapper {
+    z-index: 1000 !important;
+}

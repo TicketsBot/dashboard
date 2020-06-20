@@ -89,6 +89,7 @@ func StartServer() {
 
 		guildAuthApi.GET("/panels", api.ListPanels)
 		guildAuthApi.PUT("/panels", api.CreatePanel)
+		guildAuthApi.PUT("/panels/:message", api.UpdatePanel)
 		guildAuthApi.DELETE("/panels/:message", api.DeletePanel)
 
 		guildAuthApi.GET("/logs/", api.GetLogs)
@@ -142,36 +143,43 @@ func createRenderer() multitemplate.Renderer {
 	r = addManageTemplate(r, "blacklist")
 	r = addManageTemplate(r, "logs")
 	r = addManageTemplate(r, "modmaillogs")
-	r = addManageTemplate(r, "settings")
+	r = addManageTemplate(r, "settings", "./public/templates/includes/substitutionmodal.tmpl")
 	r = addManageTemplate(r, "ticketlist")
 	r = addManageTemplate(r, "ticketview")
-	r = addManageTemplate(r, "panels")
+	r = addManageTemplate(r, "panels", "./public/templates/includes/substitutionmodal.tmpl", "./public/templates/includes/paneleditmodal.tmpl")
 	r = addManageTemplate(r, "tags")
 
 	return r
 }
 
-func addMainTemplate(renderer multitemplate.Renderer, name string) multitemplate.Renderer {
-	renderer.AddFromFiles(fmt.Sprintf("main/%s", name),
+func addMainTemplate(renderer multitemplate.Renderer, name string, extra ...string) multitemplate.Renderer {
+	files := []string{
 		"./public/templates/layouts/main.tmpl",
 		"./public/templates/includes/head.tmpl",
 		"./public/templates/includes/sidebar.tmpl",
 		"./public/templates/includes/loadingscreen.tmpl",
 		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
-	)
+	}
+
+	files = append(files, extra...)
+
+	renderer.AddFromFiles(fmt.Sprintf("main/%s", name), files...)
 	return renderer
 }
 
-func addManageTemplate(renderer multitemplate.Renderer, name string) multitemplate.Renderer {
-	renderer.AddFromFiles(fmt.Sprintf("manage/%s", name),
+func addManageTemplate(renderer multitemplate.Renderer, name string, extra ...string) multitemplate.Renderer {
+	files := []string{
 		"./public/templates/layouts/manage.tmpl",
 		"./public/templates/includes/head.tmpl",
 		"./public/templates/includes/sidebar.tmpl",
 		"./public/templates/includes/navbar.tmpl",
-		"./public/templates/includes/substitutionmodal.tmpl",
 		"./public/templates/includes/loadingscreen.tmpl",
 		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
-	)
+	}
+
+	files = append(files, extra...)
+
+	renderer.AddFromFiles(fmt.Sprintf("manage/%s", name), files...)
 	return renderer
 }
 

@@ -1,4 +1,8 @@
 {{define "content"}}
+  <script src="/assets/js/modalbackdrop.js"></script>
+  {{template "substitutions" .}}
+  {{template "paneleditmodal" .}}
+
   <div class="content">
     <div class="container-fluid">
       <div class="row">
@@ -18,6 +22,7 @@
                   <th>Panel Title</th>
                   <th>Panel Content</th>
                   <th>Ticket Channel Category</th>
+                  <th>Edit</th>
                   <th>Delete</th>
                 </tr>
                 </thead>
@@ -69,9 +74,6 @@
                   <div class="col-md-3 pr-1">
                     <label class="black">Ticket Channel Category</label>
                     <div class="input-group mb-3">
-                      <div class="input-group-prepend">
-                        <div class="input-group-text">#</div>
-                      </div>
                       <select class="form-control" name="categories" id="category-container">
                       </select>
                     </div>
@@ -102,7 +104,7 @@
                         <div class="col-md-6 pr-1">
                           <div class="form-group">
                             <label class="black">Welcome Message
-                              <i class="fas fa-question pointer" data-toggle="modal" data-target="#modal-substitutions"></i>
+                              <i class="fas fa-question pointer" onclick="showSubstitutionModal()"></i>
                             </label>
                             <textarea type="text" class="form-control" placeholder="If not provided, your server's default welcome message will be used" id="welcome_message"></textarea>
                           </div>
@@ -181,7 +183,7 @@
               channel_id: document.getElementById('channel-container').options[document.getElementById('channel-container').selectedIndex].value,
               category_id: document.getElementById('category-container').options[document.getElementById('category-container').selectedIndex].value,
               welcome_message: welcomeMessage === '' ? null : welcomeMessage,
-              mentions: $('.selectpicker').val()
+              mentions: $('#mentions').val()
           };
 
           const res = await axios.put('/api/{{.guildId}}/panels', data);
@@ -194,8 +196,8 @@
           }
       }
 
-      async function fillChannels(channels) {
-          const container = document.getElementById('channel-container');
+      async function fillChannels(elementId, channels) {
+          const container = document.getElementById(elementId);
 
           channels.filter(ch => ch.type === 0).forEach(ch => {
               const el = document.createElement('option');
@@ -205,8 +207,8 @@
           });
       }
 
-      async function fillCategories(channels) {
-          const container = document.getElementById('category-container');
+      async function fillCategories(elementId, channels) {
+          const container = document.getElementById(elementId);
 
           channels.filter(ch => ch.type === 4).forEach(ch => {
               const el = document.createElement('option');
@@ -242,6 +244,16 @@
           appendTd(tr, panel.content);
           appendTd(tr, getChannelName(channels, panel.category_id));
 
+          // build edit button
+          const editTd = document.createElement('td');
+          const editButton = document.createElement('button');
+          editButton.type = 'button';
+          editButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+          editButton.appendChild(document.createTextNode('Edit'));
+          editButton.onclick = () => { openEditModal(panel.message_id) };
+          editTd.appendChild(editButton);
+          tr.appendChild(editTd);
+
           // build remove button
           const deleteTd = document.createElement('td');
           const deleteButton = document.createElement('button');
@@ -269,8 +281,8 @@
           return res.data.length;
       }
 
-      async function fillMentions() {
-          const select = document.getElementById('mentions');
+      async function fillMentions(elementId) {
+          const select = document.getElementById(elementId);
 
           // ticket opener
           const ticketOpener = document.createElement('option');
@@ -294,7 +306,7 @@
               }
           }
 
-          $('.selectpicker').selectpicker('refresh');
+          $('#mentions').selectpicker('refresh');
       }
 
       async function loadData() {
@@ -302,13 +314,12 @@
           const panelCount = await fillPanels(channels);
 
           await fillPanelQuota(panelCount);
-          await fillChannels(channels);
-          await fillCategories(channels);
-          await fillMentions();
+          await fillChannels('channel-container', channels);
+          await fillCategories('category-container', channels);
+          await fillMentions('mentions');
       }
 
       withLoadingScreen(loadData);
     </script>
   </div>
-
 {{end}}

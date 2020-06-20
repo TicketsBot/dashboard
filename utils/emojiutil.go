@@ -6,7 +6,8 @@ import (
 	"io/ioutil"
 )
 
-var emojis map[string]interface{}
+var emojisByName map[string]string
+var emojis []string
 
 func LoadEmoji() {
 	bytes, err := ioutil.ReadFile("emojis.json"); if err != nil {
@@ -14,17 +15,31 @@ func LoadEmoji() {
 		return
 	}
 
-	if err := json.Unmarshal(bytes, &emojis); err != nil {
+	if err := json.Unmarshal(bytes, &emojisByName); err != nil {
 		log.Error("Couldn't load emoji: " + err.Error())
 		return
 	}
+
+	emojis = make([]string, len(emojisByName))
+	i := 0
+	for _, emoji := range emojisByName {
+		emojis[i] = emoji
+		i++
+	}
 }
 
-func GetEmojiByName(name string) string {
-	emoji, ok := emojis[name]; if !ok {
-		return ""
+func GetEmoji(input string) (emoji string, ok bool) {
+	// try by name first
+	emoji, ok = emojisByName[input]
+	if !ok { // else try by the actual unicode char
+		for _, unicode := range emojis {
+			if unicode == input {
+				emoji = unicode
+				ok = true
+				break
+			}
+		}
 	}
 
-	str, _ := emoji.(string)
-	return str
+	return
 }
