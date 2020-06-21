@@ -149,6 +149,8 @@ func createRenderer() multitemplate.Renderer {
 	r = addManageTemplate(r, "panels", "./public/templates/includes/substitutionmodal.tmpl", "./public/templates/includes/paneleditmodal.tmpl")
 	r = addManageTemplate(r, "tags")
 
+	r = addErrorTemplate(r)
+
 	return r
 }
 
@@ -180,6 +182,16 @@ func addManageTemplate(renderer multitemplate.Renderer, name string, extra ...st
 	files = append(files, extra...)
 
 	renderer.AddFromFiles(fmt.Sprintf("manage/%s", name), files...)
+	return renderer
+}
+
+func addErrorTemplate(renderer multitemplate.Renderer) multitemplate.Renderer {
+	files := []string{
+		"./public/templates/layouts/error.tmpl",
+		"./public/templates/includes/head.tmpl",
+	}
+
+	renderer.AddFromFiles("error", files...)
 	return renderer
 }
 

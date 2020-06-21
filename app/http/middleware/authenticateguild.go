@@ -17,14 +17,15 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 			parsed, err := strconv.ParseUint(guildId, 10, 64)
 			if err != nil {
 				if isApiMethod {
-					ctx.AbortWithStatusJSON(400, gin.H{
+					ctx.JSON(400, gin.H{
 						"success": false,
 						"error": "Invalid guild ID",
 					})
 				} else {
-					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
+					utils.ErrorPage(ctx, 400, "Invalid server ID")
 					ctx.Abort()
 				}
+				ctx.Abort()
 				return
 			}
 
@@ -35,7 +36,7 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 				if isApiMethod {
 					ctx.Redirect(302, fmt.Sprintf("https://invite.ticketsbot.net/?guild_id=%d&disable_guild_select=true&response_type=code&scope=bot%%20identify&redirect_uri=%s", parsed, config.Conf.Server.BaseUrl))
 				} else {
-					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
+					utils.ErrorPage(ctx, 404, "Couldn't find server with the provided ID")
 				}
 				ctx.Abort()
 				return
@@ -52,20 +53,20 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 						"error": "Unauthorized",
 					})
 				} else {
-					ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
+					utils.ErrorPage(ctx, 403, "You don't have permission to be here - make sure the server owner has added you as an admin with t!addadmin")
 					ctx.Abort()
 				}
 			}
 		} else {
 			if isApiMethod {
-				ctx.AbortWithStatusJSON(400, gin.H{
+				ctx.JSON(400, gin.H{
 					"success": false,
 					"error": "Invalid guild ID",
 				})
 			} else {
-				ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 404 Page
-				ctx.Abort()
+				utils.ErrorPage(ctx, 400, "Invalid server ID")
 			}
+			ctx.Abort()
 		}
 	}
 }

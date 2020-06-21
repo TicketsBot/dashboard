@@ -18,6 +18,10 @@ async function getToken() {
     return token;
 }
 
+function clearLocalStorage() {
+    window.localStorage.clear();
+}
+
 async function setDefaultHeader() {
     const token = await getToken();
     axios.defaults.headers.common['Authorization'] = token;

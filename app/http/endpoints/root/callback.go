@@ -50,13 +50,14 @@ func CallbackHandler(ctx *gin.Context) {
 
 	code, ok := ctx.GetQuery("code")
 	if !ok {
-		ctx.String(400, "Discord provided an invalid Oauth2 code")
+		utils.ErrorPage(ctx, 400, "Discord provided invalid Oauth2 code")
 		return
 	}
 
 	res, err := discord.AccessToken(code)
 	if err != nil {
-		ctx.String(500, err.Error())
+		utils.ErrorPage(ctx, 500, err.Error())
+		return
 	}
 
 	store.Set("access_token", res.AccessToken)

@@ -28,7 +28,7 @@
         <a class="nav-link" href="/"><i class="fas fa-server icon"></i>Servers</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt icon"></i>Logout</a>
+        <a class="nav-link" href="/logout" onclick="clearLocalStorage();"><i class="fas fa-sign-out-alt icon"></i>Logout</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#">{{.name}}<img class="avatar" src="{{.avatar}}?size=256" alt="Avatar"/></a>
