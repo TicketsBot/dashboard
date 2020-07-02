@@ -4,9 +4,10 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/TicketsBot/archiverclient v0.0.0-20200425115930-0ca198cc8306
-	github.com/TicketsBot/common v0.0.0-20200529141045-7426ad13f1a4
+	github.com/TicketsBot/archiverclient v0.0.0-20200702201017-5511592e1e71
+	github.com/TicketsBot/common v0.0.0-20200702195837-7afe5e77d1df
 	github.com/TicketsBot/database v0.0.0-20200620140717-f747a0bb4238
+	github.com/TicketsBot/logarchiver v0.0.0-20200425163447-199b93429026 // indirect
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -19,9 +20,10 @@ require (
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgx/v4 v4.6.0
+	github.com/klauspost/compress v1.10.10 // indirect
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20200522202912-4ae241eb98c1
+	github.com/rxdn/gdl v0.0.0-20200618155240-edb9ae72ef6e
 	github.com/sirupsen/logrus v1.5.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

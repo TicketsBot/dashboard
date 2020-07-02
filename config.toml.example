@@ -23,6 +23,8 @@ uri="postgres://user:pwd@localhost:5432/database?pool_max_conns=10"
 token=""
 premium-lookup-proxy-url="http://localhost:3000"
 premium-lookup-proxy-key=""
+objectstore=""
+aes-key=""
 
 [redis]
 host="127.0.0.1"

@@ -51,6 +51,7 @@ type (
 		PremiumLookupProxyUrl string `toml:"premium-lookup-proxy-url"`
 		PremiumLookupProxyKey string `toml:"premium-lookup-proxy-key"`
 		ObjectStore           string
+		AesKey                string `toml:"aes-key"`
 	}
 
 	Redis struct {
