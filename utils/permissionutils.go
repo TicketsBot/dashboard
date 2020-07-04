@@ -11,6 +11,10 @@ func GetPermissionLevel(guildId, userId uint64) permission.PermissionLevel {
 		return permission.Everyone
 	}
 
+	if botContext.IsBotAdmin(userId) {
+		return permission.Admin
+	}
+
 	// get member
 	member, err := botContext.GetGuildMember(guildId, userId)
 	if err != nil {
