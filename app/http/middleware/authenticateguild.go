@@ -11,7 +11,7 @@ import (
 )
 
 // requires AuthenticateCookie middleware to be run before
-func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
+func AuthenticateGuild(isApiMethod bool, requiredPermissionLevel permission.PermissionLevel) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if guildId, ok := ctx.Params.Get("id"); ok {
 			parsed, err := strconv.ParseUint(guildId, 10, 64)
@@ -46,7 +46,7 @@ func AuthenticateGuild(isApiMethod bool) gin.HandlerFunc {
 
 			// Verify the user has permissions to be here
 			userId := ctx.Keys["userid"].(uint64)
-			if utils.GetPermissionLevel(guild.Id, userId) != permission.Admin {
+			if utils.GetPermissionLevel(guild.Id, userId) < requiredPermissionLevel {
 				if isApiMethod {
 					ctx.AbortWithStatusJSON(403, gin.H{
 						"success": false,

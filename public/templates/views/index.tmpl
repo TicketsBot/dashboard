@@ -30,8 +30,21 @@
   </div>
 
   <script>
+      async function getPermissionLevels(guilds) {
+          const res = await axios.get('/user/permissionlevel?guilds=' + guilds.map(guild => guild.id).join(","));
+          if (res.status !== 200 || !res.data.success) {
+              showToast('Error', res.data.error);
+              return;
+          }
+
+          return res.data.levels;
+      }
+
       async function loadData() {
           const res = await axios.get('/user/guilds');
+
+          const permissionLevels = await getPermissionLevels(res.data);
+          console.log(permissionLevels)
 
           if (res.data.length > 0) {
               document.getElementById('guild-table').style.display = 'table';
@@ -43,7 +56,14 @@
                   const td = document.createElement('td');
 
                   const link = document.createElement('a');
-                  link.href = `/manage/${guild.id}/settings`;
+
+                  // admin
+                  if (permissionLevels[guild.id] === 2) {
+                      link.href = `/manage/${guild.id}/settings`;
+                  } else {
+                      link.href = `/manage/${guild.id}/logs`;
+                  }
+
                   link.classList.add('server');
                   link.appendChild(document.createTextNode(guild.name));
 

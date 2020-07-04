@@ -7,6 +7,7 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/app/http/middleware"
 	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/contrib/sessions"
@@ -53,67 +54,70 @@ func StartServer() {
 	{
 		authorized.POST("/token", api.TokenHandler)
 
-		authenticateGuild := authorized.Group("/", middleware.AuthenticateGuild(false))
+		authenticateGuildAdmin := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Admin))
+		authenticateGuildSupport := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Support))
 
 		authorized.GET("/", root.IndexHandler)
 		authorized.GET("/whitelabel", root.WhitelabelHandler)
 		authorized.GET("/logout", root.LogoutHandler)
 
-		authenticateGuild.GET("/manage/:id/settings", manage.SettingsHandler)
-		authenticateGuild.GET("/manage/:id/logs", manage.LogsHandler)
-		authenticateGuild.GET("/manage/:id/logs/modmail", manage.ModmailLogsHandler)
-		authenticateGuild.GET("/manage/:id/blacklist", manage.BlacklistHandler)
-		authenticateGuild.GET("/manage/:id/panels", manage.PanelHandler)
-		authenticateGuild.GET("/manage/:id/tags", manage.TagsHandler)
+		authenticateGuildAdmin.GET("/manage/:id/settings", manage.SettingsHandler)
+		authenticateGuildSupport.GET("/manage/:id/logs", manage.LogsHandler)
+		authenticateGuildSupport.GET("/manage/:id/logs/modmail", manage.ModmailLogsHandler)
+		authenticateGuildSupport.GET("/manage/:id/blacklist", manage.BlacklistHandler)
+		authenticateGuildAdmin.GET("/manage/:id/panels", manage.PanelHandler)
+		authenticateGuildSupport.GET("/manage/:id/tags", manage.TagsHandler)
 
-		authenticateGuild.GET("/manage/:id/tickets", manage.TicketListHandler)
-		authenticateGuild.GET("/manage/:id/tickets/view/:ticketId", manage.TicketViewHandler)
+		authenticateGuildSupport.GET("/manage/:id/tickets", manage.TicketListHandler)
+		authenticateGuildSupport.GET("/manage/:id/tickets/view/:ticketId", manage.TicketViewHandler)
 
 		authorized.GET("/webchat", manage.WebChatWs)
 	}
 
 	apiGroup := router.Group("/api", middleware.AuthenticateToken)
-	guildAuthApi := apiGroup.Group("/:id", middleware.AuthenticateGuild(true))
+	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Admin))
+	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Support))
 	{
-		guildAuthApi.GET("/channels", api.ChannelsHandler)
-		guildAuthApi.GET("/premium", api.PremiumHandler)
-		guildAuthApi.GET("/user/:user", api.UserHandler)
-		guildAuthApi.GET("/roles", api.RolesHandler)
+		guildAuthApiSupport.GET("/channels", api.ChannelsHandler)
+		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
+		guildAuthApiSupport.GET("/user/:user", api.UserHandler)
+		guildAuthApiSupport.GET("/roles", api.RolesHandler)
 
-		guildAuthApi.GET("/settings", api.GetSettingsHandler)
-		guildAuthApi.POST("/settings", api.UpdateSettingsHandler)
+		guildAuthApiAdmin.GET("/settings", api.GetSettingsHandler)
+		guildAuthApiAdmin.POST("/settings", api.UpdateSettingsHandler)
 
-		guildAuthApi.GET("/blacklist", api.GetBlacklistHandler)
-		guildAuthApi.PUT("/blacklist", api.AddBlacklistHandler)
-		guildAuthApi.DELETE("/blacklist/:user", api.RemoveBlacklistHandler)
+		guildAuthApiSupport.GET("/blacklist", api.GetBlacklistHandler)
+		guildAuthApiSupport.PUT("/blacklist", api.AddBlacklistHandler)
+		guildAuthApiSupport.DELETE("/blacklist/:user", api.RemoveBlacklistHandler)
 
-		guildAuthApi.GET("/panels", api.ListPanels)
-		guildAuthApi.PUT("/panels", api.CreatePanel)
-		guildAuthApi.PUT("/panels/:message", api.UpdatePanel)
-		guildAuthApi.DELETE("/panels/:message", api.DeletePanel)
+		guildAuthApiAdmin.GET("/panels", api.ListPanels)
+		guildAuthApiAdmin.PUT("/panels", api.CreatePanel)
+		guildAuthApiAdmin.PUT("/panels/:message", api.UpdatePanel)
+		guildAuthApiAdmin.DELETE("/panels/:message", api.DeletePanel)
 
-		guildAuthApi.GET("/logs/", api.GetLogs)
-		guildAuthApi.GET("/modmail/logs/", api.GetModmailLogs)
+		guildAuthApiSupport.GET("/logs/", api.GetLogs)
+		guildAuthApiSupport.GET("/modmail/logs/", api.GetModmailLogs)
 
-		guildAuthApi.GET("/tickets", api.GetTickets)
-		guildAuthApi.GET("/tickets/:ticketId", api.GetTicket)
-		guildAuthApi.POST("/tickets/:ticketId", api.SendMessage)
-		guildAuthApi.DELETE("/tickets/:ticketId", api.CloseTicket)
+		guildAuthApiSupport.GET("/tickets", api.GetTickets)
+		guildAuthApiSupport.GET("/tickets/:ticketId", api.GetTicket)
+		guildAuthApiSupport.POST("/tickets/:ticketId", api.SendMessage)
+		guildAuthApiSupport.DELETE("/tickets/:ticketId", api.CloseTicket)
 
-		guildAuthApi.GET("/tags", api.TagsListHandler)
-		guildAuthApi.PUT("/tags", api.CreateTag)
-		guildAuthApi.DELETE("/tags/:tag", api.DeleteTag)
+		guildAuthApiSupport.GET("/tags", api.TagsListHandler)
+		guildAuthApiSupport.PUT("/tags", api.CreateTag)
+		guildAuthApiSupport.DELETE("/tags/:tag", api.DeleteTag)
 
-		guildAuthApi.GET("/claimsettings", api.GetClaimSettings)
-		guildAuthApi.POST("/claimsettings", api.PostClaimSettings)
+		guildAuthApiAdmin.GET("/claimsettings", api.GetClaimSettings)
+		guildAuthApiAdmin.POST("/claimsettings", api.PostClaimSettings)
 
-		guildAuthApi.GET("/autoclose", api.GetAutoClose)
-		guildAuthApi.POST("/autoclose", api.PostAutoClose)
+		guildAuthApiAdmin.GET("/autoclose", api.GetAutoClose)
+		guildAuthApiAdmin.POST("/autoclose", api.PostAutoClose)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
 	{
 		userGroup.GET("/guilds", api.GetGuilds)
+		userGroup.GET("/permissionlevel", api.GetPermissionLevel)
 
 		{
 			whitelabelGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(false))
