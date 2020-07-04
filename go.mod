@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/TicketsBot/archiverclient v0.0.0-20200702201017-5511592e1e71
+	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
 	github.com/TicketsBot/common v0.0.0-20200702195837-7afe5e77d1df
 	github.com/TicketsBot/database v0.0.0-20200620140717-f747a0bb4238
 	github.com/TicketsBot/logarchiver v0.0.0-20200425163447-199b93429026 // indirect
