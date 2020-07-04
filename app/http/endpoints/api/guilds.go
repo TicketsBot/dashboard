@@ -48,7 +48,7 @@ func GetGuilds(ctx *gin.Context) {
 				fakeGuild.OwnerId = userId
 			}
 
-			if utils.GetPermissionLevel(g.GuildId, userId) >= permission.Admin {
+			if utils.GetPermissionLevel(g.GuildId, userId) >= permission.Support {
 				lock.Lock()
 				adminGuilds = append(adminGuilds, wrappedGuild{
 					Id:   g.GuildId,
