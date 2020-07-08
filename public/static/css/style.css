@@ -206,3 +206,37 @@ html > ::-webkit-scrollbar {
 .wrapper {
     z-index: 1000 !important;
 }
+
+.guild {
+    width: 100%;
+    background-color: #121212;
+    height: 100px;
+    margin-bottom: 10px;
+    border-radius: 25px;
+    display: flex;
+    cursor: pointer;
+}
+
+.guild-icon {
+    height: 80px;
+    background-color: #272727;
+    border-radius: 50%;
+    margin-left: 10px;
+}
+
+.guild-icon-fa {
+    background-color: #272727;
+    border-radius: 50%;
+    margin-left: 10px;
+    color: white;
+    font-size: 60px !important;
+    width: 80px;
+    height: 80px;
+    text-align: center;
+    padding-top: 10px;
+}
+
+.guild-name {
+    color: white !important;
+    padding-left: 10px;
+}

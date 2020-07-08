@@ -14,13 +14,18 @@
                   <br/>
                   <a href="https://invite.ticketsbot.net"><button class="btn btn-primary btn-fill"><i class="fas fa-plus"></i> Invite</button></a>
                 </p>
-                <table class="table table-hover table-striped" id="guild-table" style="display: none">
-                  <thead>
-                    <th>Server Name</th>
-                  </thead>
-                  <tbody id="guild-container">
-                  </tbody>
-                </table>
+                <div class="container-fluid">
+                  <div class="row" id="guild-container">
+                    <div class="col-md-4">
+                      <div class="guild align-items-center" onclick="invite();">
+                        <i class="fas fa-plus fa-2x guild-icon-fa"></i>
+                        <div class="align-items-center">
+                          <span class="guild-name">Invite to your server</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -30,8 +35,8 @@
   </div>
 
   <script>
-      async function getPermissionLevels(guilds) {
-          const res = await axios.get('/user/permissionlevel?guilds=' + guilds.map(guild => guild.id).join(","));
+      async function getPermissionLevel(guildId) {
+          const res = await axios.get('/user/permissionlevel?guilds=' + guildId);
           if (res.status !== 200 || !res.data.success) {
               showToast('Error', res.data.error);
               return;
@@ -40,42 +45,67 @@
           return res.data.levels;
       }
 
+      async function goto(guildId) {
+          const permissionLevels = await getPermissionLevel(guildId);
+          if (permissionLevels[guildId] === 2) {
+              window.location.href = `/manage/${guildId}/settings`;
+          } else {
+              window.location.href = `/manage/${guildId}/logs`;
+          }
+      }
+
+      function invite() {
+          window.location.href = 'https:\/\/invite.ticketsbot.net';
+      }
+
       async function loadData() {
           const res = await axios.get('/user/guilds');
 
-          const permissionLevels = await getPermissionLevels(res.data);
-          console.log(permissionLevels)
-
           if (res.data.length > 0) {
-              document.getElementById('guild-table').style.display = 'table';
-
               const container = document.getElementById('guild-container');
 
               for (guild of res.data) {
-                  const tr = document.createElement('tr');
-                  const td = document.createElement('td');
+                  const col = document.createElement('div');
+                  col.classList.add('col-md-4');
 
-                  const link = document.createElement('a');
+                  const guildContainer = document.createElement('div');
+                  guildContainer.classList.add('guild', 'align-items-center');
 
-                  // admin
-                  if (permissionLevels[guild.id] === 2) {
-                      link.href = `/manage/${guild.id}/settings`;
+                  if (guild.icon === undefined || guild.icon === null || guild.icon === "") {
+                      const icon = document.createElement('i');
+                      icon.classList.add('fas', 'fa-question', 'guild-icon-fa');
+                      guildContainer.appendChild(icon);
                   } else {
-                      link.href = `/manage/${guild.id}/logs`;
+                      const icon = document.createElement('img');
+                      icon.classList.add('guild-icon');
+                      icon.src = `https:\/\/cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=256`;
+                      guildContainer.appendChild(icon);
                   }
 
-                  link.classList.add('server');
-                  link.appendChild(document.createTextNode(guild.name));
+                  const nameContainer = document.createElement('div');
+                  nameContainer.classList.add('align-items-center');
 
-                  td.appendChild(link);
-                  tr.appendChild(td);
-                  container.appendChild(tr);
+                  const name = document.createElement('span');
+                  name.classList.add('guild-name');
+                  name.appendChild(document.createTextNode(guild.name));
+                  nameContainer.appendChild(name);
+
+                  guildContainer.appendChild(nameContainer);
+
+                  const guildId = guild.id
+                  guildContainer.onclick = async () => { await goto(guildId) };
+
+                  col.appendChild(guildContainer);
+                  container.appendChild(col);
               }
           } else {
               document.getElementById('no-guilds').style.display = 'block';
           }
       }
 
-      withLoadingScreen(loadData);
+      withLoadingScreen(async () => {
+          await setDefaultHeader(); // on first load, this isnt set yet because its run async in auth.js
+          await loadData();
+      });
   </script>
 {{end}}

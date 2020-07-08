@@ -15,6 +15,7 @@ import (
 type wrappedGuild struct {
 	Id   uint64 `json:"id,string"`
 	Name string `json:"name"`
+	Icon string `json:"icon"`
 }
 
 func GetGuilds(ctx *gin.Context) {
@@ -53,6 +54,7 @@ func GetGuilds(ctx *gin.Context) {
 				adminGuilds = append(adminGuilds, wrappedGuild{
 					Id:   g.GuildId,
 					Name: g.Name,
+					Icon: g.Icon,
 				})
 				lock.Unlock()
 			}

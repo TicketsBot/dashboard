@@ -105,6 +105,7 @@ func CallbackHandler(ctx *gin.Context) {
 			Name:            guild.Name,
 			Owner:           guild.Owner,
 			UserPermissions: int32(guild.Permissions),
+			Icon:            guild.Icon,
 		})
 	}
 
