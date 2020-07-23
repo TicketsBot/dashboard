@@ -8,6 +8,10 @@
       <div class="main-panel" style="width: 100% !important;">
         {{template "navbar" .}}
         {{template "loadingscreen" .}}
+
+        <script src="/assets/js/modalbackdrop.js"></script>
+        {{template "notifymodal" .}}
+
         {{template "content" .}}
       </div>
     </div>

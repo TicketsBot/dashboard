@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
 	github.com/TicketsBot/common v0.0.0-20200702195837-7afe5e77d1df
-	github.com/TicketsBot/database v0.0.0-20200708121851-08f2e7582b28
+	github.com/TicketsBot/database v0.0.0-20200723134637-72f4cd31eef6
 	github.com/TicketsBot/logarchiver v0.0.0-20200425163447-199b93429026 // indirect
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect

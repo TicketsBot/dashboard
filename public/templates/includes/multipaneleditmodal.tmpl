@@ -1,0 +1,147 @@
+{{define "multipaneleditmodal"}}
+  <div class="modal fade" id="multieditmodal" tabindex="-1" role="dialog" aria-labelledby="multieditmodal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><b>Edit Multi-Panel</b></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="container-fluid">
+            <input type="hidden" id="multi-edit-id">
+
+            <div class="row">
+              <div class="col-md-4 pr-1">
+                <div class="form-group">
+                  <label class="black">Embed Title</label>
+                  <input type="text" class="form-control" placeholder="React to open a ticket" id="multi-edit-title">
+                </div>
+              </div>
+              <div class="col-md-8 pr-1">
+                <div class="form-group">
+                  <label class="black">Embed Content</label>
+                  <textarea type="text" class="form-control"
+                            placeholder="Let users know which reaction corresponds to which panel. You are able to use emojis here."
+                            id="multi-edit-content"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-2 pr-1">
+                <label class="black">Embed Colour</label>
+                <div class="input-group mb-3">
+                  <input type="color" class="form-control input-fill" id="multi-edit-colour">
+                </div>
+              </div>
+
+              <div class="col-md-4 pr-1">
+                <label class="black">Embed Channel</label>
+                <div class="input-group mb-3">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text">#</div>
+                  </div>
+                  <select class="form-control" id="multi-edit-channel-container">
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6 pr-1">
+                <div class="form-group">
+                  <label class="black" for="mentions">Panels</label>
+                  <select class="selectpicker form-control" id="multi-edit-panels" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary btn-fill" onclick="updateMultiPanel()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+      function resetMultiEditModal() {
+          clear('multi-edit-title', 'multi-edit-content', 'multi-edit-colour');
+          $('#multi-edit-panels').selectpicker('deselectAll');
+      }
+
+      registerHideListener('multieditmodal');
+      $('#multieditmodal').on('hidden.bs.modal', resetEditModal);
+
+      async function openMultiEditModal(id) {
+          resetMultiEditModal();
+
+          const res = await axios.get('/api/{{.guildId}}/multipanels');
+          if (res.status !== 200) {
+              showToast("Error", res.data);
+              return;
+          }
+
+          const panel = res.data.data.find(panel => panel.id === id);
+          if (panel === undefined) {
+              showToast('Error', 'Panel not found');
+              return;
+          }
+
+          await fillMultiEditData(panel);
+
+          $('#multieditmodal').modal('show');
+          showBackdrop();
+      }
+
+      async function fillMultiEditData(panel) {
+          document.getElementById('multi-edit-id').value = panel.id;
+          document.getElementById('multi-edit-title').value = panel.title;
+          document.getElementById('multi-edit-content').value = panel.content;
+          document.getElementById('multi-edit-colour').value = `#${panel.colour.toString(16)}`;
+
+          const channels = await getChannels();
+          fillChannels('multi-edit-channel-container', channels);
+          setActiveChannel('multi-edit-channel-container', panel.channel_id);
+
+          // fill panel dropdown
+          const res = await axios.get('/api/{{.guildId}}/panels');
+          if (res.status !== 200) {
+              showToast("Error", res.data);
+              return 0;
+          }
+
+          $('#multi-edit-panels').selectpicker('val', panel.panels.map(p => p.message_id));
+      }
+
+      async function updateMultiPanel() {
+          const channelContainer = document.getElementById('multi-edit-channel-container');
+
+          const panelId = getValue('multi-edit-id');
+
+          const data = {
+              'title': getValue('multi-edit-title'),
+              'content': getValue('multi-edit-content'),
+              'colour': parseInt(`0x${getValue('multi-edit-colour').slice(1)}`),
+              'channel_id': channelContainer.options[channelContainer.selectedIndex].value,
+              'panels': $('#multi-edit-panels').val()
+          };
+
+          $('#multieditmodal').modal('hide');
+
+          const res = await axios.patch('/api/{{.guildId}}/multipanels/' + panelId, data);
+
+          if (res.status !== 200 || !res.data.success) {
+              notifyError(res.data.error);
+              return;
+          }
+
+          // update table
+          const tr = document.getElementById(panelId);
+          tr.children[0].textContent = data.title;
+
+          notify('Success', 'Multi-panel updated');
+      }
+  </script>
+{{end}}

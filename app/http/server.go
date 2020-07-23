@@ -3,6 +3,14 @@ package http
 import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
+	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
+	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
+	api_logs "github.com/TicketsBot/GoPanel/app/http/endpoints/api/logs"
+	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
+	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
+	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
+	api_ticket "github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket"
+	api_whitelabel "github.com/TicketsBot/GoPanel/app/http/endpoints/api/whitelabel"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/app/http/middleware"
@@ -83,35 +91,40 @@ func StartServer() {
 		guildAuthApiSupport.GET("/user/:user", api.UserHandler)
 		guildAuthApiSupport.GET("/roles", api.RolesHandler)
 
-		guildAuthApiAdmin.GET("/settings", api.GetSettingsHandler)
-		guildAuthApiAdmin.POST("/settings", api.UpdateSettingsHandler)
+		guildAuthApiAdmin.GET("/settings", api_settings.GetSettingsHandler)
+		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)
 
-		guildAuthApiSupport.GET("/blacklist", api.GetBlacklistHandler)
-		guildAuthApiSupport.PUT("/blacklist", api.AddBlacklistHandler)
-		guildAuthApiSupport.DELETE("/blacklist/:user", api.RemoveBlacklistHandler)
+		guildAuthApiSupport.GET("/blacklist", api_blacklist.GetBlacklistHandler)
+		guildAuthApiSupport.PUT("/blacklist", api_blacklist.AddBlacklistHandler)
+		guildAuthApiSupport.DELETE("/blacklist/:user", api_blacklist.RemoveBlacklistHandler)
 
-		guildAuthApiAdmin.GET("/panels", api.ListPanels)
-		guildAuthApiAdmin.PUT("/panels", api.CreatePanel)
-		guildAuthApiAdmin.PUT("/panels/:message", api.UpdatePanel)
-		guildAuthApiAdmin.DELETE("/panels/:message", api.DeletePanel)
+		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
+		guildAuthApiAdmin.PUT("/panels", api_panels.CreatePanel)
+		guildAuthApiAdmin.PUT("/panels/:message", api_panels.UpdatePanel)
+		guildAuthApiAdmin.DELETE("/panels/:message", api_panels.DeletePanel)
 
-		guildAuthApiSupport.GET("/logs/", api.GetLogs)
-		guildAuthApiSupport.GET("/modmail/logs/", api.GetModmailLogs)
+		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList)
+		guildAuthApiAdmin.POST("/multipanels", api_panels.MultiPanelCreate)
+		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate)
+		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
 
-		guildAuthApiSupport.GET("/tickets", api.GetTickets)
-		guildAuthApiSupport.GET("/tickets/:ticketId", api.GetTicket)
-		guildAuthApiSupport.POST("/tickets/:ticketId", api.SendMessage)
-		guildAuthApiSupport.DELETE("/tickets/:ticketId", api.CloseTicket)
+		guildAuthApiSupport.GET("/logs/", api_logs.GetLogs)
+		guildAuthApiSupport.GET("/modmail/logs/", api_logs.GetModmailLogs)
 
-		guildAuthApiSupport.GET("/tags", api.TagsListHandler)
-		guildAuthApiSupport.PUT("/tags", api.CreateTag)
-		guildAuthApiSupport.DELETE("/tags/:tag", api.DeleteTag)
+		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
+		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)
+		guildAuthApiSupport.POST("/tickets/:ticketId", api_ticket.SendMessage)
+		guildAuthApiSupport.DELETE("/tickets/:ticketId", api_ticket.CloseTicket)
 
-		guildAuthApiAdmin.GET("/claimsettings", api.GetClaimSettings)
-		guildAuthApiAdmin.POST("/claimsettings", api.PostClaimSettings)
+		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler)
+		guildAuthApiSupport.PUT("/tags", api_tags.CreateTag)
+		guildAuthApiSupport.DELETE("/tags/:tag", api_tags.DeleteTag)
 
-		guildAuthApiAdmin.GET("/autoclose", api.GetAutoClose)
-		guildAuthApiAdmin.POST("/autoclose", api.PostAutoClose)
+		guildAuthApiAdmin.GET("/claimsettings", api_settings.GetClaimSettings)
+		guildAuthApiAdmin.POST("/claimsettings", api_settings.PostClaimSettings)
+
+		guildAuthApiAdmin.GET("/autoclose", api_autoclose.GetAutoClose)
+		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
@@ -123,13 +136,13 @@ func StartServer() {
 			whitelabelGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(false))
 			whitelabelApiGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(true))
 
-			whitelabelGroup.GET("/", api.WhitelabelGet)
-			whitelabelApiGroup.GET("/errors", api.WhitelabelGetErrors)
-			whitelabelApiGroup.GET("/guilds", api.WhitelabelGetGuilds)
-			whitelabelApiGroup.POST("/modmail", api.WhitelabelModmailPost)
+			whitelabelGroup.GET("/", api_whitelabel.WhitelabelGet)
+			whitelabelApiGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors)
+			whitelabelApiGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
+			whitelabelApiGroup.POST("/modmail", api_whitelabel.WhitelabelModmailPost)
 
-			whitelabelApiGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/", api.WhitelabelPost)
-			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/status", api.WhitelabelStatusPost)
+			whitelabelApiGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/", api_whitelabel.WhitelabelPost)
+			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/status", api_whitelabel.WhitelabelStatusPost)
 		}
 	}
 
@@ -150,7 +163,7 @@ func createRenderer() multitemplate.Renderer {
 	r = addManageTemplate(r, "settings", "./public/templates/includes/substitutionmodal.tmpl")
 	r = addManageTemplate(r, "ticketlist")
 	r = addManageTemplate(r, "ticketview")
-	r = addManageTemplate(r, "panels", "./public/templates/includes/substitutionmodal.tmpl", "./public/templates/includes/paneleditmodal.tmpl")
+	r = addManageTemplate(r, "panels", "./public/templates/includes/substitutionmodal.tmpl", "./public/templates/includes/paneleditmodal.tmpl", "./public/templates/includes/multipaneleditmodal.tmpl")
 	r = addManageTemplate(r, "tags")
 
 	r = addErrorTemplate(r)
@@ -180,6 +193,7 @@ func addManageTemplate(renderer multitemplate.Renderer, name string, extra ...st
 		"./public/templates/includes/sidebar.tmpl",
 		"./public/templates/includes/navbar.tmpl",
 		"./public/templates/includes/loadingscreen.tmpl",
+		"./public/templates/includes/notifymodal.tmpl",
 		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
 	}
 

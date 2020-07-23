@@ -1,12 +1,12 @@
 {{define "content"}}
-  <script src="/assets/js/modalbackdrop.js"></script>
   {{template "substitutions" .}}
   {{template "paneleditmodal" .}}
+  {{template "multipaneleditmodal" .}}
 
   <div class="content">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-8">
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Reaction Panels</h4>
@@ -31,6 +31,30 @@
               </table>
             </div>
           </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Multi-Panels</h4>
+            </div>
+            <div class="card-body">
+              <table class="table table-hover table-striped">
+                <thead>
+                <tr>
+                  <th>Embed Title</th>
+                  <th>Edit</th>
+                  <th>Delete</th>
+                </tr>
+                </thead>
+                <tbody id="multi-panel-container">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-8">
           <div class="card">
             <div class="card-header">
               <h4 class="card-title">Create A Panel</h4>
@@ -133,15 +157,83 @@
             </div>
           </div>
         </div>
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Create A Multi-Panel</h4>
+            </div>
+            <div class="card-body">
+
+              <form onsubmit="createMultiPanel(); return false;">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group">
+                      <label class="black">Embed Title</label>
+                      <input type="text" class="form-control" placeholder="React to open a ticket" id="multi-title">
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="form-group">
+                      <label class="black">Embed Content</label>
+                      <textarea type="text" class="form-control"
+                                placeholder="Let users know which reaction corresponds to which panel. You are able to use emojis here." id="multi-content"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-3">
+                    <label class="black">Embed Colour</label>
+                    <div class="input-group mb-3">
+                      <input name="colour" type="color" class="form-control input-fill" value="#7289da" id="multi-colour">
+                    </div>
+                  </div>
+
+                  <div class="col-md-9">
+                    <label class="black">Embed Channel</label>
+                    <div class="input-group mb-3">
+                      <div class="input-group-prepend">
+                        <div class="input-group-text">#</div>
+                      </div>
+                      <select class="form-control" id="multi-channel-container">
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12">
+                    <label class="black" for="mentions">Panels</label>
+                    <select class="selectpicker form-control" id="multi-panels" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 pr-1 offset-md-3">
+                    <div class="form-group text-center">
+                      <button type="submit" class="btn btn-primary btn-fill" style="width: 100%;"><i class="fas fa-paper-plane"></i> Submit</button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+    <div aria-live="polite" aria-atomic="true" style="position: relative">
       <div style="position: absolute; right: 10px" id="toast-container">
       </div>
     </div>
 
     <script>
+      function getValue(elementId) {
+          return document.getElementById(elementId).value;
+      }
+
       async function getChannels() {
           const res = await axios.get('/api/{{.guildId}}/channels');
           return res.data;
@@ -166,6 +258,19 @@
               el.parentNode.removeChild(el);
           } else {
               showToast('Error', res.data.error);
+          }
+      }
+
+      async function deleteMultiPanel(panelId) {
+          const res = await axios.delete('/api/{{.guildId}}/multipanels/' + panelId);
+
+          if (res.status === 200 && res.data.success) {
+              notifySuccess('Multi-panel deleted successfully');
+
+              const el = document.getElementById(panelId);
+              el.parentNode.removeChild(el);
+          } else {
+              notifyError(res.data.error);
           }
       }
 
@@ -196,7 +301,28 @@
           }
       }
 
-      async function fillChannels(elementId, channels) {
+      async function createMultiPanel() {
+          const channelContainer = document.getElementById('multi-channel-container');
+
+          const data = {
+              'title': getValue('multi-title'),
+              'content': getValue('multi-content'),
+              'colour': parseInt(`0x${getValue('multi-colour').slice(1)}`),
+              'channel_id': channelContainer.options[channelContainer.selectedIndex].value,
+              'panels': $('#multi-panels').val()
+          };
+
+          const res = await axios.post('/api/{{.guildId}}/multipanels', data);
+          if (res.status !== 200 || !res.data.success) {
+              notifyError(res.data.error);
+              return;
+          }
+
+          appendMultiPanel(res.data.data);
+          notify('Success', 'Multi-panel created successfully. Note: Don\'t delete the existing panels, or your they will disappear from your multi-panel.');
+      }
+
+      function fillChannels(elementId, channels) {
           const container = document.getElementById(elementId);
 
           channels.filter(ch => ch.type === 0).forEach(ch => {
@@ -207,7 +333,7 @@
           });
       }
 
-      async function fillCategories(elementId, channels) {
+      function fillCategories(elementId, channels) {
           const container = document.getElementById(elementId);
 
           channels.filter(ch => ch.type === 4).forEach(ch => {
@@ -216,6 +342,16 @@
               el.appendChild(document.createTextNode(ch.name));
               container.appendChild(el);
           });
+      }
+
+      function setActiveChannel(elementId, channelId) {
+          const select = document.getElementById(elementId);
+          for (let i = 0; i < select.children.length; i++) {
+              const child = select.children[i];
+              if (child.value === channelId) {
+                  select.selectedIndex = i;
+              }
+          }
       }
 
       // TODO: Update on append / delete
@@ -267,6 +403,37 @@
           container.appendChild(tr);
       }
 
+      function appendMultiPanel(panel) {
+          const container = document.getElementById('multi-panel-container');
+
+          const tr = document.createElement('tr');
+          tr.id = panel.id;
+
+          appendTd(tr, panel.title);
+
+          // build edit button
+          const editTd = document.createElement('td');
+          const editButton = document.createElement('button');
+          editButton.type = 'button';
+          editButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+          editButton.appendChild(document.createTextNode('Edit'));
+          editButton.onclick = () => { openMultiEditModal(panel.id) };
+          editTd.appendChild(editButton);
+          tr.appendChild(editTd);
+
+          // build remove button
+          const deleteTd = document.createElement('td');
+          const deleteButton = document.createElement('button');
+          deleteButton.type = 'submit';
+          deleteButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+          deleteButton.appendChild(document.createTextNode('Delete'));
+          deleteButton.onclick = () => {deleteMultiPanel(panel.id)};
+          deleteTd.appendChild(deleteButton);
+          tr.appendChild(deleteTd);
+
+          container.appendChild(tr);
+      }
+
       async function fillPanels(channels) {
           const res = await axios.get('/api/{{.guildId}}/panels');
           if (res.status !== 200) {
@@ -278,7 +445,35 @@
               appendPanel(panel, channels);
           }
 
+          appendPanelDropdownPanels('multi-panels', res.data);
+          appendPanelDropdownPanels('multi-edit-panels', res.data);
+
           return res.data.length;
+      }
+
+      async function fillMultiPanels() {
+          const res = await axios.get('/api/{{.guildId}}/multipanels');
+          if (res.status !== 200) {
+              showToast("Error", res.data);
+              return;
+          }
+
+          for (const multiPanel of res.data.data) {
+              appendMultiPanel(multiPanel);
+          }
+      }
+
+      function appendPanelDropdownPanels(elementId, panels) {
+          const select = document.getElementById(elementId);
+
+          for (const panel of panels) {
+              const option = document.createElement('option');
+              option.value = panel.message_id;
+              option.appendChild(document.createTextNode(panel.title));
+              select.appendChild(option);
+          }
+
+          $(`#${elementId}`).selectpicker('refresh');
       }
 
       async function fillMentions(elementId) {
@@ -313,9 +508,12 @@
           const channels = await getChannels();
           const panelCount = await fillPanels(channels);
 
+          await fillMultiPanels();
+
           await fillPanelQuota(panelCount);
-          await fillChannels('channel-container', channels);
-          await fillCategories('category-container', channels);
+          fillChannels('channel-container', channels);
+          fillChannels('multi-channel-container', channels);
+          fillCategories('category-container', channels);
           await fillMentions('mentions');
       }
 

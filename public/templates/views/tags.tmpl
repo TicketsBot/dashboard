@@ -80,7 +80,7 @@
               document.getElementById('id').value = '';
               document.getElementById('content').value = '';
 
-              appendTag(data);
+              appendTag(data.id, data.content);
           } else {
               showToast('Error', res.data.error);
           }

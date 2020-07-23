@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -64,6 +65,7 @@ func CreatePanel(ctx *gin.Context) {
 	}
 
 	if !data.doValidations(ctx, guildId) {
+		ctx.JSON(400, utils.ErrorToResponse(errors.New("Validation failed")))
 		return
 	}
 

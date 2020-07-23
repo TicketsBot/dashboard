@@ -1,15 +1,20 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
+	"golang.org/x/sync/errgroup"
 	"strconv"
+	"sync"
 )
 
 func UpdatePanel(ctx *gin.Context) {
@@ -17,29 +22,20 @@ func UpdatePanel(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 		return
 	}
 
 	var data panel
 
 	if err := ctx.BindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(400, utils.ErrorToResponse(err))
 		return
 	}
 
 	messageId, err := strconv.ParseUint(ctx.Param("message"), 10, 64)
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(400, utils.ErrorToResponse(err))
 		return
 	}
 
@@ -48,10 +44,7 @@ func UpdatePanel(ctx *gin.Context) {
 	// get existing
 	existing, err := dbclient.Client.Panel.Get(data.MessageId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 		return
 	}
 
@@ -65,6 +58,59 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	if !data.doValidations(ctx, guildId) {
+		ctx.JSON(400, utils.ErrorToResponse(errors.New("Validation failed")))
+		return
+	}
+
+	// check if this will break a multi-panel;
+	// first, get any multipanels this panel belongs to
+	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.MessageId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorToResponse(err))
+		return
+	}
+
+	var wouldHaveDuplicateEmote bool
+
+	{
+		var duplicateLock sync.Mutex
+
+		group, _ := errgroup.WithContext(context.Background())
+		for _, multiPanelId := range multiPanels {
+			multiPanelId := multiPanelId
+
+			group.Go(func() error {
+				// get the sub-panels of the multi-panel
+				subPanels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanelId)
+				if err != nil {
+					return err
+				}
+
+				for _, subPanel := range subPanels {
+					if subPanel.MessageId == existing.MessageId {
+						continue
+					}
+
+					if subPanel.ReactionEmote == data.Emote {
+						duplicateLock.Lock()
+						wouldHaveDuplicateEmote = true
+						duplicateLock.Unlock()
+						break
+					}
+				}
+
+				return nil
+			})
+		}
+
+		if err := group.Wait(); err != nil {
+			ctx.JSON(500, utils.ErrorToResponse(err))
+			return
+		}
+	}
+
+	if wouldHaveDuplicateEmote {
+		ctx.JSON(400, utils.ErrorToResponse(errors.New("Changing the reaction emote to this value would cause a conflict in a multi-panel")))
 		return
 	}
 
@@ -98,10 +144,7 @@ func UpdatePanel(ctx *gin.Context) {
 				})
 			} else {
 				// TODO: Most appropriate error?
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 			}
 
 			return
@@ -116,10 +159,7 @@ func UpdatePanel(ctx *gin.Context) {
 				})
 			} else {
 				// TODO: Most appropriate error?
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 			}
 
 			return
@@ -140,29 +180,20 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	if err = dbclient.Client.Panel.Update(messageId, panel); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 		return
 	}
 
 	// insert role mention data
 	// delete old data
 	if err = dbclient.Client.PanelRoleMentions.DeleteAll(newMessageId); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 		return
 	}
 
 	// TODO: Reduce to 1 query
 	if err = dbclient.Client.PanelUserMention.Set(newMessageId, false); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 		return
 	}
 
@@ -170,19 +201,13 @@ func UpdatePanel(ctx *gin.Context) {
 	for _, mention := range data.Mentions {
 		if mention == "user" {
 			if err = dbclient.Client.PanelUserMention.Set(newMessageId, true); err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 				return
 			}
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 				return
 			}
 
@@ -190,10 +215,7 @@ func UpdatePanel(ctx *gin.Context) {
 			// not too much of an issue if it isnt
 
 			if err = dbclient.Client.PanelRoleMentions.Add(newMessageId, roleId); err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 				return
 			}
 		}

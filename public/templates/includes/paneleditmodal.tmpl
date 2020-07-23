@@ -147,23 +147,13 @@
           }
 
           const channels = await getChannels();
-          await fillChannels('edit-channel-container', channels);
-          await fillCategories('edit-category-container', channels);
+          fillChannels('edit-channel-container', channels);
+          fillCategories('edit-category-container', channels);
           await fillMentions('edit-mentions');
 
-          setActiveChannel(panel);
+          setActiveChannel('edit-channel-container', panel.channel_id);
           setActiveCategory(panel);
           setActiveMentions(panel);
-      }
-
-      function setActiveChannel(panel) {
-          const select = document.getElementById('edit-channel-container');
-          for (let i = 0; i < select.children.length; i++) {
-              const child = select.children[i];
-              if (child.value === panel.channel_id) {
-                  select.selectedIndex = i;
-              }
-          }
       }
 
       function setActiveCategory(panel) {
