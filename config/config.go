@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/BurntSushi/toml"
 	"github.com/TicketsBot/common/sentry"
 	"os"
 	"strconv"
@@ -73,6 +74,20 @@ var (
 )
 
 func LoadConfig() {
+	if _, err := os.Stat("config.toml"); err == nil {
+		fromToml()
+	} else {
+		fromEnvvar()
+	}
+}
+
+func fromToml()  {
+	if _, err := toml.DecodeFile("config.toml", &Conf); err != nil {
+		panic(err)
+	}
+}
+
+func fromEnvvar() {
 	var admins []uint64
 	for _, id := range strings.Split(os.Getenv("ADMINS"), ",") {
 		if parsed, err := strconv.ParseUint(id, 10, 64); err == nil {
