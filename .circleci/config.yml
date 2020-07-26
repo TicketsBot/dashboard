@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.14
+      - image: golang:1.14-alpine
     working_directory: /go/src/github.com/TicketsBot/GoPanel
 
     steps:
@@ -13,8 +13,8 @@ jobs:
             - v1-pkg-cache
 
       - run:
-          name: Install czlib
-          command: sudo apt-get install -y zlib1g-dev
+          name: Install czlib & GCC
+          command: apk add zlib1g-dev gcc musl-dev
 
       - run: go build cmd/panel/main.go
 
