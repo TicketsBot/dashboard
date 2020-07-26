@@ -148,7 +148,7 @@ func fromEnvvar() {
 		Redis: Redis{
 			Host:     os.Getenv("REDIS_HOST"),
 			Port:     redisPort,
-			Password: os.Getenv("REDIS_PORT"),
+			Password: os.Getenv("REDIS_PASSWORD"),
 			Threads:  redisThreads,
 		},
 		Cache: Cache{
