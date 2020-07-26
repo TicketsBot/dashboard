@@ -43,7 +43,7 @@ const TokenEndpoint = "https://discordapp.com/api/oauth2/token"
 
 func AccessToken(code string) (TokenResponse, error) {
 	data := TokenData{
-		ClientId:     strconv.Itoa(int(config.Conf.Oauth.Id)),
+		ClientId:     strconv.FormatUint(config.Conf.Oauth.Id, 10),
 		ClientSecret: config.Conf.Oauth.Secret,
 		GrantType:    "authorization_code",
 		Code:         code,
@@ -66,7 +66,7 @@ func AccessToken(code string) (TokenResponse, error) {
 
 func RefreshToken(refreshToken string) (TokenResponse, error) {
 	data := RefreshData{
-		ClientId:     strconv.Itoa(int(config.Conf.Oauth.Id)),
+		ClientId:     strconv.FormatUint(config.Conf.Oauth.Id, 10),
 		ClientSecret: config.Conf.Oauth.Secret,
 		GrantType:    "refresh_token",
 		RefreshToken: refreshToken,

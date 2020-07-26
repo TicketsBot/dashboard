@@ -1,8 +1,10 @@
 package config
 
 import (
-	"github.com/BurntSushi/toml"
-	"io/ioutil"
+	"github.com/TicketsBot/common/sentry"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type (
@@ -37,7 +39,7 @@ type (
 	}
 
 	Oauth struct {
-		Id          int64
+		Id          uint64
 		Secret      string
 		RedirectUri string
 	}
@@ -71,13 +73,71 @@ var (
 )
 
 func LoadConfig() {
-	raw, err := ioutil.ReadFile("config.toml")
-	if err != nil {
-		panic(err)
+	var admins []uint64
+	for _, id := range strings.Split(os.Getenv("ADMINS"), ",") {
+		if parsed, err := strconv.ParseUint(id, 10, 64); err == nil {
+			admins = append(admins, parsed)
+		} else {
+			sentry.Error(err)
+		}
 	}
 
-	_, err = toml.Decode(string(raw), &Conf)
-	if err != nil {
-		panic(err)
+	var forcedWhitelabel []uint64
+	for _, id := range strings.Split(os.Getenv("FORCED_WHITELABEL"), ",") {
+		if parsed, err := strconv.ParseUint(id, 10, 64); err == nil {
+			forcedWhitelabel = append(forcedWhitelabel, parsed)
+		} else {
+			sentry.Error(err)
+		}
+	}
+
+	rateLimitWindow, _ := strconv.Atoi(os.Getenv("RATELIMIT_WINDOW"))
+	rateLimitMax, _ := strconv.Atoi(os.Getenv("RATELIMIT_MAX"))
+	sessionThreads, _ := strconv.Atoi(os.Getenv("SESSION_DB_THREADS"))
+	oauthId, _ := strconv.ParseUint(os.Getenv("OAUTH_ID"), 10, 64)
+	redisPort, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
+	redisThreads, _ := strconv.Atoi(os.Getenv("REDIS_THREADS"))
+
+	Conf = Config{
+		Admins:          admins,
+		ForceWhitelabel: forcedWhitelabel,
+		Server: Server{
+			Host:     os.Getenv("SERVER_ADDR"),
+			BaseUrl:  os.Getenv("BASE_URL"),
+			MainSite: os.Getenv("MAIN_SITE"),
+			Ratelimit: Ratelimit{
+				Window: rateLimitWindow,
+				Max:    rateLimitMax,
+			},
+			Session: Session{
+				Threads: sessionThreads,
+				Secret:  os.Getenv("SESSION_SECRET"),
+			},
+			Secret: os.Getenv("JWT_SECRET"),
+		},
+		Oauth: Oauth{
+			Id:          oauthId,
+			Secret:      os.Getenv("OAUTH_SECRET"),
+			RedirectUri: os.Getenv("OAUTH_REDIRECT_URI"),
+		},
+		Database: Database{
+			Uri: os.Getenv("DATABASE_URI"),
+		},
+		Bot: Bot{
+			Token:                 os.Getenv("BOT_TOKEN"),
+			PremiumLookupProxyUrl: os.Getenv("PREMIUM_PROXY_URL"),
+			PremiumLookupProxyKey: os.Getenv("PREMIUM_PROXY_KEY"),
+			ObjectStore:           os.Getenv("LOG_ARCHIVER_URL"),
+			AesKey:                os.Getenv("LOG_AES_KEY"),
+		},
+		Redis: Redis{
+			Host:     os.Getenv("REDIS_HOST"),
+			Port:     redisPort,
+			Password: os.Getenv("REDIS_PORT"),
+			Threads:  redisThreads,
+		},
+		Cache: Cache{
+			Uri: os.Getenv("CACHE_URI"),
+		},
 	}
 }

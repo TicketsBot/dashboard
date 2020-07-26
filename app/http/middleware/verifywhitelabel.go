@@ -15,8 +15,8 @@ func VerifyWhitelabel(isApi bool) func(ctx *gin.Context) {
 
 		if rpc.PremiumClient.GetTierByUser(userId, false) < premium.Whitelabel {
 			var isForced bool
-			for _, forced := range config.Conf.ForceWhitelabel {
-				if forced == userId {
+			for _, id := range config.Conf.Admins {
+				if id == userId {
 					isForced = true
 					break
 				}
