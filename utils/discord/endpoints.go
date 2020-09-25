@@ -28,7 +28,7 @@ const (
 	ApplicationJson           ContentType = "application/json"
 	ApplicationFormUrlEncoded ContentType = "application/x-www-form-urlencoded"
 
-	BASE_URL = "https://discordapp.com/api/v6"
+	BASE_URL = "https://discordapp.com/api/v8"
 )
 
 type Endpoint struct {
