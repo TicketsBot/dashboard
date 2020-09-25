@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
@@ -105,9 +106,9 @@ func SendMessage(ctx *gin.Context) {
 		})
 
 		if err != nil {
-			fmt.Println(err.Error())
 			// We can delete the webhook in this case
-			if err == request.ErrNotFound || err == request.ErrForbidden {
+			var unwrapped request.RestError
+			if errors.As(err, &unwrapped); unwrapped.ErrorCode == 403 || unwrapped.ErrorCode == 404 {
 				go database.Client.Webhooks.Delete(guildId, ticketId)
 			}
 		} else {

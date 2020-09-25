@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
-	github.com/TicketsBot/common v0.0.0-20200702195837-7afe5e77d1df
+	github.com/TicketsBot/common v0.0.0-20200925115036-a1bbe85f45bb
 	github.com/TicketsBot/database v0.0.0-20200723134637-72f4cd31eef6
 	github.com/TicketsBot/logarchiver v0.0.0-20200425163447-199b93429026 // indirect
 	github.com/apex/log v1.1.2
@@ -23,7 +23,7 @@ require (
 	github.com/klauspost/compress v1.10.10 // indirect
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20200618155240-edb9ae72ef6e
+	github.com/rxdn/gdl v0.0.0-20200925123042-8f6710be7d00
 	github.com/sirupsen/logrus v1.5.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

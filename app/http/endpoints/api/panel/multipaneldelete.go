@@ -38,7 +38,8 @@ func MultiPanelDelete(ctx *gin.Context) {
 		return
 	}
 
-	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil && !request.IsClientError(err) {
+	var unwrapped request.RestError
+	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil && !(errors.As(err, &unwrapped) && unwrapped.IsClientError()) {
 		ctx.JSON(500, utils.ErrorToResponse(err))
 		return
 	}

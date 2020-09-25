@@ -67,7 +67,8 @@ func MultiPanelUpdate(ctx *gin.Context) {
 	}
 
 	// delete old message
-	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId); err != nil && !request.IsClientError(err) {
+	var unwrapped request.RestError
+	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId); err != nil && !(errors.As(err, &unwrapped) && unwrapped.IsClientError())  {
 		ctx.JSON(500, utils.ErrorToResponse(err))
 		return
 	}
@@ -78,7 +79,8 @@ func MultiPanelUpdate(ctx *gin.Context) {
 	// send new message
 	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
 	if err != nil {
-		if err == request.ErrForbidden {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
 			ctx.JSON(500, utils.ErrorToResponse(errors.New("I do not have permission to send messages in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorToResponse(err))
@@ -89,7 +91,8 @@ func MultiPanelUpdate(ctx *gin.Context) {
 
 	// add reactions to new message
 	if err := data.addReactions(&botContext, data.ChannelId, messageId, panels); err != nil {
-		if err == request.ErrForbidden {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
 			ctx.JSON(500, utils.ErrorToResponse(errors.New("I do not have permission to add reactions in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorToResponse(err))

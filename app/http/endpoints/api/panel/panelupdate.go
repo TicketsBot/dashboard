@@ -137,7 +137,8 @@ func UpdatePanel(ctx *gin.Context) {
 		premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 		newMessageId, err = data.sendEmbed(&botContext, premiumTier > premium.None)
 		if err != nil {
-			if err == request.ErrForbidden {
+			var unwrapped request.RestError
+			if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   "I do not have permission to send messages in the specified channel",
@@ -152,7 +153,8 @@ func UpdatePanel(ctx *gin.Context) {
 
 		// Add reaction
 		if err = rest.CreateReaction(botContext.Token, botContext.RateLimiter, data.ChannelId, newMessageId, emoji); err != nil {
-			if err == request.ErrForbidden {
+			var unwrapped request.RestError
+			if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   "I do not have permission to add reactions in the specified channel",

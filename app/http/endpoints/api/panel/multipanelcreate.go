@@ -59,7 +59,8 @@ func MultiPanelCreate(ctx *gin.Context) {
 
 	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
 	if err != nil {
-		if err == request.ErrForbidden {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped); unwrapped.ErrorCode == 403 {
 			ctx.JSON(500, utils.ErrorToResponse(errors.New("I do not have permission to send messages in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorToResponse(err))
@@ -69,7 +70,8 @@ func MultiPanelCreate(ctx *gin.Context) {
 	}
 
 	if err := data.addReactions(&botContext, data.ChannelId, messageId, panels); err != nil {
-		if err == request.ErrForbidden {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped); unwrapped.ErrorCode == 403{
 			ctx.JSON(500, utils.ErrorToResponse(errors.New("I do not have permission to add reactions in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorToResponse(err))

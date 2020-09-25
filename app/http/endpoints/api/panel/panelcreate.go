@@ -71,7 +71,8 @@ func CreatePanel(ctx *gin.Context) {
 
 	msgId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
 	if err != nil {
-		if err == request.ErrForbidden {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
 			ctx.AbortWithStatusJSON(500, gin.H{
 				"success": false,
 				"error":   "I do not have permission to send messages in the specified channel",
@@ -90,7 +91,8 @@ func CreatePanel(ctx *gin.Context) {
 	// Add reaction
 	emoji, _ := data.getEmoji() // already validated
 	if err = rest.CreateReaction(botContext.Token, botContext.RateLimiter, data.ChannelId, msgId, emoji); err != nil {
-		if err == request.ErrForbidden {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
 			ctx.AbortWithStatusJSON(500, gin.H{
 				"success": false,
 				"error":   "I do not have permission to add reactions in the specified channel",
