@@ -78,3 +78,25 @@ func GetGuilds(ctx *gin.Context) {
 
 	ctx.JSON(200, adminGuilds)
 }
+
+/*func getAdminGuilds(userId uint64) ([]uint64, error) {
+	var guilds []uint64
+
+	// get guilds owned by user
+	query := `SELECT "guild_id" FROM guilds WHERE "data"->'owner_id' = '$1';`
+	rows, err := cache.Instance.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var guildId uint64
+		if err := rows.Scan(&guildId); err != nil {
+			return nil, err
+		}
+
+		guilds = append(guilds, guildId)
+	}
+
+	database.Client.Permissions.GetSupport()
+}*/
