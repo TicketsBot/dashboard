@@ -15,6 +15,7 @@ import (
 	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/premium"
 	"github.com/apex/log"
+	"github.com/rxdn/gdl/rest/request"
 	"math/rand"
 	"time"
 )
@@ -30,12 +31,17 @@ func main() {
 	}
 
 	config.LoadConfig()
+
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
 	manage.Archiver = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
 
 	utils.LoadEmoji()
+
+	if config.Conf.Bot.ProxyUrl != "" {
+		request.RegisterHook(utils.ProxyHook)
+	}
 
 	messagequeue.Client = messagequeue.NewRedisClient()
 	go Listen(messagequeue.Client)

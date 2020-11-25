@@ -55,6 +55,7 @@ type (
 		PremiumLookupProxyKey string `toml:"premium-lookup-proxy-key"`
 		ObjectStore           string
 		AesKey                string `toml:"aes-key"`
+		ProxyUrl              string `toml:"discord-proxy-url"`
 	}
 
 	Redis struct {
@@ -81,7 +82,7 @@ func LoadConfig() {
 	}
 }
 
-func fromToml()  {
+func fromToml() {
 	if _, err := toml.DecodeFile("config.toml", &Conf); err != nil {
 		panic(err)
 	}
@@ -144,6 +145,7 @@ func fromEnvvar() {
 			PremiumLookupProxyKey: os.Getenv("PREMIUM_PROXY_KEY"),
 			ObjectStore:           os.Getenv("LOG_ARCHIVER_URL"),
 			AesKey:                os.Getenv("LOG_AES_KEY"),
+			ProxyUrl:              os.Getenv("DISCORD_PROXY_URL"),
 		},
 		Redis: Redis{
 			Host:     os.Getenv("REDIS_HOST"),
