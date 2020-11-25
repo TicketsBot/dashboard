@@ -58,7 +58,6 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	if !data.doValidations(ctx, guildId) {
-		ctx.JSON(400, utils.ErrorToResponse(errors.New("Validation failed")))
 		return
 	}
 
