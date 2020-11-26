@@ -252,12 +252,12 @@
           const res = await axios.delete('/api/{{.guildId}}/panels/' + messageId);
 
           if (res.status === 200 && res.data.success) {
-              showToast('Success', 'Panel deleted successfully');
+              notifySuccess('Panel deleted successfully');
 
               const el = document.getElementById(messageId);
               el.parentNode.removeChild(el);
           } else {
-              showToast('Error', res.data.error);
+              notifyError(res.data.error);
           }
       }
 
@@ -295,9 +295,9 @@
           if (res.status === 200 && res.data.success) {
               data.message_id = res.data.message_id;
               appendPanel(data, await getChannels());
-              showToast('Success', 'Panel created successfully')
+              notifySuccess('Panel created successfully')
           } else {
-              showToast('Error', res.data.error);
+              notifyError(res.data.error);
           }
       }
 
@@ -437,7 +437,7 @@
       async function fillPanels(channels) {
           const res = await axios.get('/api/{{.guildId}}/panels');
           if (res.status !== 200) {
-              showToast("Error", res.data);
+              notifyError(res.data);
               return 0;
           }
 
@@ -454,7 +454,7 @@
       async function fillMultiPanels() {
           const res = await axios.get('/api/{{.guildId}}/multipanels');
           if (res.status !== 200) {
-              showToast("Error", res.data);
+              notifyError(res.data);
               return;
           }
 
@@ -488,7 +488,7 @@
           // roles
           const res = await axios.get('/api/{{.guildId}}/roles');
           if (res.status !== 200 || !res.data.success) {
-              showToast("Error", res.data);
+              notifyError(res.data);
               return;
           }
 

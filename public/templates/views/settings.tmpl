@@ -373,9 +373,9 @@
 
             const res = await axios.post('/api/{{.guildId}}/claimsettings', data);
             if (res.status === 200 && res.data.success) {
-                showToast("Success", "Your settings have been saved.");
+                notifySuccess("Your settings have been saved.");
             } else {
-                showToast("Error", res.data.error);
+                notifyError(res.data.error);
             }
         }
 
@@ -439,11 +439,11 @@
 
             const res = await axios.post('/api/{{.guildId}}/autoclose', data);
             if (res.status !== 200 || !res.data.success) {
-                showToast('Error', res.data.error);
+                notifyError(res.data.error);
                 return;
             }
 
-            showToast('Success', 'Auto close settings updated');
+            notifySuccess('Auto close settings updated');
         }
     </script>
 
@@ -466,10 +466,10 @@
             if (res.status === 200) {
                 const success = showValidations(res.data);
                 if (success) {
-                    showToast("Success", "Your settings have been saved.");
+                    notifySuccess("Your settings have been saved.");
                 }
             } else {
-                showToast("Error", "A severe error occurred. Please check your console for more information.");
+                notifyError("A severe error occurred. Please check your console for more information.");
                 console.log(res);
             }
         }
@@ -479,32 +479,32 @@
 
             if (!data.prefix) {
                 success = false;
-                showToast("Warning", "Your prefix has not been saved.<br />Prefixes must be between 1 - 8 characters in length.")
+                notify("Warning", "Your prefix has not been saved.<br />Prefixes must be between 1 - 8 characters in length.")
             }
 
             if (!data.welcome_message) {
                 success = false;
-                showToast("Warning", "Your welcome message has not been saved.<br />Welcome messages must be between 1 - 1000 characters in length.")
+                notify("Warning", "Your welcome message has not been saved.<br />Welcome messages must be between 1 - 1000 characters in length.")
             }
 
             if (!data.ticket_limit) {
                 success = false;
-                showToast("Warning", "Your ticket limit has not been saved.<br />Ticket limits must be in the range 1 - 10.")
+                notify("Warning", "Your ticket limit has not been saved.<br />Ticket limits must be in the range 1 - 10.")
             }
 
             if (!data.archive_channel) {
                 success = false;
-                showToast("Warning", "Your archive channel has not been saved.")
+                notify("Warning", "Your archive channel has not been saved.")
             }
 
             if (!data.category) {
                 success = false;
-                showToast("Warning", "Your channel category has not been saved.")
+                notify("Warning", "Your channel category has not been saved.")
             }
 
             if (!data.naming_scheme) {
                 success = false;
-                showToast("Warning", "Your archive channel has not been saved.")
+                notify("Warning", "Your archive channel has not been saved.")
             }
 
             return success;
