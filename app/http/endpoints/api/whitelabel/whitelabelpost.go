@@ -23,7 +23,7 @@ func WhitelabelPost(ctx *gin.Context) {
 	}
 
 	token, ok := data["token"].(string)
-	if !ok {
+	if !ok || token == "" {
 		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Missing token",
