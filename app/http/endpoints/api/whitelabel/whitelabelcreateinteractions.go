@@ -59,7 +59,7 @@ func WhitelabelCreateInteractions(ctx *gin.Context) {
 
 		ctx.JSON(400, gin.H{
 			"success": false,
-			"error": fmt.Sprintf("Interaction creation on cooldown, please wait another %f minutes", expiration.Minutes()),
+			"error": fmt.Sprintf("Interaction creation on cooldown, please wait another %d minutes", int64(expiration.Minutes())),
 		})
 
 		return
