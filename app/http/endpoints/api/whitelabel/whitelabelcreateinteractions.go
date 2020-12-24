@@ -12,6 +12,8 @@ import (
 func WhitelabelCreateInteractions(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
+	//TODO: COOLDOWN
+
 	// Get bot
 	bot, err := database.Client.Whitelabel.GetByUserId(userId)
 	if err != nil {

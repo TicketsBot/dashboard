@@ -55,7 +55,14 @@
               <div class="container-fluid">
                 <div class="row">
                   <div class="col-md-12">
+                    <label for="interaction-url">Interactions Endpoint URL</label>
+                    <input class="form-control" id="interaction-url" placeholder="Submit your bot token first!" disabled>
+                  </div>
+                </div>
+                <div class="row" style="padding-top: 20px">
+                  <div class="col-md-12">
                     <form onsubmit="updatePublicKey(); return false;">
+                      <label for="public-key">Public Key</label>
                       <div class="row">
                         <div class="col-md-9">
                           <div class="form-group">
@@ -64,7 +71,7 @@
                         </div>
                         <div class="col-md-3">
                           <div class="form-group">
-                            <button class="btn btn-primary btn-fill" type="submit">
+                            <button class="btn btn-primary btn-fill" type="submit" style="width: 100%;">
                               <i class="fas fa-paper-plane"></i>
                               Submit
                             </button>
@@ -159,7 +166,7 @@
         return;
       }
 
-      const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot&permissions=805825648';
+      const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot+applications.commands&permissions=805825648';
 
       window.open(inviteUrl, '_blank');
     }, false);
@@ -177,6 +184,7 @@
         return;
       }
 
+      await loadInteractionUrl();
       notifySuccess(`Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
     }
 
@@ -257,6 +265,20 @@
       document.getElementById('public-key').value = key;
     }
 
+    async function loadInteractionUrl() {
+      const res = await axios.get('/user/whitelabel');
+      if (res.status === 404) {
+        return;
+      }
+
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
+      }
+
+      document.getElementById('interaction-url').value = 'https://gateway.ticketsbot.net/handle/' + res.data.id;
+    }
+
     async function createSlashCommands() {
       notify('Slash Commands', 'Creating slash commands, please note this may take up to 120 seconds to complete');
 
@@ -276,6 +298,7 @@
     withLoadingScreen(async () => {
       await loadStatus();
       await loadErrors();
+      await loadInteractionUrl();
       await loadPublicKey();
     });
   </script>
