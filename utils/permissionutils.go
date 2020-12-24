@@ -5,20 +5,15 @@ import (
 	"github.com/TicketsBot/common/permission"
 )
 
-func GetPermissionLevel(guildId, userId uint64) permission.PermissionLevel {
+func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, error) {
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		return permission.Everyone
+		return permission.Everyone, err
 	}
-
-	if botContext.IsBotAdmin(userId) {
-		return permission.Admin
-	}
-
 	// get member
 	member, err := botContext.GetGuildMember(guildId, userId)
 	if err != nil {
-		return permission.Everyone
+		return permission.Everyone, err
 	}
 
 	return permission.GetPermissionLevel(botContext, member, guildId)

@@ -14,7 +14,7 @@
                     <div class="form-group">
                       <label>Bot Token</label>
                       <input name="token" type="text" class="form-control"
-                             placeholder="9ViiGeUZlFJKIfSzodnzZT6W.bX8IAh.p9gG0tElMXg1EqwAChqaYz3swFY" id="token">
+                             placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx" id="token">
                     </div>
                   </div>
                 </div>
@@ -49,32 +49,40 @@
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
-              <h4 class="card-title">Modmail</h4>
+              <h4 class="card-title">Slash Commands</h4>
             </div>
             <div class="card-body" id="card">
-              <form onsubmit="updateForcedModmail(); return false;">
+              <div class="container-fluid">
                 <div class="row">
                   <div class="col-md-12">
-                    <div class="form-group">
-                      <label>Server</label>
-                      <select class="form-control" id="forced_modmail">
-                        <option value="0">Allow user to select</option>
-                      </select>
-                    </div>
+                    <form onsubmit="updatePublicKey(); return false;">
+                      <div class="row">
+                        <div class="col-md-9">
+                          <div class="form-group">
+                            <input name="public-key" type="text" class="form-control" placeholder="Public Key" id="public-key">
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <div class="form-group">
+                            <button class="btn btn-primary btn-fill" type="submit">
+                              <i class="fas fa-paper-plane"></i>
+                              Submit
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
                   </div>
                 </div>
-
                 <div class="row">
-                  <div class="col-md-3">
-                    <div class="form-group">
-                      <button class="btn btn-primary btn-fill" type="submit">
-                        <i class="fas fa-paper-plane"></i>
-                        Submit
-                      </button>
-                    </div>
+                  <div class="col-md-12">
+                    <button class="btn btn-primary btn-fill" style="width: 100%" onclick="createSlashCommands()">
+                      <i class="fas fa-paper-plane"></i>
+                      Create Slash Commands
+                    </button>
                   </div>
                 </div>
-              </form>
+              </div>
             </div>
           </div>
         </div>
@@ -142,137 +150,133 @@
   </div>
 
   <script>
-      // invite button
-      document.getElementById('invite').addEventListener('click', async () => {
-          // get bot ID
-          const res = await axios.get('/user/whitelabel');
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
+    // invite button
+    document.getElementById('invite').addEventListener('click', async () => {
+      // get bot ID
+      const res = await axios.get('/user/whitelabel');
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
+      }
 
-          const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot&permissions=805825648';
+      const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot&permissions=805825648';
 
-          window.open(inviteUrl, '_blank');
-      }, false);
+      window.open(inviteUrl, '_blank');
+    }, false);
   </script>
 
   <script>
-      async function updateSettings() {
-          const data = {
-              token: document.getElementById('token').value
-          };
+    async function updateSettings() {
+      const data = {
+        token: document.getElementById('token').value
+      };
 
-          const res = await axios.post('/user/whitelabel', data);
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
-
-          showToast('Success', `Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
+      const res = await axios.post('/user/whitelabel', data);
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
       }
 
-      async function updateForcedModmail() {
-          const select = document.getElementById('forced_modmail');
-          const data = {
-              guild: select.options[select.selectedIndex].value
-          };
+      notifySuccess(`Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
+    }
 
-          const res = await axios.post('/user/whitelabel/modmail', data);
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
+    async function updatePublicKey() {
+      const data = {
+        public_key: document.getElementById('public-key').value,
+      };
 
-          showToast('Success', 'Updated modmail settings successfully')
+      const res = await axios.post('/user/whitelabel/public-key', data);
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
       }
 
-      async function updateStatus() {
-          const data = {
-              status: document.getElementById('status').value
-          };
+      notifySuccess('Updated slash command settings successfully')
+    }
 
-          const res = await axios.post('/user/whitelabel/status', data);
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
+    async function updateStatus() {
+      const data = {
+        status: document.getElementById('status').value
+      };
 
-          showToast('Success', 'Updated status successfully')
+      const res = await axios.post('/user/whitelabel/status', data);
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
       }
 
-      async function loadStatus() {
-          const res = await axios.get('/user/whitelabel');
-          if (res.status !== 200 || !res.data.success) {
-              if (res.status !== 404) {
-                  showToast('Error', res.data.error);
-              }
-              return;
-          }
+      notifySuccess('Updated status successfully')
+    }
 
-          // set status
-          document.getElementById('status').value = res.data.status;
+    async function loadStatus() {
+      const res = await axios.get('/user/whitelabel');
+      if (res.status !== 200 || !res.data.success) {
+        if (res.status !== 404) {
+          notifyError(res.data.error);
+        }
+        return;
       }
 
-      async function loadErrors() {
-          const res = await axios.get('/user/whitelabel/errors');
-          if (res.status !== 200 || !res.data.success) {
-              showToast('Error', res.data.error);
-              return;
-          }
+      // set status
+      document.getElementById('status').value = res.data.status;
+    }
 
-          // append errors
-          if (res.data.errors !== null) {
-              for (error of res.data.errors) {
-                  const message = error.Message;
-                  const time = new Date(error.Time);
-
-                  const tr = document.createElement('tr');
-                  appendTd(tr, message);
-                  appendTd(tr, time.toDateString());
-                  document.getElementById('error_body').appendChild(tr);
-              }
-          }
+    async function loadErrors() {
+      const res = await axios.get('/user/whitelabel/errors');
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
       }
 
-      async function loadGuilds() {
-          // get selected guild
-          const settingsRes = await axios.get('/user/whitelabel');
-          if (settingsRes.status !== 200 || !settingsRes.data.success) {
-              showToast('Error', settingsRes.data.error);
-              return;
-          }
+      // append errors
+      if (res.data.errors !== null) {
+        for (error of res.data.errors) {
+          const message = error.Message;
+          const time = new Date(error.Time);
 
-          const guildId = settingsRes.data.modmail_forced_guild;
+          const tr = document.createElement('tr');
+          appendTd(tr, message);
+          appendTd(tr, time.toDateString());
+          document.getElementById('error_body').appendChild(tr);
+        }
+      }
+    }
 
-          // get guild list
-          const guildsRes = await axios.get('/user/whitelabel/guilds');
-          if (guildsRes.status !== 200 || !guildsRes.data.success) {
-              if (guildsRes.status !== 404) {
-                  showToast('Error', guildsRes.data.error);
-              }
-              return;
-          }
-
-          // append guilds to dropdown
-          const select = document.getElementById('forced_modmail');
-          for (let [id, name] of Object.entries(guildsRes.data.guilds)) {
-              const option = document.createElement('option');
-              option.value = id;
-              option.text = name;
-
-              if (id === guildId) {
-                  option.selected = true;
-              }
-
-              select.add(option);
-          }
+    async function loadPublicKey() {
+      const res = await axios.get('/user/whitelabel/public-key');
+      if (res.status === 404) {
+        return;
       }
 
-      withLoadingScreen(async () => {
-          await loadStatus();
-          await loadErrors();
-          await loadGuilds();
-      });
+      if ((res.status !== 200 || !res.data.success)) {
+        notifyError(res.data.error);
+        return;
+      }
+
+      const key = res.data.key;
+      document.getElementById('public-key').value = key;
+    }
+
+    async function createSlashCommands() {
+      notify('Slash Commands', 'Creating slash commands, please note this may take up to 120 seconds to complete');
+
+      const opts = {
+        timeout: 120 * 1000
+      };
+
+      const res = await axios.post('/user/whitelabel/create-interactions', {}, opts);
+      if (res.status !== 200 || !res.data.success) {
+        notifyError(res.data.error);
+        return;
+      }
+
+      notifySuccess('Slash commands have been created. Please note, Discord may take up to an hour to show them in your client');
+    }
+
+    withLoadingScreen(async () => {
+      await loadStatus();
+      await loadErrors();
+      await loadPublicKey();
+    });
   </script>
 {{end}}

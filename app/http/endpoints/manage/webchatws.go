@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/common/premium"
@@ -113,11 +112,15 @@ func WebChatWs(ctx *gin.Context) {
 				return
 			}
 
-			// Get object for selected guild
-			guild, _ := cache.Instance.GetGuild(guildIdParsed, false)
-
 			// Verify the user has permissions to be here
-			if utils.GetPermissionLevel(guild.Id, userId) < permission.Admin {
+			permLevel, err := utils.GetPermissionLevel(guildIdParsed, userId)
+			if err != nil {
+				fmt.Println(err.Error())
+				conn.Close()
+				return
+			}
+
+			if permLevel < permission.Admin {
 				fmt.Println(err.Error())
 				conn.Close()
 				return

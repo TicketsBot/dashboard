@@ -5,9 +5,9 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
-	github.com/TicketsBot/common v0.0.0-20200925115036-a1bbe85f45bb
-	github.com/TicketsBot/database v0.0.0-20200723134637-72f4cd31eef6
-	github.com/TicketsBot/logarchiver v0.0.0-20200425163447-199b93429026 // indirect
+	github.com/TicketsBot/common v0.0.0-20201222195753-3dd751ebabf8
+	github.com/TicketsBot/database v0.0.0-20201224193659-c89391f44b57
+	github.com/TicketsBot/worker v0.0.0-20201224203453-0c8f9a415306
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -19,11 +19,10 @@ require (
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/jackc/pgx/v4 v4.6.0
-	github.com/klauspost/compress v1.10.10 // indirect
+	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20201123164345-0469e0a3cea3
+	github.com/rxdn/gdl v0.0.0-20201214225805-4ae598a98327
 	github.com/sirupsen/logrus v1.5.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

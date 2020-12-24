@@ -47,7 +47,7 @@ func StartServer() {
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
 	router.Use(gin.Recovery())
-	router.Use(createLimiter(600, time.Minute * 10))
+	router.Use(createLimiter(600, time.Minute*10))
 
 	// Register templates
 	router.HTMLRender = createRenderer()
@@ -55,8 +55,7 @@ func StartServer() {
 	router.GET("/login", root.LoginHandler)
 	router.GET("/callback", root.CallbackHandler)
 
-	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler)              // we check in the actual handler bc of a custom redirect
-	router.GET("/manage/:id/logs/modmail/view/:uuid", manage.ModmailLogViewHandler) // we check in the actual handler bc of a custom redirect
+	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler) // we check in the actual handler bc of a custom redirect
 
 	authorized := router.Group("/", middleware.AuthenticateCookie)
 	{
@@ -71,7 +70,6 @@ func StartServer() {
 
 		authenticateGuildAdmin.GET("/manage/:id/settings", manage.SettingsHandler)
 		authenticateGuildSupport.GET("/manage/:id/logs", manage.LogsHandler)
-		authenticateGuildSupport.GET("/manage/:id/logs/modmail", manage.ModmailLogsHandler)
 		authenticateGuildSupport.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 		authenticateGuildAdmin.GET("/manage/:id/panels", manage.PanelHandler)
 		authenticateGuildSupport.GET("/manage/:id/tags", manage.TagsHandler)
@@ -139,10 +137,12 @@ func StartServer() {
 			whitelabelGroup.GET("/", api_whitelabel.WhitelabelGet)
 			whitelabelApiGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors)
 			whitelabelApiGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
-			whitelabelApiGroup.POST("/modmail", api_whitelabel.WhitelabelModmailPost)
+			whitelabelApiGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey)
+			whitelabelApiGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
+			whitelabelApiGroup.POST("/create-interactions", api_whitelabel.WhitelabelCreateInteractions)
 
 			whitelabelApiGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/", api_whitelabel.WhitelabelPost)
-			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second * 5)).POST("/status", api_whitelabel.WhitelabelStatusPost)
+			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second*5)).POST("/status", api_whitelabel.WhitelabelStatusPost)
 		}
 	}
 
@@ -177,6 +177,7 @@ func addMainTemplate(renderer multitemplate.Renderer, name string, extra ...stri
 		"./public/templates/includes/head.tmpl",
 		"./public/templates/includes/sidebar.tmpl",
 		"./public/templates/includes/loadingscreen.tmpl",
+		"./public/templates/includes/notifymodal.tmpl",
 		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
 	}
 

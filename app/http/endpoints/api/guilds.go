@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,12 @@ func GetGuilds(ctx *gin.Context) {
 		g := g
 
 		group.Go(func() error {
+			// verify bot is in guild
+			_, ok := cache.Instance.GetGuild(g.GuildId, false)
+			if !ok {
+				return nil
+			}
+			
 			fakeGuild := guild.Guild{
 				Id:          g.GuildId,
 				Owner:       g.Owner,
@@ -49,7 +56,12 @@ func GetGuilds(ctx *gin.Context) {
 				fakeGuild.OwnerId = userId
 			}
 
-			if utils.GetPermissionLevel(g.GuildId, userId) >= permission.Support {
+			permLevel, err := utils.GetPermissionLevel(g.GuildId, userId)
+			if err != nil {
+				return err
+			}
+
+			if permLevel >= permission.Support {
 				lock.Lock()
 				adminGuilds = append(adminGuilds, wrappedGuild{
 					Id:   g.GuildId,
@@ -58,6 +70,7 @@ func GetGuilds(ctx *gin.Context) {
 				})
 				lock.Unlock()
 			}
+
 			return nil
 		})
 	}

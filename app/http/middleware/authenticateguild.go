@@ -46,7 +46,14 @@ func AuthenticateGuild(isApiMethod bool, requiredPermissionLevel permission.Perm
 
 			// Verify the user has permissions to be here
 			userId := ctx.Keys["userid"].(uint64)
-			if utils.GetPermissionLevel(guild.Id, userId) < requiredPermissionLevel {
+
+			permLevel, err := utils.GetPermissionLevel(guild.Id, userId)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorToResponse(err))
+				return
+			}
+
+			if permLevel < requiredPermissionLevel {
 				if isApiMethod {
 					ctx.AbortWithStatusJSON(403, gin.H{
 						"success": false,

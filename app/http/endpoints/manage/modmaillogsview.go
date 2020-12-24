@@ -56,7 +56,13 @@ func ModmailLogViewHandler(ctx *gin.Context) {
 		}
 
 		// Verify the user has permissions to be here
-		if utils.GetPermissionLevel(guildId, userId) < permission.Support && archive.UserId != userId {
+		permLevel, err := utils.GetPermissionLevel(guildId, userId)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorToResponse(err))
+			return
+		}
+
+		if permLevel < permission.Support && archive.UserId != userId {
 			utils.ErrorPage(ctx, 403, "You do not have permission to view this archive")
 			return
 		}

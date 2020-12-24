@@ -1,10 +1,12 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sync/errgroup"
 	"strconv"
 	"strings"
 )
@@ -21,10 +23,11 @@ func GetPermissionLevel(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: Check whether the bot is in the guild to prevent us getting maliciously 429'd
+	// TODO: This is insanely inefficient
 
 	levels := make(map[string]permission.PermissionLevel)
 
+	group, _ := errgroup.WithContext(context.Background())
 	for _, raw := range guilds {
 		guildId, err := strconv.ParseUint(raw, 10, 64)
 		if err != nil {
@@ -35,8 +38,16 @@ func GetPermissionLevel(ctx *gin.Context) {
 			return
 		}
 
-		level := utils.GetPermissionLevel(guildId, userId)
-		levels[strconv.FormatUint(guildId, 10)] = level
+		group.Go(func() error {
+			level, err := utils.GetPermissionLevel(guildId, userId)
+			levels[strconv.FormatUint(guildId, 10)] = level
+			return err
+		})
+	}
+
+	if err := group.Wait(); err != nil {
+		ctx.JSON(500, utils.ErrorToResponse(err))
+		return
 	}
 
 	ctx.JSON(200, gin.H{

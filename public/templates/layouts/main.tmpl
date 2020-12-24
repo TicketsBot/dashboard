@@ -8,6 +8,8 @@
       {{template "sidebar" .}}
       <div class="main-panel">
         {{template "loadingscreen" .}}
+        <script src="/assets/js/modalbackdrop.js"></script>
+        {{template "notifymodal" .}}
         {{template "content" .}}
       </div>
     </div>

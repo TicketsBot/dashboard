@@ -5,8 +5,8 @@ import (
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/database"
-	"github.com/go-redis/redis"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/member"
@@ -23,8 +23,8 @@ func (ctx BotContext) Db() *database.Database {
 	return dbclient.Client
 }
 
-func (ctx BotContext) Redis() *redis.Client {
-	return messagequeue.Client.Client
+func (ctx BotContext) Cache() permission.PermissionCache {
+	return permission.NewRedisCache(messagequeue.Client.Client)
 }
 
 func (ctx BotContext) IsBotAdmin(userId uint64) bool {
