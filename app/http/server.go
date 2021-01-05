@@ -128,6 +128,7 @@ func StartServer() {
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
 	{
 		userGroup.GET("/guilds", api.GetGuilds)
+		userGroup.POST("/guilds/reload", api.ReloadGuildsHandler)
 		userGroup.GET("/permissionlevel", api.GetPermissionLevel)
 
 		{

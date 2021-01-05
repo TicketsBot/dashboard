@@ -15,14 +15,14 @@ require (
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
 	github.com/gin-gonic/gin v1.6.2
-	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20201214225805-4ae598a98327
+	github.com/rxdn/gdl v0.0.0-20210105220812-1d2789cb2f0b
 	github.com/sirupsen/logrus v1.5.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

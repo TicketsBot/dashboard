@@ -3,16 +3,12 @@ package root
 import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
-	userEndpoint "github.com/TicketsBot/GoPanel/utils/discord/endpoints/user"
-	"github.com/TicketsBot/database"
 	"github.com/apex/log"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/rxdn/gdl/objects/guild"
-	"github.com/rxdn/gdl/objects/user"
+	"github.com/rxdn/gdl/rest"
 	"strings"
 	"time"
 )
@@ -65,8 +61,7 @@ func CallbackHandler(ctx *gin.Context) {
 	store.Set("expiry", (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn))
 
 	// Get ID + name
-	var currentUser user.User
-	err, _ = userEndpoint.CurrentUser.Request(store, nil, nil, &currentUser)
+	currentUser, err := rest.GetCurrentUser(fmt.Sprintf("Bearer %s", res.AccessToken), nil)
 	if err != nil {
 		ctx.String(500, err.Error())
 		return
@@ -79,37 +74,10 @@ func CallbackHandler(ctx *gin.Context) {
 	store.Set("avatar", currentUser.AvatarUrl(256))
 	store.Save()
 
-	var guilds []guild.Guild
-	err, _ = userEndpoint.CurrentUserGuilds.Request(store, nil, nil, &guilds)
-	if err != nil {
-		log.Error(err.Error())
-		handleRedirect(ctx)
-		return
-	}
-
-	store.Set("has_guilds", true)
-	store.Save()
-
-	var wrappedGuilds []database.UserGuild
-
-	// endpoint's partial guild doesn't include ownerid
-	// we only user cached guilds on the index page, so it doesn't matter if we don't have have the real owner id
-	// if the user isn't the owner, as we pull from the cache on other endpoints
-	for _, guild := range guilds {
-		if guild.Owner {
-			guild.OwnerId = currentUser.Id
-		}
-
-		wrappedGuilds = append(wrappedGuilds, database.UserGuild{
-			GuildId:         guild.Id,
-			Name:            guild.Name,
-			Owner:           guild.Owner,
-			UserPermissions: int32(guild.Permissions),
-			Icon:            guild.Icon,
-		})
-	}
-
-	if err := dbclient.Client.UserGuilds.Set(currentUser.Id, wrappedGuilds); err != nil {
+	if err := utils.LoadGuilds(res.AccessToken, currentUser.Id); err == nil {
+		store.Set("has_guilds", true)
+		store.Save()
+	} else {
 		log.Error(err.Error())
 	}
 

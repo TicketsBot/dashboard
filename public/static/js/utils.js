@@ -36,3 +36,11 @@ function appendButton(tr, content, onclick) {
     tdRemove.appendChild(removeButton);
     tr.appendChild(tdRemove);
 }
+
+function prependChild(parent, child) {
+    if (parent.children.length === 0) {
+        parent.appendChild(child);
+    } else {
+        parent.insertBefore(child, parent.children[0]);
+    }
+}

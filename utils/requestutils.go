@@ -1,11 +1,18 @@
 package utils
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+)
 
 func ErrorToResponse(err error) map[string]interface{} {
+	return ErrorStr(err.Error())
+}
+
+func ErrorStr(err string, format ...interface{}) map[string]interface{} {
 	return gin.H {
 		"success": false,
-		"error": err.Error(),
+		"error": fmt.Sprintf(err, format...),
 	}
 }
 

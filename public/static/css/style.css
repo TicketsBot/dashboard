@@ -208,12 +208,15 @@ html > ::-webkit-scrollbar {
 }
 
 .guild {
-    width: 100%;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+
+    width: 33%;
     background-color: #121212;
     height: 100px;
     margin-bottom: 10px;
     border-radius: 10px;
-    display: flex;
     cursor: pointer;
 }
 
@@ -239,4 +242,24 @@ html > ::-webkit-scrollbar {
 .guild-name {
     color: white !important;
     padding-left: 10px;
+}
+
+.flex-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+#guild-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#refresh-container {
+    display: flex;
+    justify-content: center;
+
+    margin-top: 20px;
+    color: white;
 }

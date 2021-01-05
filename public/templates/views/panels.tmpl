@@ -20,7 +20,6 @@
                 <tr>
                   <th>Channel</th>
                   <th>Panel Title</th>
-                  <th>Panel Content</th>
                   <th>Ticket Channel Category</th>
                   <th>Edit</th>
                   <th>Delete</th>
@@ -377,7 +376,6 @@
 
           appendTd(tr, `#${getChannelName(channels, panel.channel_id)}`);
           appendTd(tr, panel.title);
-          appendTd(tr, panel.content);
           appendTd(tr, getChannelName(channels, panel.category_id));
 
           // build edit button
