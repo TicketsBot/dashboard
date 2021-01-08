@@ -49,7 +49,7 @@ func AuthenticateGuild(isApiMethod bool, requiredPermissionLevel permission.Perm
 
 			permLevel, err := utils.GetPermissionLevel(guild.Id, userId)
 			if err != nil {
-				ctx.JSON(500, utils.ErrorToResponse(err))
+				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
 				return
 			}
 
