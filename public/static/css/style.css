@@ -27,6 +27,11 @@ html > ::-webkit-scrollbar {
 }
 
 .sidebar {
+    display: inline-flex;
+    height: 100%;
+    width: 16.6%;
+    background-color: #4C566A;
+    float: left;
     background-size: cover;
     overflow-x: hidden !important;
 }
@@ -218,6 +223,12 @@ html > ::-webkit-scrollbar {
     margin-bottom: 10px;
     border-radius: 10px;
     cursor: pointer;
+}
+
+@media only screen and (max-width: 900px) {
+    .guild {
+        width: 100%;
+    }
 }
 
 .guild-icon {

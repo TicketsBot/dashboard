@@ -1,29 +1,21 @@
 {{define "content"}}
-  <div class="content">
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title">Servers</h4>
-            </div>
-            <div class="card-body" id="card">
-              <div class="card-body table-responsive">
-                <div class="flex-container" id="guild-container">
-                  <div class="guild" onclick="invite();" id="invite-container">
-                    <i class="fas fa-plus fa-2x guild-icon-fa"></i>
-                    <span class="guild-name">Invite to your server</span>
-                  </div>
-                </div>
-
-                <div class="flex-container" id="refresh-container">
-                  <button class="btn btn-primary btn-fill" onclick="refreshGuilds()">
-                    <i class="fas fa-sync"></i> Refresh list
-                  </button>
-                </div>
-              </div>
-            </div>
+  <div class="card">
+    <div class="card-header">
+      <h4 class="card-title">Servers</h4>
+    </div>
+    <div class="card-body" id="card">
+      <div class="card-body table-responsive">
+        <div class="flex-container" id="guild-container">
+          <div class="guild" onclick="invite();" id="invite-container">
+            <i class="fas fa-plus fa-2x guild-icon-fa"></i>
+            <span class="guild-name">Invite to your server</span>
           </div>
+        </div>
+
+        <div class="flex-container" id="refresh-container">
+          <button class="btn btn-primary btn-fill" onclick="refreshGuilds()">
+            <i class="fas fa-sync"></i> Refresh list
+          </button>
         </div>
       </div>
     </div>
