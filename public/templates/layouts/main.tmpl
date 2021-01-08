@@ -4,10 +4,15 @@
     {{template "head" .}}
   </head>
   <body>
-    {{template "sidebar" .}}
-    <!--{{template "loadingscreen" .}}
-    <script src="/assets/js/modalbackdrop.js"></script>
-    {{template "notifymodal" .}}
-    {{template "content" .}}-->
+    <div class="wrapper">
+      {{template "sidebar" .}}
+      {{template "sidebar" .}}
+      <div class="main-panel">
+        {{template "loadingscreen" .}}
+        <script src="/assets/js/modalbackdrop.js"></script>
+        {{template "notifymodal" .}}
+        {{template "content" .}}
+      </div>
+    </div>
   </body>
 </html>
