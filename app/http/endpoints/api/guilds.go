@@ -8,6 +8,7 @@ import (
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
+	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
 	"sort"
 	"sync"
@@ -58,7 +59,10 @@ func GetGuilds(ctx *gin.Context) {
 
 			permLevel, err := utils.GetPermissionLevel(g.GuildId, userId)
 			if err != nil {
-				return err
+				// If a Discord error occurs, just skip the server
+				if _, ok := err.(*request.RestError); !ok {
+					return err
+				}
 			}
 
 			if permLevel >= permission.Support {
