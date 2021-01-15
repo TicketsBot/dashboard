@@ -13,7 +13,7 @@ import (
 func TokenHandler(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	userId := utils.GetUserId(session)
- //TODO : CSRF
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userid": strconv.FormatUint(userId, 10),
 	})

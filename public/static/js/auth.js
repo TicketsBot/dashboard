@@ -1,8 +1,11 @@
 async function getToken() {
     let token = window.localStorage.getItem('token');
     if (token == null) {
-        let res = await axios.post('/token', {
-            withCredentials: true
+        let res = await axios.post('/token', undefined, {
+            withCredentials: true,
+            headers: {
+                'x-tickets': 'true'
+            }
         });
 
         if (res.status !== 200 || !res.data.success) {
@@ -25,6 +28,7 @@ function clearLocalStorage() {
 async function setDefaultHeader() {
     const token = await getToken();
     axios.defaults.headers.common['Authorization'] = token;
+    axios.defaults.headers.common['x-tickets'] = 'true'; // abritrary header name and value
     axios.defaults.validateStatus = false;
 }
 

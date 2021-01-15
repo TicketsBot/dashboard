@@ -59,7 +59,7 @@ func StartServer() {
 
 	authorized := router.Group("/", middleware.AuthenticateCookie)
 	{
-		authorized.POST("/token", api.TokenHandler)
+		authorized.POST("/token", middleware.VerifyXTicketsHeader, api.TokenHandler)
 
 		authenticateGuildAdmin := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Admin))
 		authenticateGuildSupport := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Support))
@@ -80,7 +80,7 @@ func StartServer() {
 		authorized.GET("/webchat", manage.WebChatWs)
 	}
 
-	apiGroup := router.Group("/api", middleware.AuthenticateToken)
+	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
 	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Admin))
 	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Support))
 	{
