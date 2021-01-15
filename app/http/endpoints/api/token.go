@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"time"
 )
 
 func TokenHandler(ctx *gin.Context) {
@@ -16,6 +17,7 @@ func TokenHandler(ctx *gin.Context) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userid": strconv.FormatUint(userId, 10),
+		"timestamp": time.Now(),
 	})
 
 	str, err := token.SignedString([]byte(config.Conf.Server.Secret))
