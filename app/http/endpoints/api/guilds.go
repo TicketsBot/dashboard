@@ -60,7 +60,7 @@ func GetGuilds(ctx *gin.Context) {
 			permLevel, err := utils.GetPermissionLevel(g.GuildId, userId)
 			if err != nil {
 				// If a Discord error occurs, just skip the server
-				if _, ok := err.(*request.RestError); !ok {
+				if _, ok := err.(request.RestError); !ok {
 					return err
 				}
 			}
