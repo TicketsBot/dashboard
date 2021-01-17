@@ -1,3 +1,4 @@
 config.toml
 *.iml
 .idea
+go.sum
