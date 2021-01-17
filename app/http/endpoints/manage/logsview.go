@@ -74,7 +74,7 @@ func LogViewHandler(ctx *gin.Context) {
 		messages, err := Archiver.Get(guildId, ticketId)
 		if err != nil {
 			if errors.Is(err, archiverclient.ErrExpired) {
-				ctx.String(200, "Archives expired: Purchase premium for permanent log storage") // TODO: Actual error page
+				ctx.String(200, fmt.Sprintf("Failed to retrieve archive - please contact the developers (ErrExpired): %s", err.Error())) // TODO: Actual error page
 				return
 			}
 
