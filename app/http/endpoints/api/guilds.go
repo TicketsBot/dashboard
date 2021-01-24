@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -12,7 +11,7 @@ import (
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
-	"strings"
+	"sort"
 )
 
 type wrappedGuild struct {
@@ -84,45 +83,24 @@ func GetGuilds(ctx *gin.Context) {
 
 	adminGuilds := make([]wrappedGuild, 0)
 	group.Go(func() error {
-		adminGuilds := make([]wrappedGuild, 0)
 	loop:
 		for {
 			select {
 			case <-wg.Wait():
 				break loop
 			case guild := <-ch:
-				// Sort by name
-				var index int
-				for i, el := range adminGuilds {
-					fmt.Printf("%s %s %v\n", guild.Name, el.Name, guild.Name < el.Name)
-					if strings.ToLower(guild.Name) < strings.ToLower(el.Name) {
-						index = i
-					} else {
-						break
-					}
-				}
-
-				if index >= len(adminGuilds) {
-					adminGuilds = append(adminGuilds, guild)
-				} else {
-					adminGuilds = append(adminGuilds, wrappedGuild{}) // create extra capacity with zero value
-					copy(adminGuilds[index+1:], adminGuilds[index:])
-					adminGuilds[index] = guild
-				}
-
+				adminGuilds = append(adminGuilds, guild)
 			}
 		}
 		return nil
 	})
 
-	// not possible anyway but eh
-	if err := group.Wait(); err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
-		return
-	}
+	_ = group.Wait() // error not possible
+
+	// sort
+	sort.Slice(adminGuilds, func(i, j int) bool {
+		return adminGuilds[i].Name < adminGuilds[j].Name
+	})
 
 	ctx.JSON(200, adminGuilds)
 }
