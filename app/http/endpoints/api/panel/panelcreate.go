@@ -19,6 +19,8 @@ import (
 	"strings"
 )
 
+const freePanelLimit = 3
+
 func CreatePanel(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
@@ -55,7 +57,7 @@ func CreatePanel(ctx *gin.Context) {
 			})
 		}
 
-		if len(panels) > 0 {
+		if len(panels) >= freePanelLimit {
 			ctx.AbortWithStatusJSON(402, gin.H{
 				"success": false,
 				"error":   "You have exceeded your panel quota. Purchase premium to unlock more panels.",

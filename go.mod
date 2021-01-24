@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
-	github.com/TicketsBot/common v0.0.0-20201222195753-3dd751ebabf8
+	github.com/TicketsBot/common v0.0.0-20210118171457-d5362b26aa6f
 	github.com/TicketsBot/database v0.0.0-20201224193659-c89391f44b57
 	github.com/TicketsBot/worker v0.0.0-20201224203453-0c8f9a415306
 	github.com/apex/log v1.1.2

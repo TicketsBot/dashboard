@@ -2,16 +2,17 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
+	syncutils "github.com/TicketsBot/common/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
-	"sort"
-	"sync"
+	"strings"
 )
 
 type wrappedGuild struct {
@@ -32,21 +33,23 @@ func GetGuilds(ctx *gin.Context) {
 		return
 	}
 
+	wg := syncutils.NewChannelWaitGroup()
+	wg.Add(len(guilds))
+
 	group, _ := errgroup.WithContext(context.Background())
-
-	adminGuilds := make([]wrappedGuild, 0)
-	var lock sync.Mutex
-
+	ch := make(chan wrappedGuild)
 	for _, g := range guilds {
 		g := g
 
 		group.Go(func() error {
+			defer wg.Done()
+
 			// verify bot is in guild
 			_, ok := cache.Instance.GetGuild(g.GuildId, false)
 			if !ok {
 				return nil
 			}
-			
+
 			fakeGuild := guild.Guild{
 				Id:          g.GuildId,
 				Owner:       g.Owner,
@@ -66,18 +69,51 @@ func GetGuilds(ctx *gin.Context) {
 			}
 
 			if permLevel >= permission.Support {
-				lock.Lock()
-				adminGuilds = append(adminGuilds, wrappedGuild{
+				wrapped := wrappedGuild{
 					Id:   g.GuildId,
 					Name: g.Name,
 					Icon: g.Icon,
-				})
-				lock.Unlock()
+				}
+
+				ch <- wrapped
 			}
 
 			return nil
 		})
 	}
+
+	adminGuilds := make([]wrappedGuild, 0)
+	group.Go(func() error {
+		adminGuilds := make([]wrappedGuild, 0)
+	loop:
+		for {
+			select {
+			case <-wg.Wait():
+				break loop
+			case guild := <-ch:
+				// Sort by name
+				var index int
+				for i, el := range adminGuilds {
+					fmt.Printf("%s %s %v\n", guild.Name, el.Name, guild.Name < el.Name)
+					if strings.ToLower(guild.Name) < strings.ToLower(el.Name) {
+						index = i
+					} else {
+						break
+					}
+				}
+
+				if index >= len(adminGuilds) {
+					adminGuilds = append(adminGuilds, guild)
+				} else {
+					adminGuilds = append(adminGuilds, wrappedGuild{}) // create extra capacity with zero value
+					copy(adminGuilds[index+1:], adminGuilds[index:])
+					adminGuilds[index] = guild
+				}
+
+			}
+		}
+		return nil
+	})
 
 	// not possible anyway but eh
 	if err := group.Wait(); err != nil {
@@ -87,11 +123,6 @@ func GetGuilds(ctx *gin.Context) {
 		})
 		return
 	}
-
-	// sort guilds
-	sort.Slice(adminGuilds, func(i, j int) bool {
-		return adminGuilds[i].Name < adminGuilds[j].Name
-	})
 
 	ctx.JSON(200, adminGuilds)
 }
