@@ -26,14 +26,53 @@ html > ::-webkit-scrollbar {
     display: none;
 }
 
-.sidebar {
-    display: inline-flex;
+.csidebar {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     width: 16.6%;
-    background-color: #4C566A;
+    background-color: #272727;
     float: left;
     background-size: cover;
     overflow-x: hidden !important;
+}
+
+.sidebar-element {
+    display: flex;
+    align-items: center;
+    flex-basis: 100%;
+    width: 100%;
+    cursor: pointer;
+    padding: 5px 0 5px 0;
+}
+
+.sidebar-element:hover {
+    background-color: #121212;
+    transition: background-color 0.5s ease;
+}
+
+#referral-image {
+    max-height: 70px;
+    max-width: 90%;
+}
+
+.sidebar-element > a {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    color: white !important;
+    font-size: 18px;
+    margin-left: 2%;
+}
+
+.sidebar-text {
+    margin-left: 4%;
+    display: flex;
+    align-items: center;
+}
+
+#sidebar-nav {
+    flex: 1;
 }
 
 .sidebar-bottom {
@@ -43,6 +82,20 @@ html > ::-webkit-scrollbar {
 
 .nav-link {
     color: white !important;
+}
+
+.super-container {
+    display: flex;
+}
+
+.content {
+    width: 100%;
+}
+
+.content-container {
+    display: flex;
+    width: 100%;
+    margin: 4%;
 }
 
 .filterCard {

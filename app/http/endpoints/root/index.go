@@ -18,8 +18,10 @@ func IndexHandler(ctx *gin.Context) {
 	}
 
 	ctx.HTML(200, "main/index", gin.H{
-		"name":    store.Get("name").(string),
-		"baseurl": config.Conf.Server.BaseUrl,
-		"avatar":  store.Get("avatar").(string),
+		"name":         store.Get("name").(string),
+		"baseurl":      config.Conf.Server.BaseUrl,
+		"avatar":       store.Get("avatar").(string),
+		"referralShow": config.Conf.Referral.Show,
+		"referralLink": config.Conf.Referral.Link,
 	})
 }

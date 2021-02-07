@@ -18,6 +18,7 @@ type (
 		Bot             Bot
 		Redis           Redis
 		Cache           Cache
+		Referral        Referral
 	}
 
 	Server struct {
@@ -68,6 +69,11 @@ type (
 	Cache struct {
 		Uri string
 	}
+
+	Referral struct {
+		Show bool
+		Link string
+	}
 )
 
 var (
@@ -113,6 +119,7 @@ func fromEnvvar() {
 	oauthId, _ := strconv.ParseUint(os.Getenv("OAUTH_ID"), 10, 64)
 	redisPort, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	redisThreads, _ := strconv.Atoi(os.Getenv("REDIS_THREADS"))
+	showReferral, _ := strconv.ParseBool(os.Getenv("REFERRAL_SHOW"))
 
 	Conf = Config{
 		Admins:          admins,
@@ -155,6 +162,10 @@ func fromEnvvar() {
 		},
 		Cache: Cache{
 			Uri: os.Getenv("CACHE_URI"),
+		},
+		Referral: Referral{
+			Show: showReferral,
+			Link: os.Getenv("REFERRAL_LINK"),
 		},
 	}
 }

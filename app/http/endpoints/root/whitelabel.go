@@ -38,5 +38,7 @@ func WhitelabelHandler(ctx *gin.Context) {
 		"name":    store.Get("name").(string),
 		"baseurl": config.Conf.Server.BaseUrl,
 		"avatar":  store.Get("avatar").(string),
+		"referralShow": config.Conf.Referral.Show,
+		"referralLink": config.Conf.Referral.Link,
 	})
 }
