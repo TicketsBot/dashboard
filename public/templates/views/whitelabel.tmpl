@@ -280,10 +280,8 @@
     }
 
     async function createSlashCommands() {
-      notify('Slash Commands', 'Creating slash commands, please note this may take up to 120 seconds to complete');
-
       const opts = {
-        timeout: 120 * 1000
+        timeout: 20 * 1000
       };
 
       const res = await axios.post('/user/whitelabel/create-interactions', {}, opts);

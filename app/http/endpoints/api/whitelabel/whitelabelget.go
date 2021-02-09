@@ -35,21 +35,10 @@ func WhitelabelGet(ctx *gin.Context) {
 			return
 		}
 
-		// Get forced modmail guild
-		forcedGuild, err := database.Client.ModmailForcedGuilds.Get(bot.BotId)
-		if err != nil {
-			ctx.JSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
-			return
-		}
-
 		ctx.JSON(200, gin.H{
 			"success":              true,
 			"id":                   strconv.FormatUint(bot.BotId, 10),
 			"status":               status,
-			"modmail_forced_guild": strconv.FormatUint(forcedGuild, 10),
 		})
 	}
 }

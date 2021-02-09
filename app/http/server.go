@@ -107,7 +107,6 @@ func StartServer() {
 		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
 
 		guildAuthApiSupport.GET("/logs/", api_logs.GetLogs)
-		guildAuthApiSupport.GET("/modmail/logs/", api_logs.GetModmailLogs)
 
 		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)

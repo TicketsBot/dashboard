@@ -33,7 +33,6 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	settings.updatePingEveryone(guildId)
 	settings.updateUsersCanClose(guildId)
 	settings.updateCloseConfirmation(guildId)
-	settings.updateModmailEnabled(guildId)
 
 	ctx.JSON(200, gin.H{
 		"prefix": validPrefix,
@@ -135,8 +134,4 @@ func (s *Settings) updateUsersCanClose(guildId uint64) {
 
 func (s *Settings) updateCloseConfirmation(guildId uint64) {
 	go dbclient.Client.CloseConfirmation.Set(guildId, s.CloseConfirmation)
-}
-
-func (s *Settings) updateModmailEnabled(guildId uint64) {
-	go dbclient.Client.ModmailEnabled.Set(guildId, s.ModmailEnabled)
 }
