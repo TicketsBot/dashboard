@@ -39,7 +39,7 @@
         const members = ticket.members.map(member => `${member.username}#${member.discrim}`).join(', ');
         appendTd(tr, members);
 
-        appendButton(tr, 'View', () => { location.href = '/manage/{{.guildId}}/tickets/view/' + ticket.ticketId });
+        appendButtonHref(tr, 'View', '/manage/{{.guildId}}/tickets/view/' + ticket.ticketId);
 
         container.appendChild(tr);
     }

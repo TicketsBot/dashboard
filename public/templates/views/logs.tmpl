@@ -103,7 +103,7 @@
           appendTd(tr, log.ticketid);
           appendTd(tr, log.username);
           appendTd(tr, log.userid);
-          appendButton(tr, 'View', () => { location.href = '/manage/{{.guildId}}/logs/view/' + log.ticketid });
+          appendButtonHref(tr, 'View','/manage/{{.guildId}}/logs/view/' + log.ticketid);
 
           container.appendChild(tr);
       }

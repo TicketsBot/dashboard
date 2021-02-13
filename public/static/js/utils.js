@@ -28,12 +28,27 @@ function appendTd(tr, content) {
 
 function appendButton(tr, content, onclick) {
     const tdRemove = document.createElement('td');
-    const removeButton = document.createElement('a');
-    removeButton.type = 'submit';
-    removeButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
-    removeButton.appendChild(document.createTextNode(content));
-    removeButton.onclick = onclick;
-    tdRemove.appendChild(removeButton);
+    const btn = document.createElement('button');
+
+    btn.type = 'submit';
+    btn.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+    btn.appendChild(document.createTextNode(content));
+    btn.onclick = onclick;
+
+    tdRemove.appendChild(btn);
+    tr.appendChild(tdRemove);
+}
+
+function appendButtonHref(tr, content, href) {
+    const tdRemove = document.createElement('td');
+    const btn = document.createElement('a');
+
+    btn.href = href;
+    btn.type = 'submit';
+    btn.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+    btn.appendChild(document.createTextNode(content));
+
+    tdRemove.appendChild(btn);
     tr.appendChild(tdRemove);
 }
 
