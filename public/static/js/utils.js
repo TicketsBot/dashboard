@@ -28,7 +28,7 @@ function appendTd(tr, content) {
 
 function appendButton(tr, content, onclick) {
     const tdRemove = document.createElement('td');
-    const removeButton = document.createElement('button');
+    const removeButton = document.createElement('a');
     removeButton.type = 'submit';
     removeButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
     removeButton.appendChild(document.createTextNode(content));

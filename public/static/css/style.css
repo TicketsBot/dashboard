@@ -40,7 +40,6 @@ html > ::-webkit-scrollbar {
 .sidebar-element {
     display: flex;
     align-items: center;
-    flex-basis: 100%;
     width: 100%;
     cursor: pointer;
     padding: 5px 0 5px 0;
@@ -62,7 +61,7 @@ html > ::-webkit-scrollbar {
     width: 100%;
     color: white !important;
     font-size: 18px;
-    margin-left: 2%;
+    margin-left: 4%;
 }
 
 .sidebar-text {

@@ -8,6 +8,7 @@ import (
 	"github.com/TicketsBot/common/permission"
 	syncutils "github.com/TicketsBot/common/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
@@ -44,9 +45,12 @@ func GetGuilds(ctx *gin.Context) {
 			defer wg.Done()
 
 			// verify bot is in guild
-			_, ok := cache.Instance.GetGuild(g.GuildId, false)
-			if !ok {
-				return nil
+			if err := cache.Instance.QueryRow(context.Background(), `SELECT 1 from guilds WHERE "guild_id" = $1`, g.GuildId).Scan(nil); err != nil {
+				if err == pgx.ErrNoRows {
+					return nil
+				} else {
+					return err
+				}
 			}
 
 			fakeGuild := guild.Guild{
