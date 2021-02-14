@@ -110,7 +110,7 @@ func StartServer() {
 
 		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)
-		guildAuthApiSupport.POST("/tickets/:ticketId", api_ticket.SendMessage)
+		guildAuthApiSupport.POST("/tickets/:ticketId", createLimiter(5, time.Second * 5), api_ticket.SendMessage)
 		guildAuthApiSupport.DELETE("/tickets/:ticketId", api_ticket.CloseTicket)
 
 		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler)
