@@ -141,8 +141,8 @@ func StartServer() {
 			whitelabelApiGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
 			whitelabelApiGroup.POST("/create-interactions", api_whitelabel.WhitelabelCreateInteractions)
 
-			whitelabelApiGroup.Group("/").Use(createLimiter(10, time.Minute)).POST("/", api_whitelabel.WhitelabelPost)
-			whitelabelApiGroup.Group("/").Use(createLimiter(1, time.Second*5)).POST("/status", api_whitelabel.WhitelabelStatusPost)
+			whitelabelApiGroup.POST("/", createLimiter(10, time.Minute), api_whitelabel.WhitelabelPost)
+			whitelabelApiGroup.POST("/status", createLimiter(1, time.Second*5), api_whitelabel.WhitelabelStatusPost)
 		}
 	}
 
