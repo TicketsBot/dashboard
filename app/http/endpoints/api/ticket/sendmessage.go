@@ -50,6 +50,14 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
+	if len(body.Message) == 0 {
+		ctx.JSON(400, gin.H{
+			"success": false,
+			"error": "You must enter a message",
+		})
+		return
+	}
+
 	// Verify guild is premium
 	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 	if premiumTier == premium.None {
