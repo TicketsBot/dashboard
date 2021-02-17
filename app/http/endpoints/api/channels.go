@@ -1,23 +1,18 @@
 package api
 
 import (
-	"encoding/json"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/channel"
 )
 
 func ChannelsHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	channels := cache.Instance.GetGuildChannels(guildId)
-	encoded, err := json.Marshal(channels)
-	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": true,
-			"error": err.Error(),
-		})
-		return
+	if channels == nil {
+		channels = make([]channel.Channel, 0) // don't serve null
 	}
 
-	ctx.Data(200, gin.MIMEJSON, encoded)
+	ctx.JSON(200, channels)
 }

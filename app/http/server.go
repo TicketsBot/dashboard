@@ -73,6 +73,7 @@ func StartServer() {
 		authenticateGuildSupport.GET("/manage/:id/blacklist", manage.BlacklistHandler)
 		authenticateGuildAdmin.GET("/manage/:id/panels", manage.PanelHandler)
 		authenticateGuildSupport.GET("/manage/:id/tags", manage.TagsHandler)
+		authenticateGuildSupport.GET("/manage/:id/teams", serveTemplate("manage/teams"))
 
 		authenticateGuildSupport.GET("/manage/:id/tickets", manage.TicketListHandler)
 		authenticateGuildSupport.GET("/manage/:id/tickets/view/:ticketId", manage.TicketViewHandler)
@@ -151,6 +152,20 @@ func StartServer() {
 	}
 }
 
+func serveTemplate(templateName string) func(*gin.Context) {
+	return func(ctx *gin.Context) {
+		store := sessions.Default(ctx)
+		guildId := ctx.Keys["guildid"].(uint64)
+
+		ctx.HTML(200, templateName, gin.H{
+			"name":         store.Get("name").(string),
+			"guildId":      guildId,
+			"avatar":       store.Get("avatar").(string),
+			"baseUrl":      config.Conf.Server.BaseUrl,
+		})
+	}
+}
+
 func createRenderer() multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 
@@ -165,6 +180,7 @@ func createRenderer() multitemplate.Renderer {
 	r = addManageTemplate(r, "ticketview")
 	r = addManageTemplate(r, "panels", "./public/templates/includes/substitutionmodal.tmpl", "./public/templates/includes/paneleditmodal.tmpl", "./public/templates/includes/multipaneleditmodal.tmpl")
 	r = addManageTemplate(r, "tags")
+	r = addManageTemplate(r, "teams")
 
 	r = addErrorTemplate(r)
 
