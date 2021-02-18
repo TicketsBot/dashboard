@@ -33,14 +33,14 @@ func MultiPanelCreate(ctx *gin.Context) {
 
 	var data multiPanelCreateData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.JSON(400, utils.ErrorToResponse(err))
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	// validate body & get sub-panels
 	panels, err := data.doValidations(guildId)
 	if err != nil {
-		ctx.JSON(400, utils.ErrorToResponse(err))
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
@@ -61,9 +61,9 @@ func MultiPanelCreate(ctx *gin.Context) {
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped); unwrapped.ErrorCode == 403 {
-			ctx.JSON(500, utils.ErrorToResponse(errors.New("I do not have permission to send messages in the provided channel")))
+			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to send messages in the provided channel")))
 		} else {
-			ctx.JSON(500, utils.ErrorToResponse(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 		}
 
 		return
@@ -72,9 +72,9 @@ func MultiPanelCreate(ctx *gin.Context) {
 	if err := data.addReactions(&botContext, data.ChannelId, messageId, panels); err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped); unwrapped.ErrorCode == 403{
-			ctx.JSON(500, utils.ErrorToResponse(errors.New("I do not have permission to add reactions in the provided channel")))
+			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to add reactions in the provided channel")))
 		} else {
-			ctx.JSON(500, utils.ErrorToResponse(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 		}
 
 		return
@@ -91,7 +91,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 
 	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(multiPanel)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -105,7 +105,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 	}
 
 	if err := group.Wait(); err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

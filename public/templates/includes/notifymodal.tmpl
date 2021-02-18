@@ -45,6 +45,10 @@
           notify('Success', message);
       }
 
+      function notifyRatelimit() {
+          notifyError("You're doing that too fast: please wait a few seconds and try again");
+      }
+
       function closeNotificationModal() {
           $('#notificationmodal').modal('hide');
       }

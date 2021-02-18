@@ -10,6 +10,7 @@ import (
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/member"
+	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/ratelimit"
 )
@@ -76,6 +77,15 @@ func (ctx BotContext) GetGuildMember(guildId, userId uint64) (m member.Member, e
 	return
 }
 
+func (ctx BotContext) GetUser(userId uint64) (u user.User, err error) {
+	u, err = rest.GetUser(ctx.Token, ctx.RateLimiter, userId)
+	if err == nil {
+		go cache.Instance.StoreUser(u)
+	}
+
+	return
+}
+
 func (ctx BotContext) GetGuildRoles(guildId uint64) (roles []guild.Role, err error) {
 	if roles := cache.Instance.GetGuildRoles(guildId); len(roles) > 0 {
 		return roles, nil
@@ -84,6 +94,20 @@ func (ctx BotContext) GetGuildRoles(guildId uint64) (roles []guild.Role, err err
 	roles, err = rest.GetGuildRoles(ctx.Token, ctx.RateLimiter, guildId)
 	if err == nil {
 		go cache.Instance.StoreRoles(roles, guildId)
+	}
+
+	return
+}
+
+func (ctx BotContext) SearchMembers(guildId uint64, query string) (members []member.Member, err error) {
+	data := rest.SearchGuildMembersData{
+		Query: query,
+		Limit: 100,
+	}
+
+	members, err = rest.SearchGuildMembers(ctx.Token, ctx.RateLimiter, guildId, data)
+	if err == nil {
+		go cache.Instance.StoreMembers(members, guildId)
 	}
 
 	return

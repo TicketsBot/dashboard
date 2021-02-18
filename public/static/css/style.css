@@ -2,7 +2,6 @@
 
 body, h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6, p, .navbar, .brand, .btn-simple, .alert, a, .td-name, td, button.close {
     font-family: 'Noto Sans', sans-serif !important;
-
     font-weight: 400 !important;
 }
 
@@ -102,7 +101,6 @@ html > ::-webkit-scrollbar {
 }
 
 .table td, .table th {
-    text-align: center;
 }
 
 .close-container {
@@ -309,7 +307,6 @@ html > ::-webkit-scrollbar {
 
 .flex-container {
     display: flex;
-    height: 100%;
     width: 100%;
 }
 
@@ -331,14 +328,17 @@ html > ::-webkit-scrollbar {
 .tcontent-container {
     display: flex;
     justify-content: center;
-    height: 100%;
     width: 100%;
+}
+
+.tcontent-container {
+    display: none;
 }
 
 .team-card-container {
     display: flex;
-    margin-top: 4%;
-    height: 50%;
+    margin: 4% 0;
+    min-height: 50%;
     width: 80%;
 }
 
@@ -346,7 +346,6 @@ html > ::-webkit-scrollbar {
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
-    height: 100%;
     width: 100%;
 
     background-color: #272727 !important;
@@ -371,7 +370,7 @@ html > ::-webkit-scrollbar {
 .tcard-body {
     display: flex;
     flex-direction: column;
-    margin: 2%;
+    padding: 2%;
     flex: 1;
     width: 100%;
     color: white;
@@ -380,7 +379,120 @@ html > ::-webkit-scrollbar {
 .flex-center {
     display: flex;
     width: 100%;
-    height: 100%;
     flex-direction: column;
     align-items: center;
+}
+
+.columns {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.column {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.team-item {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    color: white !important;
+}
+
+.add-search {
+    height: 100% !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.add-search-btn {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.inline {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+}
+
+.trow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.search-dropdown, .search-dropdown:active, .search-dropdown:focus {
+    width: 100%;
+
+    background-color: #2e3136;
+
+    border-top: 1px solid rgba(0,0,0,.125);
+    border-left-color: #2e3136 !important;
+    border-right-color: #2e3136 !important;
+    border-bottom-color: #2e3136 !important;
+    border-radius: 0 !important;
+
+    scrollbar-color: dark;
+    outline: none;
+    overflow: auto;
+}
+
+.search-dropdown-item {
+    font-size: 16px;
+    color: white;
+    padding-left: 12px;
+}
+
+.search-dropdown-item:active, .search-dropdown-item::selection {
+    background-color: #272727;
+}
+
+.add-button {
+    width: 100%;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.25);
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+
+#user-dropdown-wrapper, #role-dropdown-wrapper {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.float-right {
+    float: right;
+}
+
+.team-creation-form {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+}
+
+.team-creation-name {
+    display: flex;
+    width: 80% !important;
+    max-width: 320px;
+    height: 100% !important;
+}
+
+.delete-team-icon {
+    float: right;
+    cursor: pointer;
+    vertical-align: center;
+}
+
+#notificationmodal {
+    z-index: 10000 !important;
 }

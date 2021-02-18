@@ -2,20 +2,12 @@ package utils
 
 import (
 	"github.com/rxdn/gdl/objects/channel/message"
-	"reflect"
 )
 
-func Contains(s interface{}, elem interface{}) bool {
-	arrV := reflect.ValueOf(s)
-
-	if arrV.Kind() == reflect.Slice {
-		for i := 0; i < arrV.Len(); i++ {
-
-			// XXX - panics if slice element points to an unexported struct field
-			// see https://golang.org/pkg/reflect/#Value.Interface
-			if arrV.Index(i).Interface() == elem {
-				return true
-			}
+func ContainsString(slice []string, target string) bool {
+	for _, elem := range slice {
+		if elem == target {
+			return true
 		}
 	}
 

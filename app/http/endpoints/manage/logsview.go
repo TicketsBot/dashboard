@@ -61,7 +61,7 @@ func LogViewHandler(ctx *gin.Context) {
 		// Verify the user has permissions to be here
 		permLevel, err := utils.GetPermissionLevel(guildId, userId)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorToResponse(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 

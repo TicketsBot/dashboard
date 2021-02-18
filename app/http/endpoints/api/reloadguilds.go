@@ -16,14 +16,14 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 	key := fmt.Sprintf("tickets:dashboard:guildreload:%d", userId)
 	res, err := messagequeue.Client.SetNX(key, 1, time.Second*10).Result()
 	if err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	if !res {
 		ttl, err := messagequeue.Client.TTL(key).Result()
 		if err != nil {
-			ctx.JSON(500, utils.ErrorToResponse(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
@@ -66,7 +66,7 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 	}
 
 	if err := utils.LoadGuilds(accessToken, userId); err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
