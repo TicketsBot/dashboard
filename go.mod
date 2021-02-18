@@ -6,8 +6,8 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
 	github.com/TicketsBot/common v0.0.0-20210118172556-0b20b84f7df4
-	github.com/TicketsBot/database v0.0.0-20210218163040-99158e109ab9
-	github.com/TicketsBot/worker v0.0.0-20210207182653-fabef254ea30
+	github.com/TicketsBot/database v0.0.0-20210218165651-c8f3da250986
+	github.com/TicketsBot/worker v0.0.0-20210218173425-59d17bbddc23
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
