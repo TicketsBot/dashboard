@@ -26,12 +26,12 @@ function appendTd(tr, content) {
     return td
 }
 
-function appendButton(tr, content, onclick) {
+function appendButton(tr, content, onclick, ...classList) {
     const tdRemove = document.createElement('td');
     const btn = document.createElement('button');
 
     btn.type = 'submit';
-    btn.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
+    btn.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto', ...classList);
     btn.appendChild(document.createTextNode(content));
     btn.onclick = onclick;
 
@@ -58,4 +58,10 @@ function prependChild(parent, child) {
     } else {
         parent.insertBefore(child, parent.children[0]);
     }
+}
+
+function createElement(tag, ...classList) {
+    const el = document.createElement(tag);
+    el.classList.add(...classList);
+    return el;
 }

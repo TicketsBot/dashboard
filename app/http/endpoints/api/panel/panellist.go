@@ -2,28 +2,31 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/database"
+	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 	"strconv"
 )
 
-type panel struct {
-	ChannelId      uint64   `json:"channel_id,string"`
-	MessageId      uint64   `json:"message_id,string"`
-	Title          string   `json:"title"`
-	Content        string   `json:"content"`
-	Colour         uint32   `json:"colour"`
-	CategoryId     uint64   `json:"category_id,string"`
-	Emote          string   `json:"emote"`
-	WelcomeMessage *string  `json:"welcome_message"`
-	Mentions       []string `json:"mentions"`
-}
-
 func ListPanels(ctx *gin.Context) {
+	type panelResponse struct {
+		ChannelId       uint64                 `json:"channel_id,string"`
+		MessageId       uint64                 `json:"message_id,string"`
+		Title           string                 `json:"title"`
+		Content         string                 `json:"content"`
+		Colour          uint32                 `json:"colour"`
+		CategoryId      uint64                 `json:"category_id,string"`
+		Emote           string                 `json:"emote"`
+		WelcomeMessage  *string                `json:"welcome_message"`
+		Mentions        []string               `json:"mentions"`
+		WithDefaultTeam bool                   `json:"default_team"`
+		Teams           []database.SupportTeam `json:"teams"`
+	}
+
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	panels, err := database.Client.Panel.GetByGuild(guildId)
+	panels, err := dbclient.Client.Panel.GetByGuild(guildId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
@@ -32,7 +35,7 @@ func ListPanels(ctx *gin.Context) {
 		return
 	}
 
-	wrapped := make([]panel, len(panels))
+	wrapped := make([]panelResponse, len(panels))
 
 	// we will need to lookup role mentions
 	group, _ := errgroup.WithContext(context.Background())
@@ -45,7 +48,7 @@ func ListPanels(ctx *gin.Context) {
 			var mentions []string
 
 			// get role mentions
-			roles, err := database.Client.PanelRoleMentions.GetRoles(p.MessageId)
+			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(p.MessageId)
 			if err != nil {
 				return err
 			}
@@ -56,7 +59,7 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			// get if we should mention the ticket opener
-			shouldMention, err := database.Client.PanelUserMention.ShouldMentionUser(p.MessageId)
+			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(p.MessageId)
 			if err != nil {
 				return err
 			}
@@ -65,16 +68,23 @@ func ListPanels(ctx *gin.Context) {
 				mentions = append(mentions, "user")
 			}
 
-			wrapped[i] = panel{
-				MessageId:      p.MessageId,
-				ChannelId:      p.ChannelId,
-				Title:          p.Title,
-				Content:        p.Content,
-				Colour:         uint32(p.Colour),
-				CategoryId:     p.TargetCategory,
-				Emote:          p.ReactionEmote,
-				WelcomeMessage: p.WelcomeMessage,
-				Mentions:       mentions,
+			teams, err := dbclient.Client.PanelTeams.GetTeams(p.MessageId)
+			if err != nil {
+				return err
+			}
+
+			wrapped[i] = panelResponse{
+				MessageId:       p.MessageId,
+				ChannelId:       p.ChannelId,
+				Title:           p.Title,
+				Content:         p.Content,
+				Colour:          uint32(p.Colour),
+				CategoryId:      p.TargetCategory,
+				Emote:           p.ReactionEmote,
+				WelcomeMessage:  p.WelcomeMessage,
+				Mentions:        mentions,
+				WithDefaultTeam: p.WithDefaultTeam,
+				Teams:           teams,
 			}
 
 			return nil
@@ -84,7 +94,7 @@ func ListPanels(ctx *gin.Context) {
 	if err := group.Wait(); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}

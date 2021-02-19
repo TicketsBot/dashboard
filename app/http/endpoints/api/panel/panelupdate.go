@@ -22,20 +22,20 @@ func UpdatePanel(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	var data panel
+	var data panelBody
 
 	if err := ctx.BindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(400, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	messageId, err := strconv.ParseUint(ctx.Param("message"), 10, 64)
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
 		return
 	}
 
@@ -44,7 +44,7 @@ func UpdatePanel(ctx *gin.Context) {
 	// get existing
 	existing, err := dbclient.Client.Panel.Get(data.MessageId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -65,7 +65,7 @@ func UpdatePanel(ctx *gin.Context) {
 	// first, get any multipanels this panel belongs to
 	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.MessageId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -103,13 +103,13 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 
 		if err := group.Wait(); err != nil {
-			ctx.JSON(500, utils.ErrorToResponse(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 	}
 
 	if wouldHaveDuplicateEmote {
-		ctx.JSON(400, utils.ErrorToResponse(errors.New("Changing the reaction emote to this value would cause a conflict in a multi-panel")))
+		ctx.JSON(400, utils.ErrorJson(errors.New("Changing the reaction emote to this value would cause a conflict in a multi-panel")))
 		return
 	}
 
@@ -144,7 +144,7 @@ func UpdatePanel(ctx *gin.Context) {
 				})
 			} else {
 				// TODO: Most appropriate error?
-				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 			}
 
 			return
@@ -160,7 +160,7 @@ func UpdatePanel(ctx *gin.Context) {
 				})
 			} else {
 				// TODO: Most appropriate error?
-				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 			}
 
 			return
@@ -178,23 +178,24 @@ func UpdatePanel(ctx *gin.Context) {
 		TargetCategory: data.CategoryId,
 		ReactionEmote:  emoji,
 		WelcomeMessage: data.WelcomeMessage,
+		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
 	}
 
 	if err = dbclient.Client.Panel.Update(messageId, panel); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// insert role mention data
 	// delete old data
 	if err = dbclient.Client.PanelRoleMentions.DeleteAll(newMessageId); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// TODO: Reduce to 1 query
 	if err = dbclient.Client.PanelUserMention.Set(newMessageId, false); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -202,13 +203,13 @@ func UpdatePanel(ctx *gin.Context) {
 	for _, mention := range data.Mentions {
 		if mention == "user" {
 			if err = dbclient.Client.PanelUserMention.Set(newMessageId, true); err != nil {
-				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 				return
 			}
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
-				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 				return
 			}
 
@@ -216,10 +217,24 @@ func UpdatePanel(ctx *gin.Context) {
 			// not too much of an issue if it isnt
 
 			if err = dbclient.Client.PanelRoleMentions.Add(newMessageId, roleId); err != nil {
-				ctx.AbortWithStatusJSON(500, utils.ErrorToResponse(err))
+				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 				return
 			}
 		}
+	}
+
+	// insert support teams
+	// TODO: Stop race conditions - 1 transaction
+	// delete teams
+	if err := dbclient.Client.PanelTeams.DeleteAll(newMessageId); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	// insert new
+	if responseCode, err := insertTeams(guildId, newMessageId, data.Teams); err != nil {
+		ctx.JSON(responseCode, utils.ErrorJson(err))
+		return
 	}
 
 	ctx.JSON(200, gin.H{

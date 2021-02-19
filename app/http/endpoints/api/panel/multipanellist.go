@@ -19,7 +19,7 @@ func MultiPanelList(ctx *gin.Context) {
 
 	multiPanels, err := dbclient.Client.MultiPanels.GetByGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -45,7 +45,7 @@ func MultiPanelList(ctx *gin.Context) {
 	}
 
 	if err := group.Wait(); err != nil {
-		ctx.JSON(500, utils.ErrorToResponse(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

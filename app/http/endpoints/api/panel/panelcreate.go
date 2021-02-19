@@ -1,7 +1,9 @@
 package api
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -15,13 +17,28 @@ import (
 	"github.com/rxdn/gdl/objects/channel/message"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
+	"golang.org/x/sync/errgroup"
 	"strconv"
 	"strings"
 )
 
 const freePanelLimit = 3
 
+type panelBody struct {
+	ChannelId       uint64   `json:"channel_id,string"`
+	MessageId       uint64   `json:"message_id,string"`
+	Title           string   `json:"title"`
+	Content         string   `json:"content"`
+	Colour          uint32   `json:"colour"`
+	CategoryId      uint64   `json:"category_id,string"`
+	Emote           string   `json:"emote"`
+	WelcomeMessage  *string  `json:"welcome_message"`
+	Mentions        []string `json:"mentions"`
+	Teams           []string `json:"teams"`
+}
+
 func CreatePanel(ctx *gin.Context) {
+
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
@@ -33,7 +50,7 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
-	var data panel
+	var data panelBody
 
 	if err := ctx.BindJSON(&data); err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
@@ -111,15 +128,16 @@ func CreatePanel(ctx *gin.Context) {
 
 	// Store in DB
 	panel := database.Panel{
-		MessageId:      msgId,
-		ChannelId:      data.ChannelId,
-		GuildId:        guildId,
-		Title:          data.Title,
-		Content:        data.Content,
-		Colour:         int32(data.Colour),
-		TargetCategory: data.CategoryId,
-		ReactionEmote:  emoji,
-		WelcomeMessage: data.WelcomeMessage,
+		MessageId:       msgId,
+		ChannelId:       data.ChannelId,
+		GuildId:         guildId,
+		Title:           data.Title,
+		Content:         data.Content,
+		Colour:          int32(data.Colour),
+		TargetCategory:  data.CategoryId,
+		ReactionEmote:   emoji,
+		WelcomeMessage:  data.WelcomeMessage,
+		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
 	}
 
 	if err = dbclient.Client.Panel.Create(panel); err != nil {
@@ -164,13 +182,50 @@ func CreatePanel(ctx *gin.Context) {
 		}
 	}
 
+	if responseCode, err := insertTeams(guildId, msgId, data.Teams); err != nil {
+		ctx.JSON(responseCode, utils.ErrorJson(err))
+		return
+	}
+
 	ctx.JSON(200, gin.H{
 		"success":    true,
 		"message_id": strconv.FormatUint(msgId, 10),
 	})
 }
 
-func (p *panel) doValidations(ctx *gin.Context, guildId uint64) bool {
+// returns (response_code, error)
+func insertTeams(guildId, panelMessageId uint64, teamIds []string) (int, error) {
+	// insert teams
+	group, _ := errgroup.WithContext(context.Background())
+	for _, teamId := range teamIds {
+		if teamId == "default" {
+			continue // already handled
+		}
+
+		teamId, err := strconv.Atoi(teamId)
+		if err != nil {
+			return 400, err
+		}
+
+		group.Go(func() error {
+			// ensure team exists
+			exists, err := dbclient.Client.SupportTeam.Exists(teamId, guildId)
+			if err != nil {
+				return err
+			}
+
+			if !exists {
+				return fmt.Errorf("team with id %d not found", teamId)
+			}
+
+			return dbclient.Client.PanelTeams.Add(panelMessageId, teamId)
+		})
+	}
+
+	return 500, group.Wait()
+}
+
+func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	if !p.verifyTitle() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
@@ -225,22 +280,22 @@ func (p *panel) doValidations(ctx *gin.Context, guildId uint64) bool {
 	return true
 }
 
-func (p *panel) verifyTitle() bool {
+func (p *panelBody) verifyTitle() bool {
 	return len(p.Title) > 0 && len(p.Title) < 256
 }
 
-func (p *panel) verifyContent() bool {
+func (p *panelBody) verifyContent() bool {
 	return len(p.Content) > 0 && len(p.Content) < 1025
 }
 
-func (p *panel) getEmoji() (emoji string, ok bool) {
+func (p *panelBody) getEmoji() (emoji string, ok bool) {
 	p.Emote = strings.Replace(p.Emote, ":", "", -1)
 
 	emoji, ok = utils.GetEmoji(p.Emote)
 	return
 }
 
-func (p *panel) verifyChannel(channels []channel.Channel) bool {
+func (p *panelBody) verifyChannel(channels []channel.Channel) bool {
 	var valid bool
 	for _, ch := range channels {
 		if ch.Id == p.ChannelId && ch.Type == channel.ChannelTypeGuildText {
@@ -252,7 +307,7 @@ func (p *panel) verifyChannel(channels []channel.Channel) bool {
 	return valid
 }
 
-func (p *panel) verifyCategory(channels []channel.Channel) bool {
+func (p *panelBody) verifyCategory(channels []channel.Channel) bool {
 	var valid bool
 	for _, ch := range channels {
 		if ch.Id == p.CategoryId && ch.Type == channel.ChannelTypeGuildCategory {
@@ -264,11 +319,11 @@ func (p *panel) verifyCategory(channels []channel.Channel) bool {
 	return valid
 }
 
-func (p *panel) verifyWelcomeMessage() bool {
+func (p *panelBody) verifyWelcomeMessage() bool {
 	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) < 1025)
 }
 
-func (p *panel) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messageId uint64, err error) {
+func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messageId uint64, err error) {
 	e := embed.NewEmbed().
 		SetTitle(p.Title).
 		SetDescription(p.Content).

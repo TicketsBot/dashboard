@@ -9,6 +9,7 @@ import (
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
+	api_team "github.com/TicketsBot/GoPanel/app/http/endpoints/api/team"
 	api_ticket "github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket"
 	api_whitelabel "github.com/TicketsBot/GoPanel/app/http/endpoints/api/whitelabel"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
@@ -89,6 +90,7 @@ func StartServer() {
 		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
 		guildAuthApiSupport.GET("/user/:user", api.UserHandler)
 		guildAuthApiSupport.GET("/roles", api.RolesHandler)
+		guildAuthApiSupport.GET("/members/search", createLimiter(10, time.Second * 30), createLimiter(75, time.Minute * 30), api.SearchMembers)
 
 		guildAuthApiAdmin.GET("/settings", api_settings.GetSettingsHandler)
 		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)
@@ -123,6 +125,13 @@ func StartServer() {
 
 		guildAuthApiAdmin.GET("/autoclose", api_autoclose.GetAutoClose)
 		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
+
+		guildAuthApiAdmin.GET("/team", api_team.GetTeams)
+		guildAuthApiAdmin.GET("/team/:teamid", createLimiter(5, time.Second * 15), api_team.GetMembers)
+		guildAuthApiAdmin.POST("/team", createLimiter(10, time.Minute), api_team.CreateTeam)
+		guildAuthApiAdmin.PUT("/team/:teamid/:snowflake", createLimiter(5, time.Second * 10), api_team.AddMember)
+		guildAuthApiAdmin.DELETE("/team/:teamid", api_team.DeleteTeam)
+		guildAuthApiAdmin.DELETE("/team/:teamid/:snowflake", createLimiter(30, time.Minute), api_team.RemoveMember)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)

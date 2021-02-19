@@ -1,5 +1,5 @@
 function showLoadingScreen() {
-    const content = document.getElementsByClassName('content')[0];
+    const content = document.getElementsByClassName('content')[0] || document.getElementsByClassName('tcontent-container')[0];
     content.style.display = 'none';
     document.getElementById('loading-container').style.display = 'block';
 }
@@ -7,8 +7,13 @@ function showLoadingScreen() {
 function hideLoadingScreen() {
     document.getElementById('loading-container').style.display = 'none';
 
-    const content = document.getElementsByClassName('content')[0];
-    content.style.display = 'block';
+    const content = document.getElementsByClassName('content')[0] || document.getElementsByClassName('tcontent-container')[0];
+    if (content.classList.contains('tcontent-container')) {
+        content.style.display = 'flex';
+    } else {
+        content.style.display = 'block';
+    }
+
     content.classList.add('fade-in');
 }
 

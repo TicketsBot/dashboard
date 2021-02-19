@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ErrorToResponse(err error) map[string]interface{} {
+func ErrorJson(err error) map[string]interface{} {
 	return ErrorStr(err.Error())
 }
 

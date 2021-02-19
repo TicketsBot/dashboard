@@ -82,10 +82,17 @@
                     </div>
                   </div>
                   <div class="row">
-                    <div class="col-md-12 pr-1">
+                    <div class="col-md-6 pr-1">
                       <div class="form-group">
                         <label class="black">Mention On Open</label>
                         <select class="selectpicker form-control" id="edit-mentions" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6 pr-1">
+                      <div class="form-group">
+                        <label class="black">Support Teams</label>
+                        <select class="selectpicker form-control" id="edit-teams" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
                         </select>
                       </div>
                     </div>
@@ -150,10 +157,12 @@
           fillChannels('edit-channel-container', channels);
           fillCategories('edit-category-container', channels);
           await fillMentions('edit-mentions');
+          await fillTeams('edit-teams');
 
           setActiveChannel('edit-channel-container', panel.channel_id);
           setActiveCategory(panel);
           setActiveMentions(panel);
+          setActiveTeams(panel);
       }
 
       function setActiveCategory(panel) {
@@ -172,6 +181,21 @@
           }
       }
 
+      function setActiveTeams(panel) {
+          const values = [];
+          if (panel['default_team']) {
+              values.push('default');
+              $('#edit-teams').selectpicker('val', 'default');
+          }
+
+          if (panel.teams) {
+              values.push(...panel.teams.map((t) => t.id));
+          }
+
+
+          $('#edit-teams').selectpicker('val', values);
+      }
+
       async function updatePanel() {
           const messageId = document.getElementById('edit-message-id').value;
           const title = document.getElementById('edit-title').value;
@@ -188,7 +212,8 @@
               channel_id: document.getElementById('edit-channel-container').options[document.getElementById('edit-channel-container').selectedIndex].value,
               category_id: document.getElementById('edit-category-container').options[document.getElementById('edit-category-container').selectedIndex].value,
               welcome_message: welcomeMessage === '' ? null : welcomeMessage,
-              mentions: $('#edit-mentions').val()
+              mentions: $('#edit-mentions').val(),
+              teams: $('#edit-teams').val()
           };
 
           const res = await axios.put('/api/{{.guildId}}/panels/' + messageId, data);

@@ -124,7 +124,7 @@
                   <div class="collapse" id="advanced" style="width: 100%">
                     <div class="container-fluid">
                       <div class="row">
-                        <div class="col-md-6 pr-1">
+                        <div class="col-md-12 pr-1">
                           <div class="form-group">
                             <label class="black">Welcome Message
                               <i class="fas fa-question pointer" onclick="showSubstitutionModal()"></i>
@@ -132,11 +132,19 @@
                             <textarea type="text" class="form-control" placeholder="If not provided, your server's default welcome message will be used" id="welcome_message"></textarea>
                           </div>
                         </div>
-
+                      </div>
+                      <div class="row">
                         <div class="col-md-6 pr-1">
                           <div class="form-group">
                             <label class="black" for="mentions">Mention On Open</label>
                             <select class="selectpicker form-control" id="mentions" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
+                            </select>
+                          </div>
+                        </div>
+                        <div class="col-md-6 pr-1">
+                          <div class="form-group">
+                            <label class="black" for="teams">Support Teams</label>
+                            <select class="selectpicker form-control" id="teams" multiple data-live-search="true" data-dropup-auto="false" data-size="5" data-display="static">
                             </select>
                           </div>
                         </div>
@@ -287,7 +295,8 @@
               channel_id: document.getElementById('channel-container').options[document.getElementById('channel-container').selectedIndex].value,
               category_id: document.getElementById('category-container').options[document.getElementById('category-container').selectedIndex].value,
               welcome_message: welcomeMessage === '' ? null : welcomeMessage,
-              mentions: $('#mentions').val()
+              mentions: $('#mentions').val(),
+              teams: $('#teams').val()
           };
 
           const res = await axios.put('/api/{{.guildId}}/panels', data);
@@ -476,6 +485,7 @@
 
       async function fillMentions(elementId) {
           const select = document.getElementById(elementId);
+          select.innerHTML = '';
 
           // ticket opener
           const ticketOpener = document.createElement('option');
@@ -502,6 +512,33 @@
           $(`#${elementId}`).selectpicker('refresh');
       }
 
+      async function fillTeams(elementId) {
+          const select = document.getElementById(elementId);
+          select.innerHTML = '';
+
+          const defaultTeam = createElement('option');
+          defaultTeam.value = 'default';
+          defaultTeam.appendChild(document.createTextNode('Default'));
+          select.appendChild(defaultTeam);
+
+          const res = await axios.get('/api/{{.guildId}}/team');
+          if (res.status !== 200) {
+              notifyError(res.data);
+              return;
+          }
+
+          if (res.data) {
+              for (const team of res.data) {
+                  const option = document.createElement('option');
+                  option.value = team.id;
+                  option.appendChild(document.createTextNode(team.name));
+                  select.appendChild(option);
+              }
+          }
+
+          $(`#${elementId}`).selectpicker('refresh');
+      }
+
       async function loadData() {
           const channels = await getChannels();
           const panelCount = await fillPanels(channels);
@@ -513,6 +550,9 @@
           fillChannels('multi-channel-container', channels);
           fillCategories('category-container', channels);
           await fillMentions('mentions');
+
+          await fillTeams('teams');
+          $(`#teams`).selectpicker('val', 'default');
       }
 
       withLoadingScreen(loadData);

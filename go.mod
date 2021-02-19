@@ -6,8 +6,8 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
 	github.com/TicketsBot/common v0.0.0-20210118172556-0b20b84f7df4
-	github.com/TicketsBot/database v0.0.0-20210215164209-6ec5ebcbc399
-	github.com/TicketsBot/worker v0.0.0-20210207182653-fabef254ea30
+	github.com/TicketsBot/database v0.0.0-20210218192130-e0cb2d3ebd26
+	github.com/TicketsBot/worker v0.0.0-20210218173425-59d17bbddc23
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -21,7 +21,7 @@ require (
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20210213145645-ea1107cdc3e1
+	github.com/rxdn/gdl v0.0.0-20210218195151-aa9dd0d1fa53
 	github.com/sirupsen/logrus v1.5.0
 	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
