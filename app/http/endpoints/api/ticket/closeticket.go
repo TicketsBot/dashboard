@@ -3,6 +3,8 @@ package api
 import (
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/closerelay"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -24,8 +26,8 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	var data closeBody
-	if err := ctx.BindJSON(&data); err != nil {
+	var body closeBody
+	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": true,
 			"error":   "Missing reason",
@@ -60,9 +62,17 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	go messagequeue.Client.PublishTicketClose(guildId, ticket.Id, userId, data.Reason)
+	data := closerelay.TicketClose{
+		GuildId:  guildId,
+		TicketId: ticket.Id,
+		UserId:   userId,
+		Reason:   body.Reason,
+	}
 
-	ctx.JSON(200, gin.H{
-		"success": true,
-	})
+	if err := closerelay.Publish(messagequeue.Client.Client, data); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	ctx.JSON(200, utils.SuccessResponse)
 }
