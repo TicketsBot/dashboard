@@ -54,14 +54,6 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	if ticket.GuildId != guildId {
-		ctx.AbortWithStatusJSON(403, gin.H{
-			"success": true,
-			"error":   "Guild ID does not matched",
-		})
-		return
-	}
-
 	data := closerelay.TicketClose{
 		GuildId:  guildId,
 		TicketId: ticket.Id,
