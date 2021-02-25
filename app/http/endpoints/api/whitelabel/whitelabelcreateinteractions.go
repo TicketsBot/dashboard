@@ -78,7 +78,7 @@ func WhitelabelCreateInteractions(ctx *gin.Context) {
 	for _, cmd := range command.Commands {
 		properties := cmd.Properties()
 
-		if properties.MessageOnly || properties.AdminOnly || properties.HelperOnly {
+		if properties.MessageOnly || properties.AdminOnly || properties.HelperOnly || properties.MainBotOnly {
 			continue
 		}
 

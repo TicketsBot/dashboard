@@ -4,10 +4,10 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/TicketsBot/archiverclient v0.0.0-20200704164621-09d42dd941e0
-	github.com/TicketsBot/common v0.0.0-20210118172556-0b20b84f7df4
-	github.com/TicketsBot/database v0.0.0-20210218192130-e0cb2d3ebd26
-	github.com/TicketsBot/worker v0.0.0-20210218173425-59d17bbddc23
+	github.com/TicketsBot/archiverclient v0.0.0-20210220155137-a562b2f1bbbb
+	github.com/TicketsBot/common v0.0.0-20210224150303-f1fc5a6a0627
+	github.com/TicketsBot/database v0.0.0-20210225212136-5ca68d2ef59f
+	github.com/TicketsBot/worker v0.0.0-20210225221326-c08d193dcd5b
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
