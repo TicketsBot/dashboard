@@ -43,10 +43,12 @@ function addRefreshInterceptor() {
         if (res.status === 401) {
             await _refreshToken();
         }
+        return res;
     }, async (err) => {
         if (err.response.status === 401) {
             await _refreshToken();
         }
+        return err.response;
     });
 }
 
