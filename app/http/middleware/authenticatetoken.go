@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -20,38 +21,26 @@ func AuthenticateToken(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(403, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+		ctx.AbortWithStatusJSON(401, utils.ErrorJson(err))
 		return
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		userId, hasUserId := claims["userid"]
 		if !hasUserId {
-			ctx.AbortWithStatusJSON(403, gin.H{
-				"success": false,
-				"error": "Token is invalid",
-			})
+			ctx.AbortWithStatusJSON(401, utils.ErrorStr("Token is invalid"))
 			return
 		}
 
 		parsedId, err := strconv.ParseUint(userId.(string), 10, 64)
 		if err != nil {
-			ctx.AbortWithStatusJSON(403, gin.H{
-				"success": false,
-				"error": "Token is invalid",
-			})
+			ctx.AbortWithStatusJSON(401, utils.ErrorStr("Token is invalid"))
 			return
 		}
 
 		ctx.Keys["userid"] = parsedId
 	} else {
-		ctx.AbortWithStatusJSON(403, gin.H{
-			"success": false,
-			"error": "Token is invalid",
-		})
+		ctx.AbortWithStatusJSON(401, utils.ErrorStr("Token is invalid"))
 		return
 	}
 }

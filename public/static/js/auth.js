@@ -1,5 +1,7 @@
+const _tokenKey = 'token';
+
 async function getToken() {
-    let token = window.localStorage.getItem('token');
+    let token = window.localStorage.getItem(_tokenKey);
     if (token == null) {
         let res = await axios.post('/token', undefined, {
             withCredentials: true,
@@ -15,7 +17,7 @@ async function getToken() {
         }
 
         token = res.data.token;
-        localStorage.setItem('token', token);
+        localStorage.setItem(_tokenKey, token);
     }
 
     return token;
@@ -26,10 +28,27 @@ function clearLocalStorage() {
 }
 
 async function setDefaultHeader() {
-    const token = await getToken();
-    axios.defaults.headers.common['Authorization'] = token;
-    axios.defaults.headers.common['x-tickets'] = 'true'; // abritrary header name and value
+    axios.defaults.headers.common['Authorization'] = await getToken();
+    axios.defaults.headers.common['x-tickets'] = 'true'; // arbitrary header name and value
     axios.defaults.validateStatus = false;
 }
 
+async function _refreshToken() {
+    window.localStorage.removeItem(_tokenKey);
+    await getToken();
+}
+
+function addRefreshInterceptor() {
+    axios.interceptors.response.use(async (res) => { // we set validateStatus to false
+        if (res.status === 401) {
+            await _refreshToken();
+        }
+    }, async (err) => {
+        if (err.response.status === 401) {
+            await _refreshToken();
+        }
+    });
+}
+
 setDefaultHeader();
+addRefreshInterceptor();

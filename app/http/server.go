@@ -60,7 +60,7 @@ func StartServer() {
 
 	authorized := router.Group("/", middleware.AuthenticateCookie)
 	{
-		authorized.POST("/token", middleware.VerifyXTicketsHeader, api.TokenHandler)
+		authorized.POST("/token", createLimiter(2, 10 * time.Second), middleware.VerifyXTicketsHeader, api.TokenHandler)
 
 		authenticateGuildAdmin := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Admin))
 		authenticateGuildSupport := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Support))
