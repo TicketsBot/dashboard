@@ -208,7 +208,7 @@
               title: title === '' ? 'Open a ticket!' : title,
               content: content === '' ? 'By reacting to this ticket, a message will be opened for you.' : content,
               emote: emote === '' ? 'envelope_with_arrow' : emote,
-              colour: parseInt(`0x${document.getElementById('colour').value.slice(1)}`),
+              colour: parseInt(`0x${document.getElementById('edit-colour').value.slice(1)}`),
               channel_id: document.getElementById('edit-channel-container').options[document.getElementById('edit-channel-container').selectedIndex].value,
               category_id: document.getElementById('edit-category-container').options[document.getElementById('edit-category-container').selectedIndex].value,
               welcome_message: welcomeMessage === '' ? null : welcomeMessage,
