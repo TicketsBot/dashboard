@@ -444,11 +444,11 @@
       async function fillPanels(channels) {
           const res = await axios.get('/api/{{.guildId}}/panels');
           if (res.status !== 200) {
-              notifyError(res.data);
+              notifyError(res.data.error);
               return 0;
           }
 
-          for (const panel of res.data) {
+          for (const panel of res.data.error) {
               appendPanel(panel, channels);
           }
 
@@ -461,7 +461,7 @@
       async function fillMultiPanels() {
           const res = await axios.get('/api/{{.guildId}}/multipanels');
           if (res.status !== 200) {
-              notifyError(res.data);
+              notifyError(res.data.error);
               return;
           }
 
@@ -496,7 +496,7 @@
           // roles
           const res = await axios.get('/api/{{.guildId}}/roles');
           if (res.status !== 200 || !res.data.success) {
-              notifyError(res.data);
+              notifyError(res.data.error);
               return;
           }
 
@@ -523,7 +523,7 @@
 
           const res = await axios.get('/api/{{.guildId}}/team');
           if (res.status !== 200) {
-              notifyError(res.data);
+              notifyError(res.data.error);
               return;
           }
 
