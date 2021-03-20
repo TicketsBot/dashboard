@@ -62,40 +62,34 @@ func GetTicket(ctx *gin.Context) {
 		return
 	}
 
-	if ticket.ChannelId == nil {
-		ctx.AbortWithStatusJSON(404, gin.H{
-			"success": false,
-			"error": "Ticket channel does not exist",
-		})
-		return
-	}
-
-	// Get messages
-	messages, _ := rest.GetChannelMessages(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
-
-	// Format messages, exclude unneeded data
 	messagesFormatted := make([]map[string]interface{}, 0)
-	for _, message := range utils.Reverse(messages) {
-		content := message.Content
+	if ticket.ChannelId != nil {
+		// Get messages
+		messages, _ := rest.GetChannelMessages(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
 
-		// Format mentions properly
-		match := MentionRegex.FindAllStringSubmatch(content, -1)
-		for _, mention := range match {
-			if len(mention) >= 2 {
-				mentionedId, err := strconv.ParseUint(mention[1], 10, 64)
-				if err != nil {
-					continue
+		// Format messages, exclude unneeded data
+		for _, message := range utils.Reverse(messages) {
+			content := message.Content
+
+			// Format mentions properly
+			match := MentionRegex.FindAllStringSubmatch(content, -1)
+			for _, mention := range match {
+				if len(mention) >= 2 {
+					mentionedId, err := strconv.ParseUint(mention[1], 10, 64)
+					if err != nil {
+						continue
+					}
+
+					user, _ := cache.Instance.GetUser(mentionedId)
+					content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", user.Username))
 				}
-
-				user, _ := cache.Instance.GetUser(mentionedId)
-				content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", user.Username))
 			}
-		}
 
-		messagesFormatted = append(messagesFormatted, map[string]interface{}{
-			"username": message.Author.Username,
-			"content":  content,
-		})
+			messagesFormatted = append(messagesFormatted, map[string]interface{}{
+				"username": message.Author.Username,
+				"content":  content,
+			})
+		}
 	}
 
 	ctx.JSON(200, gin.H{
