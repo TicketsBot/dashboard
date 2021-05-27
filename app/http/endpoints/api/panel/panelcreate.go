@@ -174,7 +174,7 @@ func CreatePanel(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success":  true,
-		"panel_id": strconv.Itoa(panelId),
+		"panel_id": panelId,
 	})
 }
 

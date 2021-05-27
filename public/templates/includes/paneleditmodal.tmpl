@@ -98,7 +98,7 @@
                     </div>
                   </div>
 
-                  <input type="hidden" id="edit-message-id">
+                  <input type="hidden" id="edit-panel-id">
                 </div>
               </div>
             </div>
@@ -114,14 +114,14 @@
 
   <script>
       function resetEditModal() {
-          clear('edit-title', 'edit-content', 'edit-message-id', 'edit-reaction', 'edit-welcome-message');
+          clear('edit-title', 'edit-content', 'edit-panel-id', 'edit-reaction', 'edit-welcome-message');
           $('#edit-mentions').selectpicker('deselectAll');
       }
 
       registerHideListener('editmodal');
       $('#editmodal').on('hidden.bs.modal', resetEditModal);
 
-      async function openEditModal(messageId) {
+      async function openEditModal(panelId) {
           resetEditModal();
 
           const res = await axios.get('/api/{{.guildId}}/panels');
@@ -130,7 +130,7 @@
               return;
           }
 
-          const panel = res.data.find(panel => panel.message_id === messageId);
+          const panel = res.data.find(panel => panel.panel_id == panelId);
           if (panel === undefined) {
               showToast('Error', 'Panel not found');
               return;
@@ -143,7 +143,7 @@
       }
 
       async function fillEditData(panel) {
-          document.getElementById('edit-message-id').value = panel.message_id;
+          document.getElementById('edit-panel-id').value = panel.panel_id;
           document.getElementById('edit-title').value = panel.title;
           document.getElementById('edit-content').value = panel.content;
           document.getElementById('edit-colour').value = `#${panel.colour.toString(16)}`;
@@ -192,19 +192,18 @@
               values.push(...panel.teams.map((t) => t.id));
           }
 
-
           $('#edit-teams').selectpicker('val', values);
       }
 
       async function updatePanel() {
-          const messageId = document.getElementById('edit-message-id').value;
+          const panelId = document.getElementById('edit-panel-id').value;
           const title = document.getElementById('edit-title').value;
           const content = document.getElementById('edit-content').value;
           const emote = document.getElementById('edit-reaction').value.replace(':', '');
           const welcomeMessage = document.getElementById('edit-welcome-message').value;
 
           const data = {
-              message_id: messageId,
+              panel_id: panelId,
               title: title === '' ? 'Open a ticket!' : title,
               content: content === '' ? 'By reacting to this ticket, a message will be opened for you.' : content,
               emote: emote === '' ? 'envelope_with_arrow' : emote,
@@ -216,7 +215,7 @@
               teams: $('#edit-teams').val()
           };
 
-          const res = await axios.put('/api/{{.guildId}}/panels/' + messageId, data);
+          const res = await axios.put('/api/{{.guildId}}/panels/' + panelId, data);
           if (res.status === 200 && res.data.success) {
               showToast('Success', 'Panel updated successfully')
               $('#editmodal').modal('hide');
@@ -224,10 +223,9 @@
 
               // remove old data
               // TODO: Don't remove just update, looks cleaner
-              const el = document.getElementById(messageId);
+              const el = document.getElementById(panelId);
               el.parentNode.removeChild(el);
 
-              data.message_id = res.data.message_id;
               appendPanel(data, await getChannels());
           } else {
               showToast('Error', res.data.error);

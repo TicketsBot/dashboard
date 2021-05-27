@@ -33,7 +33,7 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	panelId, err := strconv.Atoi(ctx.Param("id"))
+	panelId, err := strconv.Atoi(ctx.Param("panelid"))
 	if err != nil {
 		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
 		return
@@ -122,14 +122,8 @@ func UpdatePanel(ctx *gin.Context) {
 	newMessageId := existing.MessageId
 
 	if shouldUpdateMessage {
-		// delete old message
-		if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId); err != nil {
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
-			return
-		}
+		// delete old message, ignoring error
+		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
 		premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 		newMessageId, err = data.sendEmbed(&botContext, existing.Title, existing.CustomId, existing.ReactionEmote, premiumTier > premium.None)
@@ -139,22 +133,6 @@ func UpdatePanel(ctx *gin.Context) {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   "I do not have permission to send messages in the specified channel",
-				})
-			} else {
-				// TODO: Most appropriate error?
-				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-			}
-
-			return
-		}
-
-		// Add reaction
-		if err = rest.CreateReaction(botContext.Token, botContext.RateLimiter, data.ChannelId, newMessageId, emoji); err != nil {
-			var unwrapped request.RestError
-			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   "I do not have permission to add reactions in the specified channel",
 				})
 			} else {
 				// TODO: Most appropriate error?
@@ -178,6 +156,7 @@ func UpdatePanel(ctx *gin.Context) {
 		ReactionEmote:   emoji,
 		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
+		CustomId:        existing.CustomId,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {
@@ -237,6 +216,6 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"success":    true,
+		"success": true,
 	})
 }

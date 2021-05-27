@@ -101,8 +101,8 @@ func StartServer() {
 
 		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
 		guildAuthApiAdmin.PUT("/panels", api_panels.CreatePanel)
-		guildAuthApiAdmin.PUT("/panels/:id", api_panels.UpdatePanel)
-		guildAuthApiAdmin.DELETE("/panels/:id", api_panels.DeletePanel)
+		guildAuthApiAdmin.PUT("/panels/:panelid", api_panels.UpdatePanel)
+		guildAuthApiAdmin.DELETE("/panels/:panelid", api_panels.DeletePanel)
 
 		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList)
 		guildAuthApiAdmin.POST("/multipanels", api_panels.MultiPanelCreate)

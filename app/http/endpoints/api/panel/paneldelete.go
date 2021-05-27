@@ -20,7 +20,7 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	panelId, err := strconv.Atoi(ctx.Param("id"))
+	panelId, err := strconv.Atoi(ctx.Param("panelid"))
 	if err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
