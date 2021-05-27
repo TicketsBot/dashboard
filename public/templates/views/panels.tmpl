@@ -255,13 +255,13 @@
           }
       }
 
-      async function deletePanel(messageId) {
-          const res = await axios.delete('/api/{{.guildId}}/panels/' + messageId);
+      async function deletePanel(panelId) {
+          const res = await axios.delete('/api/{{.guildId}}/panels/' + panelId);
 
           if (res.status === 200 && res.data.success) {
               notifySuccess('Panel deleted successfully');
 
-              const el = document.getElementById(messageId);
+              const el = document.getElementById(panelId);
               el.parentNode.removeChild(el);
           } else {
               notifyError(res.data.error);
@@ -301,7 +301,7 @@
 
           const res = await axios.put('/api/{{.guildId}}/panels', data);
           if (res.status === 200 && res.data.success) {
-              data.message_id = res.data.message_id;
+              data.panel_id = res.data.panel_id;
               appendPanel(data, await getChannels());
               notifySuccess('Panel created successfully')
           } else {
@@ -381,7 +381,7 @@
           const container = document.getElementById('panel-container');
 
           const tr = document.createElement('tr');
-          tr.id = panel.message_id; // TODO: When we call this after creating a panel, we don't know the message ID yet
+          tr.id = panel.panel_id;
 
           appendTd(tr, `#${getChannelName(channels, panel.channel_id)}`);
           appendTd(tr, panel.title);
@@ -393,7 +393,7 @@
           editButton.type = 'button';
           editButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
           editButton.appendChild(document.createTextNode('Edit'));
-          editButton.onclick = () => { openEditModal(panel.message_id) };
+          editButton.onclick = () => { openEditModal(panel.panel_id) };
           editTd.appendChild(editButton);
           tr.appendChild(editTd);
 
@@ -403,7 +403,7 @@
           deleteButton.type = 'submit';
           deleteButton.classList.add('btn', 'btn-primary', 'btn-fill', 'mx-auto');
           deleteButton.appendChild(document.createTextNode('Delete'));
-          deleteButton.onclick = () => {deletePanel(panel.message_id)};
+          deleteButton.onclick = () => {deletePanel(panel.panel_id)};
           deleteTd.appendChild(deleteButton);
           tr.appendChild(deleteTd);
 
@@ -475,7 +475,7 @@
 
           for (const panel of panels) {
               const option = document.createElement('option');
-              option.value = panel.message_id;
+              option.value = panel.panel_id;
               option.appendChild(document.createTextNode(panel.title));
               select.appendChild(option);
           }

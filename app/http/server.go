@@ -101,8 +101,8 @@ func StartServer() {
 
 		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
 		guildAuthApiAdmin.PUT("/panels", api_panels.CreatePanel)
-		guildAuthApiAdmin.PUT("/panels/:message", api_panels.UpdatePanel)
-		guildAuthApiAdmin.DELETE("/panels/:message", api_panels.DeletePanel)
+		guildAuthApiAdmin.PUT("/panels/:id", api_panels.UpdatePanel)
+		guildAuthApiAdmin.DELETE("/panels/:id", api_panels.DeletePanel)
 
 		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList)
 		guildAuthApiAdmin.POST("/multipanels", api_panels.MultiPanelCreate)
@@ -149,7 +149,7 @@ func StartServer() {
 			whitelabelApiGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
 			whitelabelApiGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey)
 			whitelabelApiGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
-			whitelabelApiGroup.POST("/create-interactions", api_whitelabel.WhitelabelCreateInteractions)
+			whitelabelApiGroup.POST("/create-interactions", api_whitelabel.GetWhitelabelCreateInteractions())
 
 			whitelabelApiGroup.POST("/", createLimiter(10, time.Minute), api_whitelabel.WhitelabelPost)
 			whitelabelApiGroup.POST("/status", createLimiter(1, time.Second*5), api_whitelabel.WhitelabelStatusPost)

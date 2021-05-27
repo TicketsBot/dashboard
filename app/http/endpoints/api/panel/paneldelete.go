@@ -20,7 +20,7 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	messageId, err := strconv.ParseUint(ctx.Param("message"), 10, 64)
+	panelId, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
@@ -29,7 +29,7 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	panel, err := database.Client.Panel.Get(messageId)
+	panel, err := database.Client.Panel.GetById(panelId)
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
@@ -47,7 +47,7 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	if err :=  database.Client.Panel.Delete(messageId); err != nil {
+	if err :=  database.Client.Panel.Delete(panelId); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
 			"error": err.Error(),

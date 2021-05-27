@@ -11,8 +11,8 @@ import (
 
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
+		PanelId         int                    `json:"panel_id"`
 		ChannelId       uint64                 `json:"channel_id,string"`
-		MessageId       uint64                 `json:"message_id,string"`
 		Title           string                 `json:"title"`
 		Content         string                 `json:"content"`
 		Colour          uint32                 `json:"colour"`
@@ -74,7 +74,7 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			wrapped[i] = panelResponse{
-				MessageId:       p.MessageId,
+				PanelId:         p.PanelId,
 				ChannelId:       p.ChannelId,
 				Title:           p.Title,
 				Content:         p.Content,

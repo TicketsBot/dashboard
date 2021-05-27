@@ -33,16 +33,14 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	messageId, err := strconv.ParseUint(ctx.Param("message"), 10, 64)
+	panelId, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
 		return
 	}
 
-	data.MessageId = messageId
-
 	// get existing
-	existing, err := dbclient.Client.Panel.Get(data.MessageId)
+	existing, err := dbclient.Client.Panel.GetById(panelId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
@@ -121,7 +119,7 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.ReactionEmote != data.Emote
 
 	emoji, _ := data.getEmoji() // already validated
-	newMessageId := messageId
+	newMessageId := existing.MessageId
 
 	if shouldUpdateMessage {
 		// delete old message
@@ -134,10 +132,10 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 
 		premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
-		newMessageId, err = data.sendEmbed(&botContext, premiumTier > premium.None)
+		newMessageId, err = data.sendEmbed(&botContext, existing.Title, existing.CustomId, existing.ReactionEmote, premiumTier > premium.None)
 		if err != nil {
 			var unwrapped request.RestError
-			if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
+			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   "I do not have permission to send messages in the specified channel",
@@ -153,7 +151,7 @@ func UpdatePanel(ctx *gin.Context) {
 		// Add reaction
 		if err = rest.CreateReaction(botContext.Token, botContext.RateLimiter, data.ChannelId, newMessageId, emoji); err != nil {
 			var unwrapped request.RestError
-			if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
+			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   "I do not have permission to add reactions in the specified channel",
@@ -169,19 +167,20 @@ func UpdatePanel(ctx *gin.Context) {
 
 	// Store in DB
 	panel := database.Panel{
-		MessageId:      newMessageId,
-		ChannelId:      data.ChannelId,
-		GuildId:        guildId,
-		Title:          data.Title,
-		Content:        data.Content,
-		Colour:         int32(data.Colour),
-		TargetCategory: data.CategoryId,
-		ReactionEmote:  emoji,
-		WelcomeMessage: data.WelcomeMessage,
+		PanelId:         panelId,
+		MessageId:       newMessageId,
+		ChannelId:       data.ChannelId,
+		GuildId:         guildId,
+		Title:           data.Title,
+		Content:         data.Content,
+		Colour:          int32(data.Colour),
+		TargetCategory:  data.CategoryId,
+		ReactionEmote:   emoji,
+		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
 	}
 
-	if err = dbclient.Client.Panel.Update(messageId, panel); err != nil {
+	if err = dbclient.Client.Panel.Update(panel); err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
@@ -239,6 +238,5 @@ func UpdatePanel(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success":    true,
-		"message_id": strconv.FormatUint(newMessageId, 10),
 	})
 }

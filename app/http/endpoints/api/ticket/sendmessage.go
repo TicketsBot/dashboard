@@ -116,7 +116,7 @@ func SendMessage(ctx *gin.Context) {
 		if err != nil {
 			// We can delete the webhook in this case
 			var unwrapped request.RestError
-			if errors.As(err, &unwrapped); unwrapped.ErrorCode == 403 || unwrapped.ErrorCode == 404 {
+			if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 || unwrapped.StatusCode == 404 {
 				go database.Client.Webhooks.Delete(guildId, ticketId)
 			}
 		} else {

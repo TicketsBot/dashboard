@@ -14,7 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/channel/embed"
-	"github.com/rxdn/gdl/objects/channel/message"
+	"github.com/rxdn/gdl/objects/guild/emoji"
+	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
@@ -25,20 +26,19 @@ import (
 const freePanelLimit = 3
 
 type panelBody struct {
-	ChannelId       uint64   `json:"channel_id,string"`
-	MessageId       uint64   `json:"message_id,string"`
-	Title           string   `json:"title"`
-	Content         string   `json:"content"`
-	Colour          uint32   `json:"colour"`
-	CategoryId      uint64   `json:"category_id,string"`
-	Emote           string   `json:"emote"`
-	WelcomeMessage  *string  `json:"welcome_message"`
-	Mentions        []string `json:"mentions"`
-	Teams           []string `json:"teams"`
+	ChannelId      uint64   `json:"channel_id,string"`
+	MessageId      uint64   `json:"message_id,string"`
+	Title          string   `json:"title"`
+	Content        string   `json:"content"`
+	Colour         uint32   `json:"colour"`
+	CategoryId     uint64   `json:"category_id,string"`
+	Emote          string   `json:"emote"`
+	WelcomeMessage *string  `json:"welcome_message"`
+	Mentions       []string `json:"mentions"`
+	Teams          []string `json:"teams"`
 }
 
 func CreatePanel(ctx *gin.Context) {
-
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
@@ -87,33 +87,16 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
-	msgId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
+	customId := utils.RandString(80)
+
+	emoji, _ := data.getEmoji() // already validated
+	msgId, err := data.sendEmbed(&botContext, data.Title, customId, emoji, premiumTier > premium.None)
 	if err != nil {
 		var unwrapped request.RestError
-		if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
+		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
 			ctx.AbortWithStatusJSON(500, gin.H{
 				"success": false,
 				"error":   "I do not have permission to send messages in the specified channel",
-			})
-		} else {
-			// TODO: Most appropriate error?
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
-		}
-
-		return
-	}
-
-	// Add reaction
-	emoji, _ := data.getEmoji() // already validated
-	if err = rest.CreateReaction(botContext.Token, botContext.RateLimiter, data.ChannelId, msgId, emoji); err != nil {
-		var unwrapped request.RestError
-		if errors.As(err, &unwrapped) && unwrapped.ErrorCode == 403 {
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error":   "I do not have permission to add reactions in the specified channel",
 			})
 		} else {
 			// TODO: Most appropriate error?
@@ -138,9 +121,11 @@ func CreatePanel(ctx *gin.Context) {
 		ReactionEmote:   emoji,
 		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
+		CustomId:        customId,
 	}
 
-	if err = dbclient.Client.Panel.Create(panel); err != nil {
+	panelId, err := dbclient.Client.Panel.Create(panel)
+	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),
@@ -188,8 +173,8 @@ func CreatePanel(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{
-		"success":    true,
-		"message_id": strconv.FormatUint(msgId, 10),
+		"success":  true,
+		"panel_id": strconv.Itoa(panelId),
 	})
 }
 
@@ -323,7 +308,7 @@ func (p *panelBody) verifyWelcomeMessage() bool {
 	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) < 1025)
 }
 
-func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messageId uint64, err error) {
+func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote string, isPremium bool) (uint64, error) {
 	e := embed.NewEmbed().
 		SetTitle(p.Title).
 		SetDescription(p.Content).
@@ -334,12 +319,36 @@ func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messa
 		e.SetFooter("Powered by ticketsbot.net", "https://cdn.discordapp.com/avatars/508391840525975553/ac2647ffd4025009e2aa852f719a8027.png?size=256")
 	}
 
-	var msg message.Message
-	msg, err = rest.CreateMessage(ctx.Token, ctx.RateLimiter, p.ChannelId, rest.CreateMessageData{Embed: e})
-	if err != nil {
-		return
+	data := rest.CreateMessageData{
+		Embed: e,
+		Components: []component.Component{
+			{
+				Type: component.ComponentActionRow,
+				ComponentData: component.ActionRow{
+					Components: []component.Component{
+						{
+							Type: component.ComponentButton,
+							ComponentData: component.Button{
+								Label:    title,
+								CustomId: customId,
+								Style:    component.ButtonStylePrimary,
+								Emoji: emoji.Emoji{
+									Name: emote,
+								},
+								Url:      nil,
+								Disabled: false,
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
-	messageId = msg.Id
-	return
+	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, p.ChannelId, data)
+	if err != nil {
+		return 0, err
+	}
+
+	return msg.Id, nil
 }

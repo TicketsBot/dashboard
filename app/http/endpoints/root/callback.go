@@ -67,7 +67,7 @@ func CallbackHandler(ctx *gin.Context) {
 		return
 	}
 
-	store.Set("csrf", utils.RandStringRunes(32))
+	store.Set("csrf", utils.RandString(32))
 
 	store.Set("userid", currentUser.Id)
 	store.Set("name", currentUser.Username)

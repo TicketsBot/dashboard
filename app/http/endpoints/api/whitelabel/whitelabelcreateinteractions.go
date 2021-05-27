@@ -5,50 +5,46 @@ import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
-	command "github.com/TicketsBot/worker/bot/command/impl"
+	"github.com/TicketsBot/worker/bot/command/impl/admin"
+	"github.com/TicketsBot/worker/bot/command/manager"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"time"
 )
 
-func WhitelabelCreateInteractions(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
+// TODO: Refactor
+func GetWhitelabelCreateInteractions() func(*gin.Context) {
+	cm := new(manager.CommandManager)
+	cm.RegisterCommands()
 
-	// Get bot
-	bot, err := database.Client.Whitelabel.GetByUserId(userId)
-	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
-		return
-	}
+	return func(ctx *gin.Context) {
 
-	// Ensure bot exists
-	if bot.BotId == 0 {
-		ctx.JSON(404, gin.H{
-			"success": false,
-			"error":   "No bot found",
-		})
-		return
-	}
+		userId := ctx.Keys["userid"].(uint64)
 
-	// Cooldown
-	key := fmt.Sprintf("tickets:interaction-create-cooldown:%d", bot.BotId)
+		// Get bot
+		bot, err := database.Client.Whitelabel.GetByUserId(userId)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+			return
+		}
 
-	// try to set first, prevent race condition
-	wasSet, err := messagequeue.Client.SetNX(key, 1, time.Minute).Result()
-	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
-		return
-	}
+		// Ensure bot exists
+		if bot.BotId == 0 {
+			ctx.JSON(404, gin.H{
+				"success": false,
+				"error":   "No bot found",
+			})
+			return
+		}
 
-	// on cooldown, tell user how long left
-	if !wasSet {
-		expiration, err := messagequeue.Client.TTL(key).Result()
+		// Cooldown
+		key := fmt.Sprintf("tickets:interaction-create-cooldown:%d", bot.BotId)
+
+		// try to set first, prevent race condition
+		wasSet, err := messagequeue.Client.SetNX(key, 1, time.Minute).Result()
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"success": false,
@@ -57,50 +53,62 @@ func WhitelabelCreateInteractions(ctx *gin.Context) {
 			return
 		}
 
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error": fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds())),
-		})
+		// on cooldown, tell user how long left
+		if !wasSet {
+			expiration, err := messagequeue.Client.TTL(key).Result()
+			if err != nil {
+				ctx.JSON(500, gin.H{
+					"success": false,
+					"error": err.Error(),
+				})
+				return
+			}
 
-		return
-	}
+			ctx.JSON(400, gin.H{
+				"success": false,
+				"error": fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds())),
+			})
 
-	botContext, err := botcontext.ContextForGuild(0)
-	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
-		return
-	}
-
-	var interactions []rest.CreateCommandData
-	for _, cmd := range command.Commands {
-		properties := cmd.Properties()
-
-		if properties.MessageOnly || properties.AdminOnly || properties.HelperOnly || properties.MainBotOnly {
-			continue
+			return
 		}
 
-		option := command.BuildOption(cmd)
-
-		data := rest.CreateCommandData{
-			Name:        option.Name,
-			Description: option.Description,
-			Options:     option.Options,
+		botContext, err := botcontext.ContextForGuild(0)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+			return
 		}
 
-		interactions = append(interactions, data)
-	}
+		var interactions []rest.CreateCommandData
+		for _, cmd := range cm.GetCommands() {
+			properties := cmd.Properties()
 
-	if _, err = rest.ModifyGlobalCommands(bot.Token, botContext.RateLimiter, bot.BotId, interactions); err == nil {
-		ctx.JSON(200, gin.H{
-			"success": true,
-		})
-	} else {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+			if properties.MessageOnly || properties.AdminOnly || properties.HelperOnly || properties.MainBotOnly {
+				continue
+			}
+
+			option := admin.BuildOption(cmd)
+
+			data := rest.CreateCommandData{
+				Name:        option.Name,
+				Description: option.Description,
+				Options:     option.Options,
+			}
+
+			interactions = append(interactions, data)
+		}
+
+		if _, err = rest.ModifyGlobalCommands(bot.Token, botContext.RateLimiter, bot.BotId, interactions); err == nil {
+			ctx.JSON(200, gin.H{
+				"success": true,
+			})
+		} else {
+			ctx.JSON(500, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+		}
 	}
 }
