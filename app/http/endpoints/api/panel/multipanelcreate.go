@@ -13,7 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/channel/embed"
-	"github.com/rxdn/gdl/objects/channel/message"
+	"github.com/rxdn/gdl/objects/guild/emoji"
+	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
@@ -56,22 +57,11 @@ func MultiPanelCreate(ctx *gin.Context) {
 	// get premium status
 	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 
-	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
+	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 {
 			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to send messages in the provided channel")))
-		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
-		}
-
-		return
-	}
-
-	if err := data.addReactions(&botContext, data.ChannelId, messageId, panels); err != nil {
-		var unwrapped request.RestError
-		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 {
-			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to add reactions in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))
 		}
@@ -184,13 +174,6 @@ func (d *multiPanelCreateData) validatePanels(guildId uint64) (panels []database
 		// find panel struct
 		for _, panel := range existingPanels {
 			if panel.PanelId == panelId {
-				// check there isn't a panel with the same reaction emote
-				for _, previous := range panels {
-					if previous.ReactionEmote == panel.ReactionEmote {
-						return nil, errors.New("2 sub-panels cannot have the same reaction emotes")
-					}
-				}
-
 				valid = true
 				panels = append(panels, panel)
 			}
@@ -204,7 +187,7 @@ func (d *multiPanelCreateData) validatePanels(guildId uint64) (panels []database
 	return
 }
 
-func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium bool) (messageId uint64, err error) {
+func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium bool, panels []database.Panel) (uint64, error) {
 	e := embed.NewEmbed().
 		SetTitle(d.Title).
 		SetDescription(d.Content).
@@ -215,22 +198,29 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 		e.SetFooter("Powered by ticketsbot.net", "https://cdn.discordapp.com/avatars/508391840525975553/ac2647ffd4025009e2aa852f719a8027.png?size=256")
 	}
 
-	var msg message.Message
-	msg, err = rest.CreateMessage(ctx.Token, ctx.RateLimiter, d.ChannelId, rest.CreateMessageData{Embed: e})
+	buttons := make([]component.Component, len(panels))
+	for i, panel := range panels {
+		buttons[i] = component.BuildButton(component.Button{
+			Label:    panel.Title,
+			CustomId: panel.CustomId,
+			Style:    component.ButtonStylePrimary,
+			Emoji:    emoji.Emoji{
+				Name: panel.ReactionEmote,
+			},
+		})
+	}
+
+	data := rest.CreateMessageData{
+		Embed: e,
+		Components: []component.Component{
+			component.BuildActionRow(buttons...),
+		},
+	}
+
+	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, d.ChannelId, data)
 	if err != nil {
-		return
+		return 0, err
 	}
 
-	messageId = msg.Id
-	return
-}
-
-func (d *multiPanelCreateData) addReactions(ctx *botcontext.BotContext, channelId, messageId uint64, panels []database.Panel) (err error) {
-	for _, panel := range panels {
-		if err = rest.CreateReaction(ctx.Token, ctx.RateLimiter, channelId, messageId, panel.ReactionEmote); err != nil {
-			return err
-		}
-	}
-
-	return
+	return msg.Id, nil
 }

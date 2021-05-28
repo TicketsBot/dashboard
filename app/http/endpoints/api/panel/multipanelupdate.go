@@ -77,23 +77,11 @@ func MultiPanelUpdate(ctx *gin.Context) {
 	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 
 	// send new message
-	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None)
+	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
 			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to send messages in the provided channel")))
-		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
-		}
-
-		return
-	}
-
-	// add reactions to new message
-	if err := data.addReactions(&botContext, data.ChannelId, messageId, panels); err != nil {
-		var unwrapped request.RestError
-		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to add reactions in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))
 		}
