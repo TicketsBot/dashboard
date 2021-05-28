@@ -166,24 +166,16 @@ func UpdatePanel(ctx *gin.Context) {
 
 	// insert role mention data
 	// delete old data
-	if err = dbclient.Client.PanelRoleMentions.DeleteAll(newMessageId); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-		return
-	}
-
-	// TODO: Reduce to 1 query
-	if err = dbclient.Client.PanelUserMention.Set(newMessageId, false); err != nil {
+	if err = dbclient.Client.PanelRoleMentions.DeleteAll(panel.PanelId); err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// string is role ID or "user" to mention the ticket opener
+	var shouldMentionUser bool
 	for _, mention := range data.Mentions {
 		if mention == "user" {
-			if err = dbclient.Client.PanelUserMention.Set(newMessageId, true); err != nil {
-				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-				return
-			}
+			shouldMentionUser = true
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
@@ -193,12 +185,16 @@ func UpdatePanel(ctx *gin.Context) {
 
 			// should we check the role is a valid role in the guild?
 			// not too much of an issue if it isnt
-
-			if err = dbclient.Client.PanelRoleMentions.Add(newMessageId, roleId); err != nil {
+			if err = dbclient.Client.PanelRoleMentions.Add(panel.PanelId, roleId); err != nil {
 				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 				return
 			}
 		}
+	}
+
+	if err = dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
+		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		return
 	}
 
 	// insert support teams

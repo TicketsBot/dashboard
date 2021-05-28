@@ -137,7 +137,7 @@ func CreatePanel(ctx *gin.Context) {
 	// string is role ID or "user" to mention the ticket opener
 	for _, mention := range data.Mentions {
 		if mention == "user" {
-			if err = dbclient.Client.PanelUserMention.Set(msgId, true); err != nil {
+			if err = dbclient.Client.PanelUserMention.Set(panelId, true); err != nil {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   err.Error(),
@@ -157,7 +157,7 @@ func CreatePanel(ctx *gin.Context) {
 			// should we check the role is a valid role in the guild?
 			// not too much of an issue if it isnt
 
-			if err = dbclient.Client.PanelRoleMentions.Add(msgId, roleId); err != nil {
+			if err = dbclient.Client.PanelRoleMentions.Add(panelId, roleId); err != nil {
 				ctx.AbortWithStatusJSON(500, gin.H{
 					"success": false,
 					"error":   err.Error(),
@@ -214,7 +214,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	if !p.verifyTitle() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
-			"error":   "Panel titles must be between 1 - 255 characters in length",
+			"error":   "Panel titles must be between 1 - 80 characters in length",
 		})
 		return false
 	}
@@ -266,7 +266,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 }
 
 func (p *panelBody) verifyTitle() bool {
-	return len(p.Title) > 0 && len(p.Title) < 256
+	return len(p.Title) > 0 && len(p.Title) <= 80
 }
 
 func (p *panelBody) verifyContent() bool {

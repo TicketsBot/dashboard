@@ -48,7 +48,7 @@ func ListPanels(ctx *gin.Context) {
 			var mentions []string
 
 			// get role mentions
-			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(p.MessageId)
+			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(p.PanelId)
 			if err != nil {
 				return err
 			}
@@ -59,7 +59,7 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			// get if we should mention the ticket opener
-			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(p.MessageId)
+			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(p.PanelId)
 			if err != nil {
 				return err
 			}
