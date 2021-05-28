@@ -317,7 +317,7 @@
               'content': getValue('multi-content'),
               'colour': parseInt(`0x${getValue('multi-colour').slice(1)}`),
               'channel_id': channelContainer.options[channelContainer.selectedIndex].value,
-              'panels': $('#multi-panels').val()
+              'panels': $('#multi-panels').val().map((id) => parseInt(id))
           };
 
           const res = await axios.post('/api/{{.guildId}}/multipanels', data);

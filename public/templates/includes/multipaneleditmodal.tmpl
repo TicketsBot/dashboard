@@ -125,7 +125,7 @@
               'content': getValue('multi-edit-content'),
               'colour': parseInt(`0x${getValue('multi-edit-colour').slice(1)}`),
               'channel_id': channelContainer.options[channelContainer.selectedIndex].value,
-              'panels': $('#multi-edit-panels').val()
+              'panels': $('#multi-edit-panels').val().map((id) => parseInt(id))
           };
 
           $('#multieditmodal').modal('hide');

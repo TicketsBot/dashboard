@@ -16,16 +16,15 @@ import (
 	"github.com/rxdn/gdl/objects/channel/message"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
-	gdlutils "github.com/rxdn/gdl/utils"
 	"golang.org/x/sync/errgroup"
 )
 
 type multiPanelCreateData struct {
-	Title     string                     `json:"title"`
-	Content   string                     `json:"content"`
-	Colour    int32                      `json:"colour"`
-	ChannelId uint64                     `json:"channel_id,string"`
-	Panels    gdlutils.Uint64StringSlice `json:"panels"`
+	Title     string `json:"title"`
+	Content   string `json:"content"`
+	Colour    int32  `json:"colour"`
+	ChannelId uint64 `json:"channel_id,string"`
+	Panels    []int  `json:"panels"`
 }
 
 func MultiPanelCreate(ctx *gin.Context) {
@@ -71,7 +70,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 
 	if err := data.addReactions(&botContext, data.ChannelId, messageId, panels); err != nil {
 		var unwrapped request.RestError
-		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403{
+		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 {
 			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to add reactions in the provided channel")))
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -111,7 +110,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success": true,
-		"data": multiPanel,
+		"data":    multiPanel,
 	})
 }
 
@@ -184,7 +183,7 @@ func (d *multiPanelCreateData) validatePanels(guildId uint64) (panels []database
 		var valid bool
 		// find panel struct
 		for _, panel := range existingPanels {
-			if panel.MessageId == panelId {
+			if panel.PanelId == panelId {
 				// check there isn't a panel with the same reaction emote
 				for _, previous := range panels {
 					if previous.ReactionEmote == panel.ReactionEmote {
@@ -225,7 +224,6 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 	messageId = msg.Id
 	return
 }
-
 
 func (d *multiPanelCreateData) addReactions(ctx *botcontext.BotContext, channelId, messageId uint64, panels []database.Panel) (err error) {
 	for _, panel := range panels {
