@@ -61,7 +61,7 @@ func UpdatePanel(ctx *gin.Context) {
 
 	// check if this will break a multi-panel;
 	// first, get any multipanels this panel belongs to
-	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.MessageId)
+	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.PanelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

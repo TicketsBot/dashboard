@@ -100,7 +100,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 		panel := panel
 
 		group.Go(func() error {
-			return dbclient.Client.MultiPanelTargets.Insert(multiPanel.Id, panel.MessageId)
+			return dbclient.Client.MultiPanelTargets.Insert(multiPanel.Id, panel.PanelId)
 		})
 	}
 
