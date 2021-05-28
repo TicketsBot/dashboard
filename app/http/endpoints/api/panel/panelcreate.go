@@ -167,7 +167,7 @@ func CreatePanel(ctx *gin.Context) {
 		}
 	}
 
-	if responseCode, err := insertTeams(guildId, msgId, data.Teams); err != nil {
+	if responseCode, err := insertTeams(guildId, panelId, data.Teams); err != nil {
 		ctx.JSON(responseCode, utils.ErrorJson(err))
 		return
 	}
@@ -179,7 +179,7 @@ func CreatePanel(ctx *gin.Context) {
 }
 
 // returns (response_code, error)
-func insertTeams(guildId, panelMessageId uint64, teamIds []string) (int, error) {
+func insertTeams(guildId uint64, panelId int, teamIds []string) (int, error) {
 	// insert teams
 	group, _ := errgroup.WithContext(context.Background())
 	for _, teamId := range teamIds {
@@ -203,7 +203,7 @@ func insertTeams(guildId, panelMessageId uint64, teamIds []string) (int, error) 
 				return fmt.Errorf("team with id %d not found", teamId)
 			}
 
-			return dbclient.Client.PanelTeams.Add(panelMessageId, teamId)
+			return dbclient.Client.PanelTeams.Add(panelId, teamId)
 		})
 	}
 

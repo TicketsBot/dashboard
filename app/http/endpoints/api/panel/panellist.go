@@ -68,7 +68,7 @@ func ListPanels(ctx *gin.Context) {
 				mentions = append(mentions, "user")
 			}
 
-			teams, err := dbclient.Client.PanelTeams.GetTeams(p.MessageId)
+			teams, err := dbclient.Client.PanelTeams.GetTeams(p.PanelId)
 			if err != nil {
 				return err
 			}

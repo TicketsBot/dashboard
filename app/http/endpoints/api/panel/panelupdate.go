@@ -200,13 +200,13 @@ func UpdatePanel(ctx *gin.Context) {
 	// insert support teams
 	// TODO: Stop race conditions - 1 transaction
 	// delete teams
-	if err := dbclient.Client.PanelTeams.DeleteAll(newMessageId); err != nil {
+	if err := dbclient.Client.PanelTeams.DeleteAll(panel.PanelId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// insert new
-	if responseCode, err := insertTeams(guildId, newMessageId, data.Teams); err != nil {
+	if responseCode, err := insertTeams(guildId, panel.PanelId, data.Teams); err != nil {
 		ctx.JSON(responseCode, utils.ErrorJson(err))
 		return
 	}
