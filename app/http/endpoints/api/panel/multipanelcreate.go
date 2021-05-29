@@ -18,6 +18,7 @@ import (
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
+	"math"
 )
 
 type multiPanelCreateData struct {
@@ -208,6 +209,18 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 				Name: panel.ReactionEmote,
 			},
 		})
+	}
+
+	var rows []component.Component
+	for i := 0; i < int(math.Ceil(float64(len(buttons) / 5))); i++ {
+		lb := i * 5
+		ub := lb + 5
+		if ub > len(buttons) {
+			ub = len(buttons) - 1
+		}
+
+		row := component.BuildActionRow(buttons[lb:ub]...)
+		rows = append(rows, row)
 	}
 
 	data := rest.CreateMessageData{
