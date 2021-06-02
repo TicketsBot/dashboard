@@ -39,7 +39,7 @@ type (
 	}
 )
 
-const TokenEndpoint = "https://discordapp.com/api/oauth2/token"
+const TokenEndpoint = "https://discord.com/api/oauth2/token"
 
 func AccessToken(code string) (TokenResponse, error) {
 	data := TokenData{

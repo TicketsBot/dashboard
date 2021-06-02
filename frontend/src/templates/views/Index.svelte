@@ -1,0 +1,103 @@
+<IndexLayout>
+  {#if !$loadingScreen}
+    <div class="content" transition:fade>
+      <div class="card-wrapper">
+        <Card footer={false} fill={false}>
+          <span slot="title">
+            Servers
+          </span>
+
+          <div slot="body" style="width: 100%">
+            <div id="guild-container">
+              <InviteBadge />
+
+              {#each guilds as guild}
+                <Guild guild={guild}/>
+              {/each}
+            </div>
+
+            <div class="flex-container" id="refresh-container">
+              <Button icon="fas fa-sync" on:click={refreshGuilds}>
+                Refresh list
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  {/if}
+</IndexLayout>
+
+<script>
+    import axios from 'axios';
+    import {fade} from 'svelte/transition';
+    import IndexLayout from '../layouts/IndexLayout.svelte'
+    import {withLoadingScreen, notifyError} from '../js/util'
+    import {setDefaultHeaders} from '../includes/Auth.svelte'
+    import {loadingScreen} from "../js/stores.js"
+    import {API_URL} from "../js/constants.js";
+    import Guild from '../components/Guild.svelte'
+    import Card from '../components/Card.svelte'
+    import InviteBadge from '../components/InviteBadge.svelte'
+    import Button from '../components/Button.svelte'
+
+    setDefaultHeaders();
+
+    export let guilds = [];
+
+    async function loadData() {
+        const res = await axios.get(`${API_URL}/user/guilds`);
+        guilds = res.data;
+    }
+
+    async function refreshGuilds() {
+        await withLoadingScreen(async () => {
+            const res = await axios.post(`${API_URL}/user/guilds/reload`);
+            if (res.status !== 200) {
+                notifyError(res.data.error);
+                return;
+            }
+
+            if (!res.data.success && res.data['reauthenticate_required'] === true) {
+                window.location.href = "/login";
+                return;
+            }
+
+            await loadData();
+        });
+    }
+
+    withLoadingScreen(async () => {
+        await loadData();
+    });
+</script>
+
+<style>
+  .content {
+      display: flex;
+      height: 100%;
+      width: 100%;
+      justify-content: center;
+  }
+
+  .card-wrapper {
+      display: block;
+      width: 75%;
+      margin-top: 5%;
+  }
+
+  #guild-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-evenly;
+  }
+
+  #refresh-container {
+      display: flex;
+      justify-content: center;
+
+      margin: 10px 0;
+      color: white;
+  }
+</style>

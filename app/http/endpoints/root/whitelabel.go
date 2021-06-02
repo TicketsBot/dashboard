@@ -2,21 +2,30 @@ package root
 
 import (
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/rpc"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
 func WhitelabelHandler(ctx *gin.Context) {
-	store := sessions.Default(ctx)
-	if store == nil {
+	userId := ctx.Keys["userid"].(uint64)
+
+	store, err := session.Store.Get(userId)
+	if err != nil {
+		if err == session.ErrNoSession {
+			ctx.JSON(401, gin.H{
+				"success": false,
+				"auth": true,
+			})
+		} else {
+			ctx.JSON(500, utils.ErrorJson(err))
+		}
+
 		return
 	}
-	defer store.Save()
-
-	userId := store.Get("userid").(uint64)
 
 	premiumTier := rpc.PremiumClient.GetTierByUser(userId, false)
 	if premiumTier < premium.Whitelabel {
@@ -35,9 +44,9 @@ func WhitelabelHandler(ctx *gin.Context) {
 	}
 
 	ctx.HTML(200, "main/whitelabel", gin.H{
-		"name":    store.Get("name").(string),
+		"name":    store.Name,
 		"baseurl": config.Conf.Server.BaseUrl,
-		"avatar":  store.Get("avatar").(string),
+		"avatar":  store.Avatar,
 		"referralShow": config.Conf.Referral.Show,
 		"referralLink": config.Conf.Referral.Link,
 	})

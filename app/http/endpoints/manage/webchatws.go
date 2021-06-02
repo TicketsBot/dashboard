@@ -7,7 +7,6 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/common/premium"
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"strconv"
@@ -41,7 +40,7 @@ type (
 )
 
 func WebChatWs(ctx *gin.Context) {
-	store := sessions.Default(ctx)
+	userId := ctx.Keys["userid"].(uint64)
 
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
@@ -75,7 +74,6 @@ func WebChatWs(ctx *gin.Context) {
 	SocketsLock.Lock()
 	Sockets = append(Sockets, socket)
 	SocketsLock.Unlock()
-	userId := utils.GetUserId(store)
 
 	var guildId string
 	var guildIdParsed uint64

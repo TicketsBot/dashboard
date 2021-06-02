@@ -53,4 +53,4 @@ function addRefreshInterceptor() {
 }
 
 setDefaultHeader();
-addRefreshInterceptor();
+//addRefreshInterceptor();

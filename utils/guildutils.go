@@ -21,7 +21,7 @@ func LoadGuilds(accessToken string, userId uint64) error {
 
 	var wrappedGuilds []database.UserGuild
 
-	// endpoint's partial guild doesn't include ownerid
+	// endpoint's partial guild doesn't includes ownerid
 	// we only user cached guilds on the index page, so it doesn't matter if we don't have have the real owner id
 	// if the user isn't the owner, as we pull from the cache on other endpoints
 	for _, guild := range guilds {

@@ -2,13 +2,14 @@ package root
 
 import (
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
-	"github.com/apex/log"
-	"github.com/gin-gonic/contrib/sessions"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -33,55 +34,61 @@ type (
 )
 
 func CallbackHandler(ctx *gin.Context) {
-	store := sessions.Default(ctx)
-	if store == nil {
-		return
-	}
-	defer store.Save()
-
-	if utils.IsLoggedIn(store) && store.Get("has_guilds") == true {
-		ctx.Redirect(302, config.Conf.Server.BaseUrl)
-		return
-	}
-
 	code, ok := ctx.GetQuery("code")
 	if !ok {
-		utils.ErrorPage(ctx, 400, "Discord provided invalid Oauth2 code")
+		ctx.JSON(400, utils.ErrorStr("Discord provided invalid Oauth2 code"))
 		return
 	}
 
 	res, err := discord.AccessToken(code)
 	if err != nil {
-		utils.ErrorPage(ctx, 500, err.Error())
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
-
-	store.Set("access_token", res.AccessToken)
-	store.Set("refresh_token", res.RefreshToken)
-	store.Set("expiry", (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn))
 
 	// Get ID + name
 	currentUser, err := rest.GetCurrentUser(fmt.Sprintf("Bearer %s", res.AccessToken), nil)
 	if err != nil {
-		ctx.String(500, err.Error())
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	store.Set("csrf", utils.RandString(32))
-
-	store.Set("userid", currentUser.Id)
-	store.Set("name", currentUser.Username)
-	store.Set("avatar", currentUser.AvatarUrl(256))
-	store.Save()
-
-	if err := utils.LoadGuilds(res.AccessToken, currentUser.Id); err == nil {
-		store.Set("has_guilds", true)
-		store.Save()
-	} else {
-		log.Error(err.Error())
+	store := session.SessionData{
+		AccessToken:  res.AccessToken,
+		Expiry:       (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn),
+		RefreshToken: res.RefreshToken,
+		Name:         currentUser.Username,
+		Avatar:       currentUser.AvatarUrl(256),
+		HasGuilds:    false,
 	}
 
-	handleRedirect(ctx)
+	if err := utils.LoadGuilds(res.AccessToken, currentUser.Id); err == nil {
+		store.HasGuilds = true
+	} else {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userid": strconv.FormatUint(currentUser.Id, 10),
+		"timestamp": time.Now(),
+	})
+
+	str, err := token.SignedString([]byte(config.Conf.Server.Secret))
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if err := session.Store.Set(currentUser.Id, store); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"success": true,
+		"token": str,
+	})
 }
 
 func handleRedirect(ctx *gin.Context) {

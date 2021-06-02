@@ -11,9 +11,11 @@ body {
     line-height: 1.5;
     background-color: #121212 !important;
     color: white;
+    margin: 0;
+    padding: 0 !important;
 }
 
-.card {
+/*.card {
     background-color: #272727 !important;
 }
 
@@ -23,59 +25,6 @@ body {
 
 html > ::-webkit-scrollbar {
     display: none;
-}
-
-.csidebar {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 16.6%;
-    background-color: #272727;
-    float: left;
-    background-size: cover;
-    overflow-x: hidden !important;
-}
-
-.sidebar-element {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    cursor: pointer;
-    padding: 5px 0 5px 0;
-}
-
-.sidebar-element:hover {
-    background-color: #121212;
-    transition: background-color 0.5s ease;
-}
-
-#custom-image {
-    max-height: 70px;
-    max-width: 90%;
-}
-
-.sidebar-element > a {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    color: white !important;
-    font-size: 18px;
-    margin-left: 4%;
-}
-
-.sidebar-text {
-    margin-left: 4%;
-    display: flex;
-    align-items: center;
-}
-
-#sidebar-nav {
-    flex: 1;
-}
-
-.sidebar-bottom {
-    position: absolute !important;
-    width: 100%;
 }
 
 .nav-link {
@@ -224,7 +173,6 @@ html > ::-webkit-scrollbar {
     display: none;
 }
 
-/* drop down menu */
 .dropdown-menu {
     background-color: #2e3136 !important;
 }
@@ -496,3 +444,4 @@ html > ::-webkit-scrollbar {
 #notificationmodal {
     z-index: 10000 !important;
 }
+ */

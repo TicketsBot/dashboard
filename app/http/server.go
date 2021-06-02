@@ -15,11 +15,12 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/app/http/middleware"
+	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/limiter/v3"
 	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
@@ -34,15 +35,7 @@ func StartServer() {
 	router := gin.Default()
 
 	// Sessions
-	store, err := sessions.NewRedisStore(
-		config.Conf.Server.Session.Threads,
-		"tcp", fmt.Sprintf("%s:%d", config.Conf.Redis.Host, config.Conf.Redis.Port),
-		config.Conf.Redis.Password,
-		[]byte(config.Conf.Server.Session.Secret))
-	if err != nil {
-		panic(err)
-	}
-	router.Use(sessions.Sessions("panel", store))
+	session.Store = session.NewRedisStore()
 
 	// Handle static asset requests
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
@@ -50,24 +43,25 @@ func StartServer() {
 	router.Use(gin.Recovery())
 	router.Use(createLimiter(600, time.Minute*10))
 
+	router.Use(middleware.Cors(config.Conf))
+
 	// Register templates
 	router.HTMLRender = createRenderer()
 
 	router.GET("/login", root.LoginHandler)
-	router.GET("/callback", root.CallbackHandler)
+	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
+	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler)
 
 	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler) // we check in the actual handler bc of a custom redirect
 
 	authorized := router.Group("/", middleware.AuthenticateCookie)
 	{
-		authorized.POST("/token", createLimiter(2, 10 * time.Second), middleware.VerifyXTicketsHeader, api.TokenHandler)
 
 		authenticateGuildAdmin := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Admin))
 		authenticateGuildSupport := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Support))
 
 		authorized.GET("/", root.IndexHandler)
 		authorized.GET("/whitelabel", root.WhitelabelHandler)
-		authorized.GET("/logout", root.LogoutHandler)
 
 		authenticateGuildAdmin.GET("/manage/:id/settings", manage.SettingsHandler)
 		authenticateGuildSupport.GET("/manage/:id/logs", manage.LogsHandler)
@@ -83,6 +77,10 @@ func StartServer() {
 	}
 
 	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
+	{
+		apiGroup.GET("/session", api.SessionHandler)
+	}
+
 	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Admin))
 	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Support))
 	{
@@ -163,13 +161,27 @@ func StartServer() {
 
 func serveTemplate(templateName string) func(*gin.Context) {
 	return func(ctx *gin.Context) {
-		store := sessions.Default(ctx)
 		guildId := ctx.Keys["guildid"].(uint64)
+		userId := ctx.Keys["userid"].(uint64)
+
+		store, err := session.Store.Get(userId)
+		if err != nil {
+			if err == session.ErrNoSession {
+				ctx.JSON(401, gin.H{
+					"success": false,
+					"auth": true,
+				})
+			} else {
+				ctx.JSON(500, utils.ErrorJson(err))
+			}
+
+			return
+		}
 
 		ctx.HTML(200, templateName, gin.H{
-			"name":         store.Get("name").(string),
+			"name":         store.Name,
 			"guildId":      guildId,
-			"avatar":       store.Get("avatar").(string),
+			"avatar":       store.Avatar,
 			"baseUrl":      config.Conf.Server.BaseUrl,
 		})
 	}

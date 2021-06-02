@@ -38,6 +38,10 @@ func AuthenticateToken(ctx *gin.Context) {
 			return
 		}
 
+		if ctx.Keys == nil {
+			ctx.Keys = make(map[string]interface{})
+		}
+
 		ctx.Keys["userid"] = parsedId
 	} else {
 		ctx.AbortWithStatusJSON(401, utils.ErrorStr("Token is invalid"))

@@ -1,17 +1,20 @@
 package utils
 
 import (
+	"fmt"
 	"github.com/gin-gonic/contrib/sessions"
 )
 
 func IsLoggedIn(store sessions.Session) bool {
-	return store.Get("access_token") != nil &&
-		store.Get("expiry") != nil &&
-		store.Get("refresh_token") != nil &&
-		store.Get("userid") != nil &&
-		store.Get("name") != nil &&
-		store.Get("avatar") != nil &&
-		store.Get("csrf") != nil
+	requiredKeys := []string{"access_token", "expiry", "refresh_token", "userid", "name", "avatar", "csrf"}
+	for _, key := range requiredKeys {
+		if store.Get(key) == nil {
+			fmt.Println(key)
+			return false
+		}
+	}
+
+	return true
 }
 
 func GetUserId(store sessions.Session) uint64 {
