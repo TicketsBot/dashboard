@@ -24,7 +24,7 @@ func LogViewHandler(ctx *gin.Context) {
 		if err == session.ErrNoSession {
 			ctx.JSON(401, gin.H{
 				"success": false,
-				"auth": true,
+				"auth":    true,
 			})
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -44,7 +44,8 @@ func LogViewHandler(ctx *gin.Context) {
 	guild, _ := cache.Instance.GetGuild(guildId, false)
 
 	// format ticket ID
-	ticketId, err := strconv.Atoi(ctx.Param("ticket")); if err != nil {
+	ticketId, err := strconv.Atoi(ctx.Param("ticket"))
+	if err != nil {
 		ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
 		return
 	}
@@ -55,7 +56,7 @@ func LogViewHandler(ctx *gin.Context) {
 		// TODO: 500 error page
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -67,15 +68,17 @@ func LogViewHandler(ctx *gin.Context) {
 	}
 
 	// Verify the user has permissions to be here
-	permLevel, err := utils.GetPermissionLevel(guildId, userId)
-	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
+	if ticket.UserId != userId {
+		permLevel, err := utils.GetPermissionLevel(guildId, userId)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
 
-	if permLevel < permission.Support && ticket.UserId != userId {
-		ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
-		return
+		if permLevel < permission.Support {
+			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
+			return
+		}
 	}
 
 	// retrieve ticket messages from bucket
