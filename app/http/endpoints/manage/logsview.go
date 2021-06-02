@@ -59,15 +59,17 @@ func LogViewHandler(ctx *gin.Context) {
 		}
 
 		// Verify the user has permissions to be here
-		permLevel, err := utils.GetPermissionLevel(guildId, userId)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
+		if ticket.UserId != userId {
+			permLevel, err := utils.GetPermissionLevel(guildId, userId)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
 
-		if permLevel < permission.Support && ticket.UserId != userId {
-			ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
-			return
+			if permLevel < permission.Support {
+				ctx.Redirect(302, config.Conf.Server.BaseUrl) // TODO: 403 Page
+				return
+			}
 		}
 
 		// retrieve ticket messages from bucket
