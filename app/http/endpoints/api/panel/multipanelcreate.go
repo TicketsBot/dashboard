@@ -205,18 +205,23 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 			Label:    panel.Title,
 			CustomId: panel.CustomId,
 			Style:    component.ButtonStylePrimary,
-			Emoji:    emoji.Emoji{
+			Emoji: emoji.Emoji{
 				Name: panel.ReactionEmote,
 			},
 		})
 	}
 
 	var rows []component.Component
-	for i := 0; i < int(math.Ceil(float64(len(buttons) / 5))); i++ {
+	for i := 0; i <= int(math.Ceil(float64(len(buttons)/5))); i++ {
 		lb := i * 5
 		ub := lb + 5
-		if ub > len(buttons) {
-			ub = len(buttons) - 1
+
+		if ub >= len(buttons) {
+			ub = len(buttons)
+		}
+
+		if lb >= ub {
+			break
 		}
 
 		row := component.BuildActionRow(buttons[lb:ub]...)
@@ -225,9 +230,7 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 
 	data := rest.CreateMessageData{
 		Embed: e,
-		Components: []component.Component{
-			component.BuildActionRow(buttons...),
-		},
+		Components: rows,
 	}
 
 	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, d.ChannelId, data)
