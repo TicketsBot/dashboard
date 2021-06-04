@@ -1,15 +1,13 @@
-<Head/>
-
 <div class="wrapper">
   <div class="card-wrapper">
     <Card footer=true footerRight=true>
       <span slot="title">
-        <slot name="title"/>
+        Error
       </span>
 
-      <span slot="body">
-        <slot name="body"/>
-      </span>
+      <div slot="body">
+        <Route {currentRoute} {params}/>
+      </div>
 
       <span slot="footer">
         <span class="buttons">
@@ -24,7 +22,13 @@
 </div>
 
 <style>
+    :global(body) {
+        padding: 0 !important;
+    }
+
     .wrapper {
+        background-color: #121212;
+
         margin: 0 !important;
         padding: 0 !important;
         display: flex;
@@ -54,6 +58,10 @@
     import Card from '../components/Card.svelte'
     import Button from "../components/Button.svelte";
 
+    import {Route} from 'svelte-router-spa'
+
+    export let currentRoute;
+    export let params = {};
 
     function back() {
         window.history.back()

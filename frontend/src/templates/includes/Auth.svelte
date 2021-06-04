@@ -30,7 +30,7 @@
     export function setDefaultHeaders() {
         axios.defaults.headers.common['Authorization'] = getToken();
         axios.defaults.headers.common['x-tickets'] = 'true'; // arbitrary header name and value
-        axios.defaults.validateStatus = false;
+        axios.defaults.validateStatus = (s) => true;
     }
 
     function addRefreshInterceptor() {

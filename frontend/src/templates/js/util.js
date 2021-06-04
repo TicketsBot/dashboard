@@ -1,9 +1,9 @@
 import * as Stores from './stores'
 
 export async function withLoadingScreen(func) {
-    Stores.loadingScreen.set(true);
+    Stores.addLoadingScreenTicket();
     await func();
-    Stores.loadingScreen.set(false);
+    Stores.removeLoadingScreenTicket();
 }
 
 export function errorPage(status, message) {

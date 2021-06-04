@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -11,11 +12,21 @@ import (
 	"github.com/apex/log"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
+	"net/http"
 	"strconv"
 )
 
 const (
 	pageLimit = 30
+)
+
+type filterType uint8
+
+const (
+	filterTypeNone filterType = iota
+	filterTypeTicketId
+	filterTypeUsername
+	filterTypeUserId
 )
 
 func GetLogs(ctx *gin.Context) {
@@ -25,14 +36,25 @@ func GetLogs(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	before, err := strconv.Atoi(ctx.Query("before"))
+	before, _ := strconv.Atoi(ctx.Query("before"))
 	if before < 0 {
 		before = 0
+	}
+
+	var tickets []database.Ticket
+	var status int
+
+	filterType := getFilterType(ctx)
+	switch filterType {
+	case filterTypeNone:
+		tickets, err = getTickets(guildId, before)
+	case filterTypeTicketId:
+		tickets, status,
 	}
 
 	// Get ticket ID from URL
@@ -49,7 +71,7 @@ func GetLogs(ctx *gin.Context) {
 		if err != nil {
 			ctx.AbortWithStatusJSON(500, gin.H{
 				"success": false,
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 			return
 		}
@@ -98,7 +120,7 @@ func GetLogs(ctx *gin.Context) {
 		if err != nil {
 			ctx.AbortWithStatusJSON(500, gin.H{
 				"success": false,
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 			return
 		}
@@ -125,4 +147,39 @@ func GetLogs(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, formattedLogs)
+}
+
+func getFilterType(ctx *gin.Context) filterType {
+	if ctx.Query("ticket_id") != "" {
+		return filterTypeTicketId
+	} else if ctx.Query("username") != "" {
+		return filterTypeUsername
+	} else if ctx.Query("userid") != "" {
+		return filterTypeUserId
+	} else {
+		return filterTypeNone
+	}
+}
+
+func getTickets(guildId uint64, before int) ([]database.Ticket, int, error) {
+	tickets, err := dbclient.Client.Tickets.GetGuildClosedTickets(guildId, pageLimit, before)
+}
+
+// (tickets, statusCode, error)
+func getTicketsByTicketId(guildId uint64, ctx *gin.Context) ([]database.Ticket, int, error) {
+	ticketId, err := strconv.Atoi(ctx.Query("ticketid"))
+	if err != nil {
+		return nil, 400, err
+	}
+
+	ticket, err := dbclient.Client.Tickets.Get(ticketId, guildId)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	if ticket.Id == 0 {
+		return nil, http.StatusNotFound, errors.New("ticket not found")
+	}
+
+	return []database.Ticket{ticket}, http.StatusOK, nil
 }

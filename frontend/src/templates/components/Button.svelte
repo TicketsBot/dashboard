@@ -30,7 +30,7 @@
       margin: 0;
 
       cursor: pointer;
-      transition: all 100ms ease-in, background-color 150ms ease-in-out;
+      transition: background-color 150ms ease-in-out;
       box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
   }
 
@@ -45,7 +45,7 @@
       cursor: default;
   }
 
-  button:hover {
+  button:hover:enabled {
       background-color: #0062cc;
       border-color: #0062cc;
   }

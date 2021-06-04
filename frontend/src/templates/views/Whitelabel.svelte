@@ -1,98 +1,100 @@
-<IndexLayout>
-  {#if !$loadingScreen}
-    <div class="wrapper">
-      <div class="content">
-        <div class="content-col">
-          <Card footer="{false}" fill="{false}">
-            <h4 slot="title">Bot Token</h4>
-            <div slot="body" class="full-width">
-              <form class="full-width" onsubmit="return false;">
-                <label class="form-label">Bot Token</label>
-                <input name="token" type="text" bind:value={token} class="form-input full-width"
-                       placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                <p>Note: You will not be able to view the token after submitting it</p>
+<div class="wrapper">
+  <div class="content">
+    <div class="content-col">
+      <Card footer="{false}" fill="{false}">
+        <h4 slot="title">Bot Token</h4>
+        <div slot="body" class="full-width">
+          <form class="full-width" onsubmit="return false;">
+            <label class="form-label">Bot Token</label>
+            <input name="token" type="text" bind:value={token} class="form-input full-width"
+                   placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx">
+            <p>Note: You will not be able to view the token after submitting it</p>
 
-                <div class="buttons">
-                  <div class="col">
-                    <Button icon="fas fa-paper-plane" on:click={submitToken} fullWidth="{true}">Submit</Button>
-                  </div>
-                  <div class="col">
-                    <Button icon="fas fa-plus" on:click={invite} fullWidth="{true}" disabled="{bot.id === undefined}">Generate Invite Link</Button>
-                  </div>
-                </div>
-              </form>
+            <div class="buttons">
+              <div class="col">
+                <Button icon="fas fa-paper-plane" on:click={submitToken} fullWidth="{true}">Submit</Button>
+              </div>
+              <div class="col">
+                <Button icon="fas fa-plus" on:click={invite} fullWidth="{true}" disabled="{bot.id === undefined}">
+                  Generate Invite Link
+                </Button>
+              </div>
             </div>
-          </Card>
+          </form>
         </div>
-        <div class="content-col">
-          <Card footer="{false}" fill="{false}">
-            <h4 slot="title">Slash Commands</h4>
-            <div slot="body" class="full-width">
-              <form class="full-width" onsubmit="return false;">
-                <label class="form-label">Interactions Endpoint URL</label>
-                <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width" disabled>
-
-                <label class="form-label">Public Key</label>
-                <input name="token" type="text" bind:value={publicKey} class="form-input full-width">
-
-                <div class="buttons">
-                  <div class="col">
-                    <Button icon="fas fa-paper-plane" on:click={updatePublicKey} fullWidth="{true}" disabled="{bot.id === undefined}">Submit Key</Button>
-                  </div>
-                  <div class="col">
-                    <Button icon="fas fa-paper-plane" on:click={createSlashCommands} fullWidth="{true}"
-                            disabled="{!publicKeyOk}">Create Slash Commands
-                    </Button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </Card>
-        </div>
-      </div>
-      <div class="content">
-        <div class="content-col">
-          <Card footer="{false}" fill="{false}">
-            <h4 slot="title">Custom Status</h4>
-            <div slot="body" class="full-width">
-              <form class="full-width" onsubmit="return false;">
-                <label class="form-label">Status</label>
-                <input name="token" type="text" bind:value={bot.status} class="form-input full-width" placeholder="/help">
-
-                <div class="buttons">
-                  <Button icon="fas fa-paper-plane" on:click={updateStatus} fullWidth="{true}" disabled="{bot.id === undefined}">Submit</Button>
-                </div>
-              </form>
-            </div>
-          </Card>
-        </div>
-        <div class="content-col">
-          <Card footer="{false}" fill="{false}">
-            <h4 slot="title">Error Log</h4>
-            <div slot="body" class="full-width">
-              <table class="error-log">
-                <thead>
-                <tr style="border-bottom: 1px solid #dee2e6;">
-                  <th class="table-col">Error</th>
-                  <th class="table-col">Time</th>
-                </tr>
-                </thead>
-                <tbody id="error_body">
-                {#each errors as error}
-                  <tr class="table-row table-border">
-                    <td class="table-col">{error.message}</td>
-                    <td class="table-col">{error.time.toLocaleString()}</td>
-                  </tr>
-                {/each}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-      </div>
+      </Card>
     </div>
-  {/if}
-</IndexLayout>
+    <div class="content-col">
+      <Card footer="{false}" fill="{false}">
+        <h4 slot="title">Slash Commands</h4>
+        <div slot="body" class="full-width">
+          <form class="full-width" onsubmit="return false;">
+            <label class="form-label">Interactions Endpoint URL</label>
+            <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width" disabled>
+
+            <label class="form-label">Public Key</label>
+            <input name="token" type="text" bind:value={publicKey} class="form-input full-width">
+
+            <div class="buttons">
+              <div class="col">
+                <Button icon="fas fa-paper-plane" on:click={updatePublicKey} fullWidth="{true}"
+                        disabled="{bot.id === undefined}">Submit Key
+                </Button>
+              </div>
+              <div class="col">
+                <Button icon="fas fa-paper-plane" on:click={createSlashCommands} fullWidth="{true}"
+                        disabled="{!publicKeyOk}">Create Slash Commands
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </Card>
+    </div>
+  </div>
+  <div class="content">
+    <div class="content-col">
+      <Card footer="{false}" fill="{false}">
+        <h4 slot="title">Custom Status</h4>
+        <div slot="body" class="full-width">
+          <form class="full-width" onsubmit="return false;">
+            <label class="form-label">Status</label>
+            <input name="token" type="text" bind:value={bot.status} class="form-input full-width" placeholder="/help">
+
+            <div class="buttons">
+              <Button icon="fas fa-paper-plane" on:click={updateStatus} fullWidth="{true}"
+                      disabled="{bot.id === undefined}">Submit
+              </Button>
+            </div>
+          </form>
+        </div>
+      </Card>
+    </div>
+    <div class="content-col">
+      <Card footer="{false}" fill="{false}">
+        <h4 slot="title">Error Log</h4>
+        <div slot="body" class="full-width">
+          <table class="error-log">
+            <thead>
+            <tr style="border-bottom: 1px solid #dee2e6;">
+              <th class="table-col">Error</th>
+              <th class="table-col">Time</th>
+            </tr>
+            </thead>
+            <tbody id="error_body">
+            {#each errors as error}
+              <tr class="table-row table-border">
+                <td class="table-col">{error.message}</td>
+                <td class="table-col">{error.time.toLocaleString()}</td>
+              </tr>
+            {/each}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  </div>
+</div>
 
 <style>
     .wrapper {
@@ -179,9 +181,7 @@
 </style>
 
 <script>
-    import IndexLayout from "../layouts/IndexLayout.svelte";
     import {notifyError, notifyRatelimit, notifySuccess, withLoadingScreen} from '../js/util'
-    import {loadingScreen} from "../js/stores"
     import axios from "axios";
     import Card from '../components/Card.svelte'
     import Button from '../components/Button.svelte'

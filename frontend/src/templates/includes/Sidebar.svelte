@@ -3,22 +3,24 @@
     export let referralLink;
 
     export let name;
+
+    import { Navigate } from 'svelte-router-spa'
     export let avatar;
 </script>
 
 <div class="csidebar" id="sidebar-gradient">
   <div class="sidebar-container" id="sidebar-nav">
     <div class="sidebar-element">
-      <a href="/" class="sidebar-link">
+      <Navigate to="/" styles="sidebar-link">
         <i class="fas fa-server sidebar-icon"></i>
         <span class="sidebar-text">Servers</span>
-      </a>
+      </Navigate>
     </div>
     <div class="sidebar-element">
-      <a href="/whitelabel" class="sidebar-link">
+      <Navigate to="/whitelabel" styles="sidebar-link">
         <i class="fas fa-edit sidebar-icon"></i>
         <span class="sidebar-text">Whitelabel</span>
-      </a>
+      </Navigate>
     </div>
 
     {#if referralShow}
@@ -31,10 +33,10 @@
   </div>
   <div class="sidebar-container" style="margin-bottom: 2%">
     <div class="sidebar-element">
-      <a href="/logout" onclick="clearLocalStorage();" class="sidebar-link">
+      <Navigate to="/logout" onclick="clearLocalStorage();" styles="sidebar-link">
         <i class="sidebar-icon fas fa-sign-out-alt sidebar-icon"></i>
         <span class="sidebar-text">Logout</span>
-      </a>
+      </Navigate>
     </div>
     <div class="sidebar-element">
       <a class="sidebar-link">
@@ -84,6 +86,7 @@
         color: white !important;
         font-size: 18px;
         margin-left: 4%;
+        text-decoration: none;
     }
 
     .sidebar-text {

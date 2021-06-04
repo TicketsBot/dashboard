@@ -1,12 +1,12 @@
 <Head/>
 
 <div class="wrapper">
-  <Navbar />
-  <div class="super-container">
+  <Navbar guildId={guildId} bind:dropdown={$dropdown}/>
+  <div class="super-container" class:dropdown={$dropdown}>
     <LoadingScreen/>
     <NotifyModal/>
-    <div class="content-container">
-      <slot/>
+    <div class="content-container" class:hide={$loadingScreen}>
+      <Route {currentRoute} {params}/>
     </div>
   </div>
 </div>
@@ -23,22 +23,28 @@
         height: 100%;
     }
 
-    .super-container {
-        display: flex;
-        width: 100%;
-        height: 100%;
-    }
-
     .content-container {
         display: flex;
         width: 100%;
         height: 100%;
     }
+
+    .hide {
+        visibility: hidden;
+    }
 </style>
 
 <script>
+    export let currentRoute;
+    export let params = {};
+
+    let guildId = currentRoute.namedParams.id
+
     import Head from '../includes/Head.svelte'
     import LoadingScreen from '../includes/LoadingScreen.svelte'
     import NotifyModal from '../includes/NotifyModal.svelte'
     import Navbar from '../includes/Navbar.svelte'
+
+    import {Route} from 'svelte-router-spa'
+    import {loadingScreen, dropdown} from '../js/stores'
 </script>

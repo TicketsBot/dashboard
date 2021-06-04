@@ -30,18 +30,30 @@ func GetSettingsHandler(ctx *gin.Context) {
 	// prefix
 	group.Go(func() (err error) {
 		settings.Prefix, err = dbclient.Client.Prefix.Get(guildId)
+		if err == nil && settings.Prefix == "" {
+			settings.Prefix = "t!"
+		}
+
 		return
 	})
 
 	// welcome message
 	group.Go(func() (err error) {
 		settings.WelcomeMessaage, err = dbclient.Client.WelcomeMessages.Get(guildId)
+		if err == nil && settings.WelcomeMessaage == "" {
+			settings.WelcomeMessaage = "Thank you for contacting support.\nPlease describe your issue and await a response."
+		}
+
 		return
 	})
 
 	// ticket limit
 	group.Go(func() (err error) {
 		settings.TicketLimit, err = dbclient.Client.TicketLimit.Get(guildId)
+		if err == nil && settings.TicketLimit == 0 {
+			settings.TicketLimit = 5 // Set default
+		}
+
 		return
 	})
 
