@@ -35,7 +35,7 @@
     }
 
     function closeDropdown() {
-        alert('rape')
+
         dropdown = false;
     }
 </script>
