@@ -59,6 +59,16 @@ func MultiPanelUpdate(ctx *gin.Context) {
 		return
 	}
 
+	for _, panel := range panels {
+		if panel.CustomId == "" {
+			panel.CustomId = utils.RandString(80)
+			if err := dbclient.Client.Panel.Update(panel); err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+		}
+	}
+
 	// get bot context
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
