@@ -1,16 +1,20 @@
-import IndexLayout from './templates/layouts/IndexLayout.svelte'
-import ManageLayout from './templates/layouts/ManageLayout.svelte'
-import ErrorLayout from './templates/layouts/ErrorPage.svelte'
+import IndexLayout from './layouts/IndexLayout.svelte'
+import ManageLayout from './layouts/ManageLayout.svelte'
+import ErrorLayout from './layouts/ErrorPage.svelte'
+import TranscriptViewLayout from './layouts/TranscriptViewLayout.svelte'
 
-import Index from './templates/views/Index.svelte'
-import LoginCallback from './templates/views/LoginCallback.svelte'
-import Login from './templates/views/Login.svelte'
-import Logout from './templates/views/Logout.svelte'
-import Whitelabel from './templates/views/Whitelabel.svelte'
-import Settings from './templates/views/Settings.svelte'
-import Error from './templates/views/Error.svelte'
-import Error404 from './templates/views/Error404.svelte'
-import Transcripts from './templates/views/Transcripts.svelte'
+import Index from './views/Index.svelte'
+import LoginCallback from './views/LoginCallback.svelte'
+import Login from './views/Login.svelte'
+import Logout from './views/Logout.svelte'
+import Whitelabel from './views/Whitelabel.svelte'
+import Settings from './views/Settings.svelte'
+import Error from './views/Error.svelte'
+import Error404 from './views/Error404.svelte'
+import Transcripts from './views/Transcripts.svelte'
+import TranscriptView from './views/TranscriptView.svelte'
+import Blacklist from './views/Blacklist.svelte'
+import Panels from './views/Panels.svelte'
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -25,7 +29,23 @@ export const routes = [
         nestedRoutes: [
             {name: 'index', component: Error404, layout: ErrorLayout},
             {name: 'settings', component: Settings, layout: ManageLayout},
-            {name: 'transcripts', component: Transcripts, layout: ManageLayout},
+            {
+                name: 'transcripts',
+                nestedRoutes: [
+                    {
+                        name: 'index',
+                        component: Transcripts,
+                        layout: ManageLayout,
+                    },
+                    {
+                        name: 'view/:ticketid',
+                        component: TranscriptView, // just to test
+                        layout: TranscriptViewLayout,
+                    }
+                ]
+            },
+            {name: 'panels', component: Panels, layout: ManageLayout},
+            {name: 'blacklist', component: Blacklist, layout: ManageLayout},
         ],
     }
 ]

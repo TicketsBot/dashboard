@@ -14,7 +14,7 @@
         axios.defaults.headers.common['x-tickets'] = 'true'
         const res = await axios.post(`${API_URL}/callback?code=${code}`)
         if (res.status !== 200) {
-            errorPage(res.status, res.data.error)
+            errorPage(res.data.error)
             return
         }
 

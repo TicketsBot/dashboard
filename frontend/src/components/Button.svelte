@@ -30,7 +30,7 @@
       margin: 0;
 
       cursor: pointer;
-      transition: background-color 150ms ease-in-out;
+      transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
       box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
   }
 

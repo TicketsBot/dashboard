@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -12,9 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
-	"golang.org/x/sync/errgroup"
 	"strconv"
-	"sync"
 )
 
 func UpdatePanel(ctx *gin.Context) {
@@ -67,48 +64,39 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	var wouldHaveDuplicateEmote bool
+	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 
-	{
-		var duplicateLock sync.Mutex
-
-		group, _ := errgroup.WithContext(context.Background())
-		for _, multiPanelId := range multiPanels {
-			multiPanelId := multiPanelId
-
-			group.Go(func() error {
-				// get the sub-panels of the multi-panel
-				subPanels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanelId)
-				if err != nil {
-					return err
-				}
-
-				for _, subPanel := range subPanels {
-					if subPanel.MessageId == existing.MessageId {
-						continue
-					}
-
-					if subPanel.ReactionEmote == data.Emote {
-						duplicateLock.Lock()
-						wouldHaveDuplicateEmote = true
-						duplicateLock.Unlock()
-						break
-					}
-				}
-
-				return nil
-			})
-		}
-
-		if err := group.Wait(); err != nil {
+	for _, multiPanel := range multiPanels {
+		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
+		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
-	}
 
-	if wouldHaveDuplicateEmote {
-		ctx.JSON(400, utils.ErrorJson(errors.New("Changing the reaction emote to this value would cause a conflict in a multi-panel")))
-		return
+		// TODO: Optimise this
+		panelIds := make([]int, len(panels))
+		for i, panel := range panels {
+			panelIds[i] = panel.PanelId
+		}
+
+		data := multiPanelCreateData{
+			Title:     multiPanel.Title,
+			Content:   multiPanel.Content,
+			Colour:    int32(multiPanel.Colour),
+			ChannelId: multiPanel.ChannelId,
+			Panels:    panelIds,
+		}
+
+		messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		if err := dbclient.Client.MultiPanels.UpdateMessageId(multiPanel.Id, messageId); err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
 	}
 
 	// check if we need to update the message
@@ -125,7 +113,6 @@ func UpdatePanel(ctx *gin.Context) {
 		// delete old message, ignoring error
 		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
-		premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 		newMessageId, err = data.sendEmbed(&botContext, existing.Title, existing.CustomId, existing.ReactionEmote, premiumTier > premium.None)
 		if err != nil {
 			var unwrapped request.RestError

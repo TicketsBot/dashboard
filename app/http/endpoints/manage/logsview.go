@@ -46,7 +46,7 @@ func LogViewHandler(ctx *gin.Context) {
 	// format ticket ID
 	ticketId, err := strconv.Atoi(ctx.Param("ticket"))
 	if err != nil {
-		ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
+		ctx.Redirect(302, fmt.Sprintf("/manage/%d/transcripts", guild.Id))
 		return
 	}
 
@@ -63,7 +63,7 @@ func LogViewHandler(ctx *gin.Context) {
 
 	// Verify this is a valid ticket and it is closed
 	if ticket.UserId == 0 || ticket.Open {
-		ctx.Redirect(302, fmt.Sprintf("/manage/%d/logs", guild.Id))
+		ctx.Redirect(302, fmt.Sprintf("/manage/%d/transcripts", guild.Id))
 		return
 	}
 

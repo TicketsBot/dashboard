@@ -36,7 +36,7 @@ func main() {
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
-	manage.Archiver = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
+	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
 
 	utils.LoadEmoji()
 	if err := i18n.LoadMessages(database.Client); err != nil {

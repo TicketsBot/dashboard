@@ -95,7 +95,7 @@ func handleRedirect(ctx *gin.Context) {
 	state := strings.Split(ctx.Query("state"), ".")
 
 	if len(state) == 3 && state[0] == "viewlog" {
-		ctx.Redirect(302, fmt.Sprintf("%s/manage/%s/logs/view/%s", config.Conf.Server.BaseUrl, state[1], state[2]))
+		ctx.Redirect(302, fmt.Sprintf("%s/manage/%s/transcripts/view/%s", config.Conf.Server.BaseUrl, state[1], state[2]))
 	} else {
 		ctx.Redirect(302, config.Conf.Server.BaseUrl)
 	}

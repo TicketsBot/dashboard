@@ -1,4 +1,5 @@
 import * as Stores from './stores'
+import {navigateTo} from "svelte-router-spa";
 
 export async function withLoadingScreen(func) {
     Stores.addLoadingScreenTicket();
@@ -6,8 +7,9 @@ export async function withLoadingScreen(func) {
     Stores.removeLoadingScreenTicket();
 }
 
-export function errorPage(status, message) {
-    window.location.href = `/error?status=${encodeURIComponent(status)}&message=${encodeURIComponent(message)}`
+export function errorPage(message) {
+    console.log(encodeURIComponent(message))
+    navigateTo(`/error?message=${encodeURIComponent(message)}`)
 }
 
 export function notify(title, message) {

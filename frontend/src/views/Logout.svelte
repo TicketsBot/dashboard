@@ -9,7 +9,7 @@
   async function process() {
       const res = await axios.post(`${API_URL}/logout`);
       if (res.status !== 204) {
-          errorPage(res.status, res.data.error)
+          errorPage(res.data.error)
           return
       }
 

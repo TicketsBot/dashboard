@@ -19,3 +19,6 @@ export function removeLoadingScreenTicket() {
 export const notifyModal = writable(false);
 export const notifyTitle = writable("");
 export const notifyMessage = writable("");
+
+export const isErrorPage = writable(false);
+export const errorMessage = writable("");

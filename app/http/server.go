@@ -5,7 +5,7 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
 	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
-	api_logs "github.com/TicketsBot/GoPanel/app/http/endpoints/api/logs"
+	api_transcripts "github.com/TicketsBot/GoPanel/app/http/endpoints/api/transcripts"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
@@ -107,7 +107,8 @@ func StartServer() {
 		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate)
 		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
 
-		guildAuthApiSupport.GET("/logs/", api_logs.GetLogs)
+		guildAuthApiSupport.GET("/transcripts", createLimiter(5, 5 * time.Second), createLimiter(20, time.Minute), api_transcripts.ListTranscripts)
+		guildAuthApiSupport.GET("/transcripts/:ticketId", createLimiter(10, 10 * time.Second), api_transcripts.GetTranscriptHandler)
 
 		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)
