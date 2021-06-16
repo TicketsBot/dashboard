@@ -22,8 +22,12 @@
                 <td>#{channels.find((c) => c.id === panel.channel_id)?.name ?? 'Unknown Channel'}</td>
                 <td>{panel.title}</td>
                 <td class="category-col">{channels.find((c) => c.id === panel.category_id)?.name ?? 'Unknown Category'}</td>
-                <td><Button on:click={() => editPanel(panel.panel_id)}>Edit</Button></td>
-                <td><Button on:click={() => deletePanel(panel.panel_id)}>Delete</Button></td>
+                <td>
+                  <Button on:click={() => editPanel(panel.panel_id)}>Edit</Button>
+                </td>
+                <td>
+                  <Button on:click={() => deletePanel(panel.panel_id)}>Delete</Button>
+                </td>
               </tr>
             {/each}
             </tbody>
@@ -32,6 +36,14 @@
       </Card>
     </div>
     <div class="row">
+      <Card footer="{false}">
+        <span slot="title">Create Panel</span>
+
+        <div slot="body" class="body-wrapper">
+          <PanelCreationForm guildId={guildId} bind:data={panelCreateData}
+                             on:submit={() => console.log(panelCreateData)}/>
+        </div>
+      </Card>
     </div>
   </div>
   <div class="col-small">
@@ -53,6 +65,7 @@
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
     import Button from "../components/Button.svelte";
+    import PanelCreationForm from "../components/manage/PanelCreationForm.svelte";
 
     export let currentRoute;
     export let params = {};
@@ -64,6 +77,8 @@
     let channels = [];
     let panels = [];
     let isPremium = false;
+
+    let panelCreateData;
 
     async function editPanel(panelId) {
 
@@ -80,7 +95,7 @@
     }
 
     async function loadPremium() {
-        const res = await axios.get('/api/{{.guildId}}/premium');
+        const res = await axios.get(`${API_URL}/api/${guildId}/premium`);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
@@ -125,6 +140,10 @@
         margin-top: 30px;
     }
 
+    .body-wrapper {
+        width: 100%;
+    }
+
     .col-main {
         display: flex;
         flex-direction: column;
@@ -145,6 +164,7 @@
         display: flex;
         width: 96%;
         height: 100%;
+        margin-bottom: 2%;
     }
 
     .card-body {

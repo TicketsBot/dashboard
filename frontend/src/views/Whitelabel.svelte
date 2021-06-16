@@ -30,7 +30,7 @@
         <div slot="body" class="full-width">
           <form class="full-width" onsubmit="return false;">
             <label class="form-label">Interactions Endpoint URL</label>
-            <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width" disabled>
+            <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width" readonly>
 
             <label class="form-label">Public Key</label>
             <input name="token" type="text" bind:value={publicKey} class="form-input full-width">

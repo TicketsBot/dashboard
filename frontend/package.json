@@ -20,6 +20,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "sirv-cli": "^1.0.0",
+    "svelte-emoji-selector": "^1.0.1",
     "svelte-router-spa": "^6.0.2"
   }
 }

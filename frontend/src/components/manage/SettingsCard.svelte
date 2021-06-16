@@ -60,7 +60,7 @@
             return;
         }
 
-        $: channels = res.data;
+        channels = res.data;
     }
 
     let data = {

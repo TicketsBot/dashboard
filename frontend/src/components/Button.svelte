@@ -1,4 +1,4 @@
-<button on:click isTrigger="1" class:fullWidth disabled="{disabled}">
+<button on:click isTrigger="1" class:fullWidth disabled="{disabled}" type="{type}">
   {#if icon !== undefined}
     <i class="{icon}"></i>
   {/if}
@@ -11,6 +11,7 @@
   export let icon;
   export let fullWidth = false;
   export let disabled = false;
+  export let type = "submit";
 </script>
 
 <style>

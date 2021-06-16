@@ -1,6 +1,6 @@
 <div class:col-1={col1} class:col-2={col2} class:col-3={col3} class:col-4={col4}>
   <label for="input" class="form-label">{label}</label>
-  <textarea id="input" class="form-input" placeholder="{placeholder}" bind:value></textarea>
+  <textarea id="input" class="form-input" placeholder="{placeholder}" bind:value on:change on:input></textarea>
 </div>
 
 <script>

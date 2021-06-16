@@ -1,4 +1,5 @@
-export const API_URL = "http://172.26.110.203:3000"
+export const API_URL = "http://172.24.37.24:3000"
+export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.net/setup/placeholders.html"
 
 export const OAUTH = {
     clientId: "700742994386747404",

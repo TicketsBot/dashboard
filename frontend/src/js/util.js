@@ -33,3 +33,11 @@ export function notifyRatelimit() {
 export function closeNotificationModal() {
     Stores.notifyModal.set(false);
 }
+
+export function colourToInt(colour) {
+    return parseInt(`0x${colour.slice(1)}`);
+}
+
+export function intToColour(i) {
+    return `#${i.toString(16)}`
+}
