@@ -37,7 +37,7 @@
             <tr>
               <th>Ticket ID</th>
               <th>Username</th>
-              <th>Close Reason</th>
+              <th class="reason">Close Reason</th>
               <th>Transcript</th>
             </tr>
             </thead>
@@ -46,7 +46,7 @@
               <tr>
                 <td>{transcript.ticket_id}</td>
                 <td>{transcript.username}</td>
-                <td>{transcript.close_reason || 'No reason specified'}</td>
+                <td class="reason">{transcript.close_reason || 'No reason specified'}</td>
                 <td>
                   <Navigate to="{`/manage/${guildId}/transcripts/view/${transcript.ticket_id}`}" styles="link">
                     <Button>View</Button>
@@ -290,6 +290,16 @@
 
         :global([ref=filter-card]) {
             min-height: 252px !important;
+        }
+    }
+
+    @media only screen and (max-width: 576px) {
+        .col {
+            width: 100%;
+        }
+
+        .reason {
+            display: none;
         }
     }
 </style>
