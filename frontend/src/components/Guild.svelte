@@ -17,6 +17,7 @@
 <script>
     import axios from 'axios';
     import {API_URL} from "../js/constants";
+    import {notifyError} from "../js/util";
 
     export let guild;
 
@@ -48,7 +49,7 @@
     async function getPermissionLevel(guildId) {
         const res = await axios.get(`${API_URL}/user/permissionlevel?guilds=${guildId}`);
         if (res.status !== 200 || !res.data.success) {
-            showToast('Error', res.data.error);
+            notifyError(res.data.error);
             return;
         }
 
@@ -70,7 +71,7 @@
         cursor: pointer;
     }
 
-    @media only screen and (max-width: 900px) {
+    @media (max-width: 950px) {
         :global(.guild-badge) {
             width: 100%;
         }

@@ -94,4 +94,10 @@
         margin: 10px 0;
         color: white;
     }
+
+    @media (max-width: 576px) {
+        .card-wrapper {
+            width: 100%;
+        }
+    }
 </style>

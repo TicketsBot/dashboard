@@ -56,11 +56,11 @@
     }
 
     .wrapper {
-        margin: 0 !important;
-        padding: 0 !important;
         display: flex;
         width: 100%;
         height: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .super-container {
@@ -77,5 +77,11 @@
 
     .hide {
         visibility: hidden;
+    }
+
+    @media (max-width: 950px) {
+        .wrapper {
+            flex-direction: column;
+        }
     }
 </style>
