@@ -1,4 +1,4 @@
-export const API_URL = env.API_URI || "http://172.26.50.75:3000"
+export const API_URL = env.API_URL || "http://172.26.50.75:3000"
 export const PLACEHOLDER_DOCS_URL = "https://docs.ticketsbot.net/setup/placeholders.html"
 
 export const OAUTH = {
