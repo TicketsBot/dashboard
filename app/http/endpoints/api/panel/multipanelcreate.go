@@ -121,16 +121,22 @@ func (d *multiPanelCreateData) doValidations(guildId uint64) (panels []database.
 }
 
 func (d *multiPanelCreateData) validateTitle() (err error) {
-	if len(d.Title) > 255 || len(d.Title) < 1 {
-		err = errors.New("embed title must be between 1 and 255 characters")
+	if len(d.Title) > 255 {
+		err = errors.New("Embed title must be between 1 and 255 characters")
+	} else if len(d.Title) == 0 {
+		d.Title = "Click to open a ticket"
 	}
+
 	return
 }
 
 func (d *multiPanelCreateData) validateContent() (err error) {
-	if len(d.Content) > 1024 || len(d.Title) < 1 {
-		err = errors.New("embed content must be between 1 and 1024 characters")
+	if len(d.Content) > 1024 {
+		err = errors.New("Embed content must be between 1 and 1024 characters")
+	} else if len(d.Content) == 0 { // Fill default
+		d.Content = "Click on the button corresponding to the type of ticket you wish to open"
 	}
+
 	return
 }
 

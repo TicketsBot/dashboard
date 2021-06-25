@@ -2,20 +2,20 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/user"
 	"golang.org/x/sync/errgroup"
-	"strconv"
-	"sync"
 )
 
 type userData struct {
-	Username      string `json:"username"`
-	Discriminator string `json:"discriminator"`
+	UserId        uint64             `json:"id,string"`
+	Username      string             `json:"username"`
+	Discriminator user.Discriminator `json:"discriminator"`
 }
 
+// TODO: Paginate
 func GetBlacklistHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
@@ -23,29 +23,31 @@ func GetBlacklistHandler(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	data := make(map[string]userData)
-	var lock sync.Mutex
+	data := make([]userData, len(blacklistedUsers))
 
 	group, _ := errgroup.WithContext(context.Background())
-	for _, userId := range blacklistedUsers {
+	for i, userId := range blacklistedUsers {
+		i := i
+		userId := userId
+
+		// TODO: Mass lookup
 		group.Go(func() error {
-			user, _ := cache.Instance.GetUser(userId)
-
-			lock.Lock()
-
-			// JS cant do big ints
-			data[strconv.FormatUint(userId, 10)] = userData{
-				Username:      user.Username,
-				Discriminator: fmt.Sprintf("%04d", user.Discriminator),
+			userData := userData{
+				UserId: userId,
 			}
 
-			lock.Unlock()
+			user, ok := cache.Instance.GetUser(userId)
+			if ok {
+				userData.Username = user.Username
+				userData.Discriminator = user.Discriminator
+			}
 
+			data[i] = userData
 			return nil
 		})
 	}

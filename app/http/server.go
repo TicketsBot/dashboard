@@ -88,18 +88,18 @@ func StartServer() {
 		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
 		guildAuthApiSupport.GET("/user/:user", api.UserHandler)
 		guildAuthApiSupport.GET("/roles", api.RolesHandler)
-		guildAuthApiSupport.GET("/members/search", createLimiter(10, time.Second * 30), createLimiter(75, time.Minute * 30), api.SearchMembers)
+		guildAuthApiSupport.GET("/members/search", createLimiter(5, time.Second), createLimiter(10, time.Second * 30), createLimiter(75, time.Minute * 30), api.SearchMembers)
 
 		guildAuthApiAdmin.GET("/settings", api_settings.GetSettingsHandler)
 		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)
 
 		guildAuthApiSupport.GET("/blacklist", api_blacklist.GetBlacklistHandler)
-		guildAuthApiSupport.PUT("/blacklist", api_blacklist.AddBlacklistHandler)
+		guildAuthApiSupport.POST("/blacklist/:user", api_blacklist.AddBlacklistHandler)
 		guildAuthApiSupport.DELETE("/blacklist/:user", api_blacklist.RemoveBlacklistHandler)
 
 		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
-		guildAuthApiAdmin.PUT("/panels", api_panels.CreatePanel)
-		guildAuthApiAdmin.PUT("/panels/:panelid", api_panels.UpdatePanel)
+		guildAuthApiAdmin.POST("/panels", api_panels.CreatePanel)
+		guildAuthApiAdmin.PATCH("/panels/:panelid", api_panels.UpdatePanel)
 		guildAuthApiAdmin.DELETE("/panels/:panelid", api_panels.DeletePanel)
 
 		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList)
@@ -126,7 +126,7 @@ func StartServer() {
 		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
 
 		guildAuthApiAdmin.GET("/team", api_team.GetTeams)
-		guildAuthApiAdmin.GET("/team/:teamid", createLimiter(5, time.Second * 15), api_team.GetMembers)
+		guildAuthApiAdmin.GET("/team/:teamid", createLimiter(10, time.Second * 30), api_team.GetMembers)
 		guildAuthApiAdmin.POST("/team", createLimiter(10, time.Minute), api_team.CreateTeam)
 		guildAuthApiAdmin.PUT("/team/:teamid/:snowflake", createLimiter(5, time.Second * 10), api_team.AddMember)
 		guildAuthApiAdmin.DELETE("/team/:teamid", api_team.DeleteTeam)

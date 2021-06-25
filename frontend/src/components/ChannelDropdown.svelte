@@ -1,7 +1,7 @@
-<Dropdown col1={col1} col2={col2} col3={col3} col4={col4} bind:value={value} label={label}>
+<Dropdown {col1} {col2} {col3} {col4} bind:value label={label}>
   {#each channels as channel}
     {#if channel.type === 0}
-      <option value={channel.id}>
+      <option value="{channel.id}">
         #{channel.name}
       </option>
     {/if}
@@ -13,7 +13,7 @@
 
     export let value;
     export let label;
-    export let channels;
+    export let channels = [];
 
     export let col1 = false;
     export let col2 = false;

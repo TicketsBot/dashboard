@@ -9,7 +9,7 @@
 </script>
 
 <div class="card" class:fill>
-  <div class="card-header" class:dropdown on:click={() => dropdownActive = !dropdownActive}>
+  <div class="card-header" class:dropdown on:click={() => dropdownActive = dropdown && !dropdownActive}>
     <h4 class="card-title">
       <slot name="title">
         No Title :(
@@ -124,5 +124,14 @@
 
     .footerRight {
         flex-direction: row-reverse;
+    }
+
+    :global(div [slot=footer]) {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .inner > * {
+        width: 100%;
     }
 </style>

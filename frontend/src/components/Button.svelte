@@ -1,4 +1,4 @@
-<button on:click isTrigger="1" class:fullWidth disabled="{disabled}" type="{type}">
+<button on:click isTrigger="1" class:fullWidth class:danger {disabled} {type}>
   {#if icon !== undefined}
     <i class="{icon}"></i>
   {/if}
@@ -12,6 +12,7 @@
   export let fullWidth = false;
   export let disabled = false;
   export let type = "submit";
+  export let danger = false;
 </script>
 
 <style>
@@ -35,7 +36,7 @@
       box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
   }
 
-  button:active {
+  button:active, button:hover:enabled {
       background-color: #0062cc;
       border-color: #0062cc;
   }
@@ -46,11 +47,6 @@
       cursor: default;
   }
 
-  button:hover:enabled {
-      background-color: #0062cc;
-      border-color: #0062cc;
-  }
-
   .content {
       margin-left: 5px;
       margin-right: 5px;
@@ -58,5 +54,15 @@
 
   .fullWidth {
       width: 100%;
+  }
+
+  .danger {
+      background-color: #dc3545 !important;
+      border-color: #dc3545 !important;
+  }
+
+  .danger:hover:enabled, .danger:active {
+      background-color: #c32232 !important;
+      border-color: #c32232 !important;
   }
 </style>

@@ -2,27 +2,31 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/user"
 	"golang.org/x/sync/errgroup"
-	"strconv"
 )
 
 func GetTickets(ctx *gin.Context) {
+	type WithUser struct {
+		TicketId int        `json:"id"`
+		User     *user.User `json:"user,omitempty"`
+	}
+
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	tickets, err := database.Client.Tickets.GetGuildOpenTickets(guildId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	ticketsFormatted := make([]map[string]interface{}, len(tickets))
+	data := make([]WithUser, len(tickets))
 
 	group, _ := errgroup.WithContext(context.Background())
 
@@ -31,29 +35,14 @@ func GetTickets(ctx *gin.Context) {
 		ticket := ticket
 
 		group.Go(func() error {
-			members, err := database.Client.TicketMembers.Get(guildId, ticket.Id)
-			if err != nil {
-				return err
+			user, ok := cache.Instance.GetUser(ticket.UserId)
+
+			data[i] = WithUser{
+				TicketId: ticket.Id,
 			}
 
-			membersFormatted := make([]map[string]interface{}, 0)
-			for _, userId := range members {
-				user, _ := cache.Instance.GetUser(userId)
-
-				membersFormatted = append(membersFormatted, map[string]interface{}{
-					"id": strconv.FormatUint(userId, 10),
-					"username": user.Username,
-					"discrim":  fmt.Sprintf("%04d", user.Discriminator),
-				})
-			}
-
-			owner, _ := cache.Instance.GetUser(ticket.UserId)
-
-			ticketsFormatted[len(tickets) - 1 - i] =  map[string]interface{}{
-				"ticketId": ticket.Id,
-				"username": owner.Username,
-				"discrim":  fmt.Sprintf("%04d", owner.Discriminator),
-				"members":  membersFormatted,
+			if ok {
+				data[i].User = &user
 			}
 
 			return nil
@@ -63,10 +52,10 @@ func GetTickets(ctx *gin.Context) {
 	if err := group.Wait(); err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(200, ticketsFormatted)
+	ctx.JSON(200, data)
 }

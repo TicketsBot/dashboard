@@ -35,7 +35,6 @@
     }
 
     function closeDropdown() {
-
         dropdown = false;
     }
 </script>

@@ -4,10 +4,10 @@
   <Navbar guildId={guildId} bind:dropdown={$dropdown}/>
   <div class="super-container" class:dropdown={$dropdown}>
     <LoadingScreen/>
-    <NotifyModal/>
     <div class="content-container" class:hide={$loadingScreen}>
       <Route {currentRoute} {params}/>
     </div>
+    <NotifyModal/>
   </div>
 </div>
 

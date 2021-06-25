@@ -142,7 +142,7 @@ func UpdatePanel(ctx *gin.Context) {
 		TargetCategory:  data.CategoryId,
 		ReactionEmote:   emoji,
 		WelcomeMessage:  data.WelcomeMessage,
-		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
+		WithDefaultTeam: data.WithDefaultTeam,
 		CustomId:        existing.CustomId,
 	}
 

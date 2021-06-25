@@ -1,3 +1,6 @@
+# Runtime
+---
+
 - ADMINS
 - FORCED_WHITELABEL
 - SERVER_ADDR
@@ -24,3 +27,10 @@
 - CACHE_URI
 - REFERRAL_SHOW
 - REFERRAL_LINK
+
+# Build
+---
+- CLIENT_ID
+- REDIRECT_URI
+- API_URL
+

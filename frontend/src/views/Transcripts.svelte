@@ -32,7 +32,7 @@
         </span>
 
         <div slot="body" class="main-col">
-          <table>
+          <table class="nice">
             <thead>
             <tr>
               <th>Ticket ID</th>
@@ -234,27 +234,27 @@
         min-height: 110px !important;
     }
 
-    table {
+    :global(table.nice) {
         width: 100%;
         border-collapse: collapse;
     }
 
-    th {
+    :global(table.nice > thead > tr > th) {
         text-align: left;
         font-weight: normal;
         border-bottom: 1px solid #dee2e6;
         padding-left: 10px;
     }
 
-    tr {
+    :global(table.nice > thead > tr, table.nice > tbody > tr) {
         border-bottom: 1px solid #dee2e6;
     }
 
-    tr:last-child {
+    :global(table.nice > tbody > tr:last-child) {
         border-bottom: none;
     }
 
-    td {
+    :global(table.nice > tbody > tr > td) {
         padding: 10px 0 10px 10px;
     }
 

@@ -1,7 +1,7 @@
 <form class="settings-form" on:submit|preventDefault>
   <div class="row">
     <div class="col-1-3">
-      <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.prefix}/>
+      <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.title}/>
     </div>
     <div class="col-2-3">
       <Textarea col1=true label="Panel Content" placeholder="By clicking the button, a ticket will be opened for you."
@@ -10,20 +10,20 @@
   </div>
   <div class="row">
     <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
-    <ChannelDropdown label="Panel Channel" col4=true channels={channels} bind:value={data.channel_id}/>
-    <CategoryDropdown label="Ticket Category" col4=true channels={channels} bind:value={data.category_id}/>
+    <ChannelDropdown label="Panel Channel" col4=true {channels} bind:value={data.channel_id}/>
+    <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
     <EmojiInput label="Button Emoji" col4=true bind:value={data.emote}/>
   </div>
   <div class="row" style="justify-content: center">
     <div class="col-3">
       <Button icon="fas fa-sliders-h" fullWidth=true type="button"
-              on:click={() => advancedSettings = !advancedSettings}>Toggle Advanced Settings
+              on:click={toggleAdvancedSettings}>Toggle Advanced Settings
       </Button>
     </div>
   </div>
   <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
-       class:advanced-settings-hide={!advancedSettings}>
-    <div class="inner">
+       class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
+    <div class="inner" class:inner-show={advancedSettings}>
       <div class="row">
       <Textarea col1=true bind:value={data.welcome_message} label="Welcome Message"
                 placeholder="If blank, your server's default welcome message will be used"
@@ -31,19 +31,18 @@
       </div>
       <div class="row">
         <div class="col-2">
-          <MultiSelect bind:value={data.mentions}>
-            <option value="user">Ticket Opener</option>
-            {#each roles as role}
-              <option value="{role.id}">{role.name}</option>
-            {/each}
-          </MultiSelect>
+          <label class="form-label">Mention On Open</label>
+          <div class="multiselect-super">
+            <Select items={mentionValues} bind:selectedValue={mentionsRaw} on:select={updateMentions} isMulti={true}/>
+          </div>
+        </div>
+        <div class="col-2">
+          <label class="form-label">Support Teams</label>
+          <div class="multiselect-super">
+            <Select items={teamsItems} bind:selectedValue={teamsRaw} on:select={updateTeams} isMulti={true}/>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="row" style="justify-content: center">
-    <div class="col-3">
-      <Button icon="fas fa-paper-plane" fullWidth=true>Submit</Button>
     </div>
   </div>
 </form>
@@ -55,28 +54,81 @@
     import Button from "../Button.svelte";
     import ChannelDropdown from "../ChannelDropdown.svelte";
 
-    import {colourToInt, notifyError, withLoadingScreen} from "../../js/util";
-    import axios from "axios";
-    import {API_URL} from "../../js/constants";
+    import {createEventDispatcher, onMount} from 'svelte';
+    import {colourToInt} from "../../js/util";
     import {setDefaultHeaders} from "../../includes/Auth.svelte";
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import EmojiInput from "../form/EmojiInput.svelte";
-    import MultiSelect from "../form/MultiSelect.svelte";
+    import Select from 'svelte-select';
 
     export let guildId;
+    export let seedDefault = true;
+
+    const dispatch = createEventDispatcher();
 
     let tempColour = '#2ECC71';
-    export let data = {
-        title: 'Open a ticket!',
-        content: 'By clicking the button, a ticket will be opened for you.',
-        colour: 0x2ECC71,
-        emote: '📩',
-        welcome_message: null
-    };
 
-    let channels = [];
-    let roles = [];
+    export let data;
+    if (seedDefault) {
+        data = {
+            //title: 'Open a ticket!',
+            //content: 'By clicking the button, a ticket will be opened for you.',
+            colour: 0x2ECC71,
+            emote: '📩',
+            welcome_message: null,
+            mentions: [],
+            default_team: true,
+            teams: [],
+        };
+    }
+
+    export let channels = [];
+    export let roles = [];
+    export let teams = [];
+
     let advancedSettings = false;
+    let overflowShow = false;
+
+    // Oh my
+    // TODO: Clean up
+    let mentionValues = [{value: 'user', label: 'Ticket Opener'}];
+    let mentionsRaw = [];
+
+    function updateMentions() {
+        if (mentionsRaw === undefined) {
+            mentionsRaw = [];
+        }
+
+        data.mentions = mentionsRaw.map((option) => option.value);
+    }
+
+    let teamsItems = [{value: 'default', label: 'Default'}];
+    let teamsRaw = [];
+    if (seedDefault) {
+        teamsRaw = [{value: 'default', label: 'Default'}];
+    }
+
+    function updateTeams() {
+        if (teamsRaw === undefined) {
+            data.teams = [];
+        } else {
+            data.default_team = teamsRaw.find((option) => option.value === 'default') !== undefined;
+            data.teams = teamsRaw
+                .filter((option) => option.value !== 'default')
+                .map((option) => teams.find((team) => team.id == option.value));
+        }
+    }
+
+    function toggleAdvancedSettings() {
+        advancedSettings = !advancedSettings;
+        if (advancedSettings) {
+            setTimeout(() => {
+                overflowShow = true;
+            }, 300);
+        } else {
+            overflowShow = false;
+        }
+    }
 
     function handleWelcomeMessageUpdate() {
         if (data.welcome_message === "") {
@@ -88,30 +140,40 @@
         data.colour = colourToInt(tempColour);
     }
 
-    async function loadChannels() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/channels`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        channels = res.data;
+    function updateMentionValues() {
+        mentionValues = [{value: 'user', label: 'Ticket Opener'}];
+        $: roles.forEach((role) => mentionValues.push({value: role.id, label: role.name}));
     }
 
-    async function loadRoles() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/roles`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        roles = res.data.roles;
+    function updateTeamsItems() {
+        teamsItems = [{value: 'default', label: 'Default'}];
+        $: teams.forEach((team) => teamsItems.push({value: team.id, label: team.name}));
     }
 
-    withLoadingScreen(async () => {
-        setDefaultHeaders();
-        await loadChannels();
-        await loadRoles();
+    function applyOverrides() {
+        if (data.default_team === true) {
+            $: teamsRaw.push({value: 'default', label: 'Default'});
+        }
+
+        if (data.teams) {
+            $: data.teams.forEach((team) => teamsRaw.push({value: team.id.toString(), label: team.name}));
+        }
+
+        if (data.mentions) {
+            $: data.mentions.forEach((id) => mentionsRaw.push(mentionValues.find((val) => val.value === id)));
+        }
+    }
+
+    onMount(() => {
+        updateMentionValues();
+        updateTeamsItems();
+
+        if (seedDefault) {
+            data.channel_id = channels.find((c) => c.type === 0).id;
+            data.category_id = channels.find((c) => c.type === 4).id;
+        } else {
+            applyOverrides();
+        }
     })
 </script>
 
@@ -121,7 +183,6 @@
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
-        height: 100%;
         margin-bottom: 10px;
     }
 
@@ -132,7 +193,7 @@
         height: 100%;
     }
 
-    .col-1-3 {
+    :global(.col-1-3) {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -140,7 +201,7 @@
         height: 100%;
     }
 
-    .col-2-3 {
+    :global(.col-2-3) {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -148,9 +209,21 @@
         height: 100%;
     }
 
+    @media only screen and (max-width: 950px) {
+        .row {
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        :global(.col-1-3, .col-2-3) {
+            width: 100% !important;
+        }
+    }
+
     .advanced-settings {
         transition: min-height .3s ease-in-out, margin-top .3s ease-in-out, margin-bottom .3s ease-in-out;
         position: relative;
+        overflow: hidden;
     }
 
     .advanced-settings-hide {
@@ -164,16 +237,48 @@
 
     .advanced-settings-show {
         visibility: visible;
-        min-height: 500px;
+        min-height: 250px;
         margin-bottom: 10px;
-        overflow: hidden;
+    }
+
+    .show-overflow {
+        overflow: visible;
     }
 
     .inner {
         display: flex;
         flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
         position: absolute;
         height: 100%;
         width: 100%;
+    }
+
+    :global(.multiselect-super) {
+        display: flex;
+        width: 100%;
+        height: 100%;
+
+        --background: #2e3136;
+        --border: #2e3136;
+        --borderRadius: 4px;
+        --itemHoverBG: #121212;
+        --listBackground: #2e3136;
+        --itemColor: white;
+        --multiItemBG: #272727;
+        --multiItemActiveBG: #272727;
+        --multiClearFill: #272727;
+        --multiClearHoverFill: #272727;
+        --inputColor: white;
+        --inputFontSize: 16px;
+    }
+
+    :global(.multiselect-super > .selectContainer) {
+        width: 100%;
+    }
+
+    :global(.selectContainer > .multiSelect, .selectContainer > .multiSelect > input) {
+        cursor: pointer;
     }
 </style>

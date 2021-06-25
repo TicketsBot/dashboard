@@ -2,28 +2,25 @@
   <div class="content">
     <div class="main-col">
       <Card footer={false}>
-        <span slot="title">Blacklisted Users</span>
+        <span slot="title">Tags</span>
         <div slot="body" class="body-wrapper">
           <table class="nice">
             <thead>
             <tr>
-              <th>Username</th>
-              <th>User ID</th>
-              <th>Remove</th>
+              <th>Tag</th>
+              <th>Edit</th>
+              <th>Delete</th>
             </tr>
             </thead>
             <tbody>
-            {#each blacklistedUsers as user}
+            {#each Object.entries(tags) as [id, content]}
               <tr>
-                {#if user.username !== '' && user.discriminator !== ''}
-                  <td>{user.username}#{user.discriminator}</td>
-                {:else}
-                  <td>Unknown</td>
-                {/if}
-
-                <td>{user.id}</td>
+                <td>{id}</td>
                 <td>
-                  <Button type="button" on:click={() => removeBlacklist(user)}>Remove</Button>
+                  <Button type="button" on:click={() => editTag(id)}>Edit</Button>
+                </td>
+                <td>
+                  <Button type="button" danger={true} on:click={() => deleteTag(id)}>Delete</Button>
                 </td>
               </tr>
             {/each}
@@ -34,16 +31,20 @@
     </div>
     <div class="right-col">
       <Card footer={false}>
-        <span slot="title">Blacklist A User</span>
+        <span slot="title">Create A Tag</span>
         <div slot="body" class="body-wrapper">
-          <form class="body-wrapper" on:submit|preventDefault={addBlacklist}>
-            <div class="row" style="flex-direction: column">
-              <UserSelect {guildId} label="User" bind:value={addUser}/>
+          <form class="body-wrapper" on:submit|preventDefault={createTag}>
+            <div class="col" style="flex-direction: column">
+              <Input label="Tag ID" placeholder="mytag" bind:value={createData.id}/>
             </div>
+            <div class="col" style="flex-direction: column">
+              <Textarea label="Tag Content" placeholder="Enter the text that the bot should respond with"
+                        bind:value={createData.content}/>
+            </div>
+
             <div class="row" style="justify-content: center">
               <div class="col-2">
-                <Button fullWidth={true} icon="fas fa-plus"
-                        disabled={addUser === undefined || addUser === ''}>Blacklist</Button>
+                <Button fullWidth={true} icon="fas fa-plus">Submit</Button>
               </div>
             </div>
           </form>
@@ -55,58 +56,62 @@
 
 <script>
     import Card from "../components/Card.svelte";
-    import UserSelect from "../components/form/UserSelect.svelte";
     import {notifyError, notifySuccess, withLoadingScreen} from '../js/util'
     import Button from "../components/Button.svelte";
     import axios from "axios";
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
+    import Input from "../components/form/Input.svelte";
+    import Textarea from "../components/form/Textarea.svelte";
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
 
-    let addUser;
-    let blacklistedUsers = [];
+    let createData = {};
+    let tags = {};
 
-    async function addBlacklist() {
-        const res = await axios.post(`${API_URL}/api/${guildId}/blacklist/${addUser.id}`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        notifySuccess(`${addUser.username}#${addUser.discriminator} has been blacklisted`);
-        blacklistedUsers = [...blacklistedUsers, {
-            id: addUser.id,
-            username: addUser.username,
-            discriminator: addUser.discriminator,
-        }];
+    function editTag(id) {
+        createData.id = id;
+        createData.content = tags[id];
     }
 
-    async function removeBlacklist(user) {
-        const res = await axios.delete(`${API_URL}/api/${guildId}/blacklist/${user.id}`);
+    async function createTag() {
+        const res = await axios.put(`${API_URL}/api/${guildId}/tags`, createData);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
         }
 
-        notifySuccess(`${user.username}#${user.discriminator} has been removed from the blacklist`);
-        blacklistedUsers = blacklistedUsers.filter((u) => u.id !== user.id);
+        notifySuccess(`Tag ${createData.id} has been created`);
+        tags[createData.id] = createData.content;
+        createData = {};
     }
 
-    async function loadUsers() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/blacklist`);
+    async function deleteTag(id) {
+        const res = await axios.delete(`${API_URL}/api/${guildId}/tags/${id}`);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
         }
 
-        blacklistedUsers = res.data;
+        notifySuccess(`Tag deleted successfully`);
+        delete tags[id];
+        tags = tags; // svelte terrible
+    }
+
+    async function loadTags() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/tags`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        tags = res.data;
     }
 
     withLoadingScreen(async () => {
         setDefaultHeaders();
-        await loadUsers();
+        await loadTags();
     });
 </script>
 
@@ -150,6 +155,14 @@
     .row {
         display: flex;
         flex-direction: row;
+        width: 100%;
+        height: 100%;
+        margin-bottom: 2%;
+    }
+
+    .col {
+        display: flex;
+        flex-direction: column;
         width: 100%;
         height: 100%;
         margin-bottom: 2%;

@@ -1,29 +1,31 @@
 <!--
-  All credit to https://svelte.dev/repl/c7094fb1004b440482d2a88f4d1d7ef5?version=3.14.0
-  I wasn't able to find an NPM package for this.
-  CSS has been ammended.
+  Based upon https://svelte.dev/repl/c7094fb1004b440482d2a88f4d1d7ef5?version=3.14.0
+  Heavily ammended
 -->
 
 <script>
-    import {afterUpdate} from 'svelte';
     import {fly} from 'svelte/transition';
 
-    export let id = '';
-    export let value = [];
-    export let readonly = false;
-    export let placeholder = '';
+    export let values = {};
+    export let selected = [];
+    let filtered = [];
 
     let input,
-        inputValue,
+        inputValue = '',
         options = [],
         activeOption,
         showOptions = false,
-        selected = {},
         first = true,
         slot
     const iconClearPath = 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z';
 
-    afterUpdate(() => {
+    function updateFiltered() {
+        filtered = Object.entries(values).filter(([_, name]) => name.includes(inputValue));
+    }
+
+    updateFiltered();
+
+    /*afterUpdate(() => {
         let newOptions = [];
         slot.querySelectorAll('option').forEach(o => {
             o.selected && !value.includes(o.value) && (value = [...value, o.value]);
@@ -39,22 +41,21 @@
 
     $: if (!first) value = Object.values(selected).map(o => o.value);
     $: filtered = options.filter(o => inputValue ? o.name.toLowerCase().includes(inputValue.toLowerCase()) : o);
-    $: if (activeOption && !filtered.includes(activeOption) || !activeOption && inputValue) activeOption = filtered[0];
+    $: if (activeOption && !filtered.includes(activeOption) || !activeOption && inputValue) activeOption = filtered[0];*/
 
 
-    function add(token) {
-        if (!readonly) selected[token.value] = token;
+    function add(value) {
+        selected = [...selected, value];
+        console.log(selected)
     }
 
     function remove(value) {
-        if (!readonly) {
-            const {[value]: val, ...rest} = selected;
-            selected = rest;
-        }
+        selected = selected.filter((e) => e !== value);
+
+        console.log(selected)
     }
 
     function optionsVisibility(show) {
-        if (readonly) return;
         if (typeof show === 'boolean') {
             showOptions = show;
             show && input.focus();
@@ -67,7 +68,8 @@
     }
 
     function handleKeyup(e) {
-        if (e.keyCode === 13) {
+        updateFiltered();
+        /*if (e.keyCode === 13) {
             Object.keys(selected).includes(activeOption.value) ? remove(activeOption.value) : add(activeOption);
             inputValue = '';
         }
@@ -77,7 +79,7 @@
             activeOption = calcIndex < 0 ? filtered[filtered.length - 1]
                 : calcIndex === filtered.length ? filtered[0]
                     : filtered[calcIndex];
-        }
+        }*/
     }
 
     function handleBlur(e) {
@@ -88,22 +90,24 @@
         if (e.target.closest('.token-remove')) {
             e.stopPropagation();
             remove(e.target.closest('.token').dataset.id);
-        } else if (e.target.closest('.remove-all')) {
-            selected = [];
-            inputValue = '';
         } else {
+            updateFiltered();
             optionsVisibility(true);
         }
     }
 
-    function handleOptionMousedown(e) {
-        const value = e.target.dataset.value;
-        if (selected[value]) {
-            remove(value);
+    function toggle(id) {
+        if (isSelected(id)) {
+            selected = selected.filter((e) => e !== id);
         } else {
-            add(options.filter(o => o.value === value)[0]);
-            input.focus();
+            $: selected.push(id);
         }
+
+        console.log(selected)
+    }
+
+    function isSelected(value) {
+        return selected.find((option) => option === value);
     }
 </script>
 
@@ -201,13 +205,14 @@
     }
 
     .options {
-        box-shadow: 0px 2px 4px rgba(0, 0, 0, .1), 0px -2px 4px rgba(0, 0, 0, .1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 -2px 4px rgba(0, 0, 0, .1);
         left: 0;
         list-style: none;
         margin-block-end: 0;
         margin-block-start: 0;
-        max-height: 70vh;
-        overflow: auto;
+        max-height: 300px;
+        overflow-y: scroll;
+        overflow-x: hidden;
         padding-inline-start: 0;
         position: absolute;
         top: calc(100% + 1px);
@@ -219,6 +224,14 @@
         color: white;
         cursor: pointer;
         padding: .5rem;
+    }
+
+    li.selected {
+        background-color: #121212;
+    }
+
+    li.selected:hover {
+        background-color: #121212;
     }
 
     li:hover {
@@ -240,28 +253,26 @@
     }
 </style>
 
-<div class="multiselect" class:readonly>
+<div class="multiselect">
   <div class="tokens" class:showOptions on:click={handleTokenClick}>
-    {#each Object.values(selected) as s}
-      <div class="token" data-id="{s.value}">
-        <span>{s.name}</span>
-        {#if !readonly}
-          <div class="token-remove" title="Remove {s.name}">
-            <svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
-              <path d="{iconClearPath}"/>
-            </svg>
-          </div>
-        {/if}
+    {selected}
+    {#each selected as value}
+      value
+      <div class="token" data-id="{value}">
+        <span>{values[selected]}</span>
+        <div class="token-remove" title="Remove {values[selected]}">
+          <svg class="icon-clear" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+            <path d="{iconClearPath}"/>
+          </svg>
+        </div>
       </div>
     {/each}
     <div class="actions">
-      {#if !readonly}
-        <input class="search" id={id} autocomplete="off" bind:value={inputValue} bind:this={input}
-               on:keyup={handleKeyup} on:blur={handleBlur} placeholder={placeholder}/>
-        <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-          <path d="M5 8l4 4 4-4z"></path>
-        </svg>
-      {/if}
+      <input class="search" autocomplete="off" bind:value={inputValue} bind:this={input}
+             on:keyup={handleKeyup} on:blur={handleBlur}>
+      <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+        <path d="M5 8l4 4 4-4z"></path>
+      </svg>
     </div>
   </div>
 
@@ -270,10 +281,9 @@
   </select>
 
   {#if showOptions}
-    <ul class="options" transition:fly="{{duration: 200, y: 5}}" on:mousedown|preventDefault={handleOptionMousedown}>
+    <ul class="options" transition:fly="{{duration: 200, y: 5}}">
       {#each filtered as option}
-        <li class:selected={selected[option.value]} class:active={activeOption === option}
-            data-value="{option.value}">{option.name}</li>
+        <li class:selected={isSelected[option[0]]} data-value="{option[0]}" on:click={toggle(option[0])}>{option[1]}</li>
       {/each}
     </ul>
   {/if}
