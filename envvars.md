@@ -1,3 +1,10 @@
+# Build
+---
+- CLIENT_ID
+- REDIRECT_URI
+- API_URL
+- WS_URL
+
 # Runtime
 ---
 
@@ -25,12 +32,3 @@
 - REDIS_PASSWORD
 - REDIS_THREADS
 - CACHE_URI
-- REFERRAL_SHOW
-- REFERRAL_LINK
-
-# Build
----
-- CLIENT_ID
-- REDIRECT_URI
-- API_URL
-- WS_URL
