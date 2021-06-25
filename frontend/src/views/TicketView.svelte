@@ -21,7 +21,7 @@
         </div>
         <div class="section">
           <h2 class="section-title">View Ticket</h2>
-          <DiscordMessages {ticketId} {messages} on:send={(msg) => console.log(msg)} />
+          <DiscordMessages {ticketId} {isPremium} {messages} bind:container on:send={sendMessage} />
         </div>
       </div>
     </Card>
@@ -30,21 +30,29 @@
 
 <script>
     import Card from "../components/Card.svelte";
-    import {notifyError, notifySuccess, notifyRatelimit, withLoadingScreen} from '../js/util'
+    import {notifyError, notifyRatelimit, withLoadingScreen} from '../js/util'
     import Button from "../components/Button.svelte";
     import axios from "axios";
     import {API_URL} from "../js/constants";
-    import {setDefaultHeaders} from '../includes/Auth.svelte'
+    import {setDefaultHeaders, getToken} from '../includes/Auth.svelte'
     import Input from "../components/form/Input.svelte";
     import {navigateTo} from "svelte-router-spa";
     import DiscordMessages from "../components/DiscordMessages.svelte";
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
-    let ticketId = currentRoute.namedParams.ticketid;
+    let ticketId = parseInt(currentRoute.namedParams.ticketid);
 
     let closeReason = '';
     let messages = [];
+    let isPremium = false;
+    let container;
+
+    let WS_URL = env.WS_URL || 'ws://172.26.50.75:3000';
+
+    function scrollContainer() {
+        container.scrollTop = container.scrollHeight;
+    }
 
     async function closeTicket() {
         let data = {
@@ -60,6 +68,42 @@
         navigateTo(`/manage/${guildId}/tickets`);
     }
 
+    async function sendMessage(e) {
+        let data = {
+            message: e.detail,
+        };
+
+        const res = await axios.post(`${API_URL}/api/${guildId}/tickets/${ticketId}`, data);
+        if (res.status !== 200) {
+            if (res.status === 429) {
+                notifyRatelimit();
+            } else {
+                notifyError(res.data.error);
+            }
+        }
+    }
+
+    function connectWebsocket() {
+        const ws = new WebSocket(`${WS_URL}/webchat`);
+
+        ws.onopen = () => {
+            ws.send(JSON.stringify({
+                "type": "auth",
+                "data": {
+                    "guild_id": guildId,
+                    "ticket_id": ticketId,
+                    "token": getToken(),
+                }
+            }));
+        };
+
+        ws.onmessage = (evt) => {
+            const data = JSON.parse(evt.data);
+            messages = [...messages, data];
+            scrollContainer();
+        };
+    }
+
     async function loadMessages() {
         const res = await axios.get(`${API_URL}/api/${guildId}/tickets/${ticketId}`);
         if (res.status !== 200) {
@@ -70,9 +114,26 @@
         messages = res.data.messages;
     }
 
+    async function loadPremium() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/premium`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        isPremium = res.data.premium;
+    }
+
     withLoadingScreen(async () => {
         setDefaultHeaders();
+        await loadPremium();
         await loadMessages();
+
+        scrollContainer();
+
+        if (isPremium) {
+            connectWebsocket();
+        }
     });
 </script>
 
@@ -128,24 +189,9 @@
         height: 100%;
     }
 
-    .manage {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        width: 100%;
-        height: 100%;
-        margin-top: 12px;
-    }
-
-    .col {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 49%;
-        height: 100%;
-    }
-
-    table.nice > tbody > tr:first-child {
-        border-top: 1px solid #dee2e6;
+    @media only screen and (max-width: 576px) {
+        .row {
+            flex-direction: column;
+        }
     }
 </style>

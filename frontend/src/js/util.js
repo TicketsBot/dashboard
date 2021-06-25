@@ -8,7 +8,6 @@ export async function withLoadingScreen(func) {
 }
 
 export function errorPage(message) {
-    console.log(encodeURIComponent(message))
     navigateTo(`/error?message=${encodeURIComponent(message)}`)
 }
 

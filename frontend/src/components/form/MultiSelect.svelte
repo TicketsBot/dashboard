@@ -99,8 +99,6 @@
         } else {
             $: selected.push(id);
         }
-
-        console.log(selected)
     }
 
     function isSelected(value) {

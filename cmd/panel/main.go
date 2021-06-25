@@ -13,6 +13,7 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
+	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/worker/bot/i18n"
 	"github.com/apex/log"
@@ -48,7 +49,7 @@ func main() {
 	}
 
 	messagequeue.Client = messagequeue.NewRedisClient()
-	go Listen(messagequeue.Client)
+	go ListenChat(messagequeue.Client)
 
 	rpc.PremiumClient = premium.NewPremiumLookupClient(
 		premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
@@ -60,19 +61,19 @@ func main() {
 	http.StartServer()
 }
 
-func Listen(client messagequeue.RedisClient) {
-	ch := make(chan messagequeue.TicketMessage)
-	go client.ListenForMessages(ch)
+func ListenChat(client messagequeue.RedisClient) {
+	ch := make(chan chatrelay.MessageData)
+	go chatrelay.Listen(client.Client, ch)
 
-	for decoded := range ch {
-		manage.SocketsLock.Lock()
+	for event := range ch {
+		manage.SocketsLock.RLock()
 		for _, socket := range manage.Sockets {
-			if socket.Guild == decoded.GuildId && socket.Ticket == decoded.TicketId {
-				if err := socket.Ws.WriteJSON(decoded); err != nil {
+			if socket.GuildId == event.Ticket.GuildId && socket.TicketId == event.Ticket.Id {
+				if err := socket.Ws.WriteJSON(event.Message); err != nil {
 					fmt.Println(err.Error())
 				}
 			}
 		}
-		manage.SocketsLock.Unlock()
+		manage.SocketsLock.RUnlock()
 	}
 }

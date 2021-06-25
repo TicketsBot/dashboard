@@ -86,7 +86,7 @@ func GetTicket(ctx *gin.Context) {
 			}
 
 			messagesFormatted = append(messagesFormatted, map[string]interface{}{
-				"username": message.Author.Username,
+				"author": message.Author,
 				"content":  content,
 			})
 		}

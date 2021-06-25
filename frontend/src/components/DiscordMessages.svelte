@@ -2,16 +2,17 @@
   <div class="channel-header">
     <span id="channel-name">#ticket-{ticketId}</span>
   </div>
-  <div id="message-container">
+  <div id="message-container" bind:this={container}>
     {#each messages as message}
       <div class="message">
-        <b>{message.username}:</b> {message.content}
+        <b>{message.author.username}:</b> {message.content}
       </div>
     {/each}
   </div>
   <div class="input-container">
     <form on:submit|preventDefault={sendMessage}>
-      <input type="text" class="message-input" bind:value={sendContent}>
+      <input type="text" class="message-input" bind:value={sendContent} disabled={!isPremium}
+             placeholder="{isPremium ? `Message #ticket-${ticketId}` : 'Premium users can receive messages in real-time and response to tickets through the dashboard'}">
     </form>
   </div>
 </div>
@@ -20,7 +21,9 @@
     import {createEventDispatcher} from "svelte";
 
     export let ticketId;
+    export let isPremium = false;
     export let messages = [];
+    export let container;
 
     const dispatch = createEventDispatcher();
     let sendContent = '';
@@ -32,31 +35,12 @@
 </script>
 
 <style>
-    @font-face {
-        font-family: Catamaran;
-        font-weight: 300;
-        src: url('/assets/fonts/Catamaran-Light.ttf') format('truetype')
-    }
-
-    @font-face {
-        font-family: Catamaran;
-        font-weight: 500;
-        src: url('/assets/fonts/Catamaran-Regular.ttf') format('truetype')
-    }
-
-    @font-face {
-        font-family: Catamaran;
-        font-weight: 600;
-        src: url('/assets/fonts/Catamaran-Medium.ttf') format('truetype')
-    }
-
-    @font-face {
-        font-family: Catamaran;
-        font-weight: 700;
-        src: url('/assets/fonts/Catamaran-Bold.ttf') format('truetype')
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Catamaran:wght@300;400;500;600;700;800&display=swap');
 
     .discord-container {
+        display: flex;
+        flex-direction: column;
+
         background-color: #2e3136;
         border-radius: 4px;
         height: 80vh;
@@ -67,6 +51,9 @@
     }
 
     .channel-header {
+        display: flex;
+        align-items: center;
+
         background-color: #1e2124;
         height: 5vh;
         width: 100%;
@@ -74,21 +61,22 @@
         position: relative;
 
         text-align: center;
-        display: flex;
-        align-items: center;
     }
 
     #channel-name {
         color: white;
+        font-weight: bold;
         padding-left: 20px;
     }
 
     #message-container {
-        height: 70vh;
-        max-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
         position: relative;
-        overflow: scroll;
-        overflow-x: hidden;
+        overflow-y: scroll;
+        overflow-wrap: break-word;
     }
 
     .message {
@@ -96,21 +84,25 @@
         padding-left: 20px;
     }
 
-    .message-input {
-        padding-top: 20px !important;
-        border-color: #2e3136 !important;
-        padding-left: 5px !important;
-        padding-right: 5px !important;
-        background-color: #2e3136 !important;
-        color: white !important;
-        height: 100%;
-        max-height: 100%;
-        min-height: 100%;
+    #message-container:last-child {
+        margin-bottom: 5px;
     }
 
-    .message-input:focus {
+    .message-input {
+        display: flex;
+
+        font-size: 16px;
+        line-height: 24px;
+        height: 40px;
+        padding: 8px;
+
         border-color: #2e3136 !important;
         background-color: #2e3136 !important;
         color: white !important;
+        width: 100%;
+    }
+
+    .message-input:focus, .message-input:focus-visible {
+        outline-width: 0;
     }
 </style>

@@ -10,10 +10,7 @@
   <link rel="icon" href="/assets/img/favicon.ico" type="image/x-icon">
 
   <!-- Custom CSS -->
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
-  <link href="/assets/css/style.css" rel="stylesheet">
-
-  <script src="/assets/js/utils.js"></script>
+  <!--<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">-->
 
   <!-- Icons -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">

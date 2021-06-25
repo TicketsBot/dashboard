@@ -1,25 +1,22 @@
 package http
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
 	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
-	api_transcripts "github.com/TicketsBot/GoPanel/app/http/endpoints/api/transcripts"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
 	api_team "github.com/TicketsBot/GoPanel/app/http/endpoints/api/team"
 	api_ticket "github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket"
+	api_transcripts "github.com/TicketsBot/GoPanel/app/http/endpoints/api/transcripts"
 	api_whitelabel "github.com/TicketsBot/GoPanel/app/http/endpoints/api/whitelabel"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
-	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/app/http/middleware"
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
-	"github.com/gin-contrib/multitemplate"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/limiter/v3"
@@ -45,36 +42,7 @@ func StartServer() {
 
 	router.Use(middleware.Cors(config.Conf))
 
-	// Register templates
-	router.HTMLRender = createRenderer()
-
-	router.GET("/login", root.LoginHandler)
-	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
-	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler)
-
-	router.GET("/manage/:id/logs/view/:ticket", manage.LogViewHandler) // we check in the actual handler bc of a custom redirect
-
-	authorized := router.Group("/", middleware.AuthenticateCookie)
-	{
-
-		authenticateGuildAdmin := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Admin))
-		authenticateGuildSupport := authorized.Group("/", middleware.AuthenticateGuild(false, permission.Support))
-
-		authorized.GET("/", root.IndexHandler)
-		authorized.GET("/whitelabel", root.WhitelabelHandler)
-
-		authenticateGuildAdmin.GET("/manage/:id/settings", manage.SettingsHandler)
-		authenticateGuildSupport.GET("/manage/:id/logs", manage.LogsHandler)
-		authenticateGuildSupport.GET("/manage/:id/blacklist", manage.BlacklistHandler)
-		authenticateGuildAdmin.GET("/manage/:id/panels", manage.PanelHandler)
-		authenticateGuildSupport.GET("/manage/:id/tags", manage.TagsHandler)
-		authenticateGuildSupport.GET("/manage/:id/teams", serveTemplate("manage/teams"))
-
-		authenticateGuildSupport.GET("/manage/:id/tickets", manage.TicketListHandler)
-		authenticateGuildSupport.GET("/manage/:id/tickets/view/:ticketId", manage.TicketViewHandler)
-
-		authorized.GET("/webchat", manage.WebChatWs)
-	}
+	router.GET("/webchat", manage.WebChatWs)
 
 	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
 	{
@@ -186,70 +154,6 @@ func serveTemplate(templateName string) func(*gin.Context) {
 			"baseUrl":      config.Conf.Server.BaseUrl,
 		})
 	}
-}
-
-func createRenderer() multitemplate.Renderer {
-	r := multitemplate.NewRenderer()
-
-	r = addMainTemplate(r, "index")
-	r = addMainTemplate(r, "whitelabel")
-
-	r = addManageTemplate(r, "blacklist")
-	r = addManageTemplate(r, "logs")
-	r = addManageTemplate(r, "modmaillogs")
-	r = addManageTemplate(r, "settings", "./public/templates/includes/substitutionmodal.tmpl")
-	r = addManageTemplate(r, "ticketlist")
-	r = addManageTemplate(r, "ticketview")
-	r = addManageTemplate(r, "panels", "./public/templates/includes/substitutionmodal.tmpl", "./public/templates/includes/paneleditmodal.tmpl", "./public/templates/includes/multipaneleditmodal.tmpl")
-	r = addManageTemplate(r, "tags")
-	r = addManageTemplate(r, "teams")
-
-	r = addErrorTemplate(r)
-
-	return r
-}
-
-func addMainTemplate(renderer multitemplate.Renderer, name string, extra ...string) multitemplate.Renderer {
-	files := []string{
-		"./public/templates/layouts/main.tmpl",
-		"./public/templates/includes/head.tmpl",
-		"./public/templates/includes/sidebar.tmpl",
-		"./public/templates/includes/loadingscreen.tmpl",
-		"./public/templates/includes/notifymodal.tmpl",
-		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
-	}
-
-	files = append(files, extra...)
-
-	renderer.AddFromFiles(fmt.Sprintf("main/%s", name), files...)
-	return renderer
-}
-
-func addManageTemplate(renderer multitemplate.Renderer, name string, extra ...string) multitemplate.Renderer {
-	files := []string{
-		"./public/templates/layouts/manage.tmpl",
-		"./public/templates/includes/head.tmpl",
-		"./public/templates/includes/sidebar.tmpl",
-		"./public/templates/includes/navbar.tmpl",
-		"./public/templates/includes/loadingscreen.tmpl",
-		"./public/templates/includes/notifymodal.tmpl",
-		fmt.Sprintf("./public/templates/views/%s.tmpl", name),
-	}
-
-	files = append(files, extra...)
-
-	renderer.AddFromFiles(fmt.Sprintf("manage/%s", name), files...)
-	return renderer
-}
-
-func addErrorTemplate(renderer multitemplate.Renderer) multitemplate.Renderer {
-	files := []string{
-		"./public/templates/layouts/error.tmpl",
-		"./public/templates/includes/head.tmpl",
-	}
-
-	renderer.AddFromFiles("error", files...)
-	return renderer
 }
 
 func createLimiter(limit int64, period time.Duration) func(*gin.Context) {
