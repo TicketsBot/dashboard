@@ -150,7 +150,7 @@
         outline: none;
         border-radius: 4px;
         padding: 8px 12px;
-        margin: 0;
+        margin: 0 0 0.5em 0;
         height: 40px;
     }
 
