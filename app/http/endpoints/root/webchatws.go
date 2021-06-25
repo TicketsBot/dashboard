@@ -1,4 +1,4 @@
-package manage
+package root
 
 import (
 	"encoding/json"

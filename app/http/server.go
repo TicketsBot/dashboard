@@ -11,7 +11,7 @@ import (
 	api_ticket "github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket"
 	api_transcripts "github.com/TicketsBot/GoPanel/app/http/endpoints/api/transcripts"
 	api_whitelabel "github.com/TicketsBot/GoPanel/app/http/endpoints/api/whitelabel"
-	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/app/http/middleware"
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
@@ -42,7 +42,10 @@ func StartServer() {
 
 	router.Use(middleware.Cors(config.Conf))
 
-	router.GET("/webchat", manage.WebChatWs)
+	router.GET("/webchat", root.WebChatWs)
+
+	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
+	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler)
 
 	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
 	{

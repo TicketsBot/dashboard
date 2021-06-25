@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http"
-	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
@@ -66,14 +66,14 @@ func ListenChat(client messagequeue.RedisClient) {
 	go chatrelay.Listen(client.Client, ch)
 
 	for event := range ch {
-		manage.SocketsLock.RLock()
-		for _, socket := range manage.Sockets {
+		root.SocketsLock.RLock()
+		for _, socket := range root.Sockets {
 			if socket.GuildId == event.Ticket.GuildId && socket.TicketId == event.Ticket.Id {
 				if err := socket.Ws.WriteJSON(event.Message); err != nil {
 					fmt.Println(err.Error())
 				}
 			}
 		}
-		manage.SocketsLock.RUnlock()
+		root.SocketsLock.RUnlock()
 	}
 }
