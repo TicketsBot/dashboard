@@ -46,13 +46,10 @@
 
     function add(value) {
         selected = [...selected, value];
-        console.log(selected)
     }
 
     function remove(value) {
         selected = selected.filter((e) => e !== value);
-
-        console.log(selected)
     }
 
     function optionsVisibility(show) {
