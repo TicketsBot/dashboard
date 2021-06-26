@@ -48,7 +48,7 @@ type (
 	}
 )
 
-var timeout = time.Second * 5
+var timeout = time.Second * 60
 
 func WebChatWs(ctx *gin.Context) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
