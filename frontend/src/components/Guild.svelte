@@ -42,7 +42,7 @@
         if (permissionLevels[guildId] === 2) {
             window.location.href = `/manage/${guildId}/settings`;
         } else {
-            window.location.href = `/manage/${guildId}/logs`;
+            window.location.href = `/manage/${guildId}/transcripts`;
         }
     }
 
