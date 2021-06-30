@@ -104,7 +104,9 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.ChannelId != data.ChannelId ||
 		existing.Content != data.Content ||
 		existing.Title != data.Title ||
-		existing.ReactionEmote != data.Emote
+		existing.ReactionEmote != data.Emote ||
+		existing.ImageUrl != data.ImageUrl ||
+		existing.ThumbnailUrl != data.ThumbnailUrl
 
 	emoji, _ := data.getEmoji() // already validated
 	newMessageId := existing.MessageId
@@ -113,7 +115,7 @@ func UpdatePanel(ctx *gin.Context) {
 		// delete old message, ignoring error
 		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
-		newMessageId, err = data.sendEmbed(&botContext, existing.Title, existing.CustomId, existing.ReactionEmote, premiumTier > premium.None)
+		newMessageId, err = data.sendEmbed(&botContext, data.Title, existing.CustomId, data.Emote, data.ImageUrl, data.ThumbnailUrl, premiumTier > premium.None)
 		if err != nil {
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {

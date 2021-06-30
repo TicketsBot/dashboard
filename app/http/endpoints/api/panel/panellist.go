@@ -11,17 +11,9 @@ import (
 
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
-		PanelId         int                    `json:"panel_id"`
-		ChannelId       uint64                 `json:"channel_id,string"`
-		Title           string                 `json:"title"`
-		Content         string                 `json:"content"`
-		Colour          uint32                 `json:"colour"`
-		CategoryId      uint64                 `json:"category_id,string"`
-		Emote           string                 `json:"emote"`
-		WelcomeMessage  *string                `json:"welcome_message"`
-		Mentions        []string               `json:"mentions"`
-		WithDefaultTeam bool                   `json:"default_team"`
-		Teams           []database.SupportTeam `json:"teams"`
+		database.Panel
+		Mentions []string               `json:"mentions"`
+		Teams    []database.SupportTeam `json:"teams"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
@@ -74,17 +66,9 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			wrapped[i] = panelResponse{
-				PanelId:         p.PanelId,
-				ChannelId:       p.ChannelId,
-				Title:           p.Title,
-				Content:         p.Content,
-				Colour:          uint32(p.Colour),
-				CategoryId:      p.TargetCategory,
-				Emote:           p.ReactionEmote,
-				WelcomeMessage:  p.WelcomeMessage,
-				Mentions:        mentions,
-				WithDefaultTeam: p.WithDefaultTeam,
-				Teams:           teams,
+				Panel:    p,
+				Mentions: mentions,
+				Teams:    teams,
 			}
 
 			return nil

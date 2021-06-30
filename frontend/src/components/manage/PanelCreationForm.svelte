@@ -43,6 +43,10 @@
           </div>
         </div>
       </div>
+      <div class="row">
+        <Input col2={true} label="Large Image URL" bind:value={data.image_url} />
+        <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} />
+      </div>
     </div>
   </div>
 </form>
@@ -237,7 +241,7 @@
 
     .advanced-settings-show {
         visibility: visible;
-        min-height: 250px;
+        min-height: 297px;
         margin-bottom: 10px;
     }
 

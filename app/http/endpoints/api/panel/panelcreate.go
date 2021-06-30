@@ -19,6 +19,7 @@ import (
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -37,6 +38,8 @@ type panelBody struct {
 	Mentions        []string               `json:"mentions"`
 	WithDefaultTeam bool                   `json:"default_team"`
 	Teams           []database.SupportTeam `json:"teams"`
+	ImageUrl        *string                `json:"image_url,omitempty"`
+	ThumbnailUrl    *string                `json:"thumbnail_url,omitempty"`
 }
 
 func CreatePanel(ctx *gin.Context) {
@@ -91,7 +94,7 @@ func CreatePanel(ctx *gin.Context) {
 	customId := utils.RandString(80)
 
 	emoji, _ := data.getEmoji() // already validated
-	msgId, err := data.sendEmbed(&botContext, data.Title, customId, emoji, premiumTier > premium.None)
+	msgId, err := data.sendEmbed(&botContext, data.Title, customId, emoji, data.ImageUrl, data.ThumbnailUrl, premiumTier > premium.None)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
@@ -123,6 +126,8 @@ func CreatePanel(ctx *gin.Context) {
 		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: data.WithDefaultTeam,
 		CustomId:        customId,
+		ImageUrl:        data.ImageUrl,
+		ThumbnailUrl:    data.ThumbnailUrl,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -202,6 +207,8 @@ func insertTeams(guildId uint64, panelId int, teams []database.SupportTeam) (int
 	return 500, group.Wait()
 }
 
+var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$`)
+
 func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	if !p.verifyTitle() {
 		ctx.AbortWithStatusJSON(400, gin.H{
@@ -250,6 +257,14 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
 			"error":   "Welcome message must be null or between 1 - 1024 characters",
+		})
+		return false
+	}
+
+	if !p.verifyImageUrl() || !p.verifyThumbnailUrl() {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": false,
+			"error":   "Image URL must be between 1 - 255 characters and a valid URL",
 		})
 		return false
 	}
@@ -312,11 +327,35 @@ func (p *panelBody) verifyWelcomeMessage() bool {
 	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) < 1025)
 }
 
-func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote string, isPremium bool) (uint64, error) {
+func (p *panelBody) verifyImageUrl() bool {
+	if p.ImageUrl != nil && len(*p.ImageUrl) == 0 {
+		p.ImageUrl = nil
+	}
+
+	return p.ImageUrl == nil || (len(*p.ImageUrl) <= 255 && urlRegex.MatchString(*p.ImageUrl))
+}
+
+func (p *panelBody) verifyThumbnailUrl() bool {
+	if p.ThumbnailUrl != nil && len(*p.ThumbnailUrl) == 0 {
+		p.ThumbnailUrl = nil
+	}
+
+	return p.ThumbnailUrl == nil || (len(*p.ThumbnailUrl) <= 255 && urlRegex.MatchString(*p.ThumbnailUrl))
+}
+
+func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote string, imageUrl, thumbnailUrl *string, isPremium bool) (uint64, error) {
 	e := embed.NewEmbed().
 		SetTitle(p.Title).
 		SetDescription(p.Content).
 		SetColor(int(p.Colour))
+
+	if imageUrl != nil {
+		e.SetImage(*imageUrl)
+	}
+
+	if thumbnailUrl != nil {
+		e.SetThumbnail(*thumbnailUrl)
+	}
 
 	if !isPremium {
 		// TODO: Don't harcode
