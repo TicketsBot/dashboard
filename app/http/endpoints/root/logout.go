@@ -1,18 +1,18 @@
 package root
 
 import (
-	"github.com/gin-gonic/contrib/sessions"
+	"github.com/TicketsBot/GoPanel/app/http/session"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 )
 
 func LogoutHandler(ctx *gin.Context) {
-	store := sessions.Default(ctx)
-	if store == nil {
+	userId := ctx.Keys["userid"].(uint64)
+
+	if err := session.Store.Clear(userId); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
-	defer store.Save()
 
-	store.Clear()
-
-	ctx.Redirect(302, "https://ticketsbot.net")
+	ctx.Status(204)
 }

@@ -1,64 +1,37 @@
 package api
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4"
 	"strconv"
 )
 
 func AddBlacklistHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	var data userData
-	if err := ctx.BindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
-		return
-	}
-
-	parsedDiscrim, err := strconv.ParseInt(data.Discriminator, 10, 16)
+	id, err := strconv.ParseUint(ctx.Param("user"), 10, 64)
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
-	var targetId uint64
-	if err := cache.Instance.QueryRow(context.Background(), `select users.user_id from "users" where LOWER(users.data->>'Username')=LOWER($1) AND users.data->>'Discriminator'=$2;`, data.Username, strconv.FormatInt(parsedDiscrim, 10)).Scan(&targetId); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			ctx.AbortWithStatusJSON(404, gin.H{
-				"success": false,
-				"error": "user not found",
-			})
-		} else {
-			fmt.Println(err.Error())
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error": err.Error(),
-			})
-		}
+	permLevel, err := utils.GetPermissionLevel(guildId, id)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	// TODO: Don't blacklist staff or guild owner
-	if err = database.Client.Blacklist.Add(guildId, targetId); err == nil {
-		ctx.JSON(200, gin.H{
-			"success": true,
-			"user_id": strconv.FormatUint(targetId, 10),
-		})
-	} else {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+	if permLevel > permission.Everyone {
+		ctx.JSON(400, utils.ErrorStr("You cannot blacklist staff members!"))
+		return
 	}
+
+	if err = database.Client.Blacklist.Add(guildId, id); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	ctx.JSON(200, utils.SuccessResponse)
 }

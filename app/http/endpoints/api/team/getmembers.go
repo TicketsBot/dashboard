@@ -114,7 +114,7 @@ func formatMembers(guildId uint64, userIds, roleIds []uint64) ([]entity, error) 
 	}
 
 	// map role ids to names
-	var data []entity
+	data := make([]entity, 0)
 	for _, roleId := range roleIds {
 		for _, role := range roles {
 			if roleId == role.Id {

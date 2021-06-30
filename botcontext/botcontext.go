@@ -112,3 +112,17 @@ func (ctx BotContext) SearchMembers(guildId uint64, query string) (members []mem
 
 	return
 }
+
+
+func (ctx BotContext) ListMembers(guildId uint64) (members []member.Member, err error) {
+	data := rest.ListGuildMembersData{
+		Limit: 100,
+	}
+
+	members, err = rest.ListGuildMembers(ctx.Token, ctx.RateLimiter, guildId, data)
+	if err == nil {
+		go cache.Instance.StoreMembers(members, guildId)
+	}
+
+	return
+}

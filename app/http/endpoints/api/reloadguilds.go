@@ -2,10 +2,10 @@ package api
 
 import (
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/messagequeue"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"time"
 )
@@ -36,19 +36,22 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 		return
 	}
 
-	store := sessions.Default(ctx)
-	if store == nil {
-		ctx.JSON(200, gin.H{
-			"success": false,
-			"reauthenticate_required": true,
-		})
+	store, err := session.Store.Get(userId)
+	if err != nil {
+		if err == session.ErrNoSession {
+			ctx.JSON(401, gin.H{
+				"success": false,
+				"auth": true,
+			})
+		} else {
+			ctx.JSON(500, utils.ErrorJson(err))
+		}
+
 		return
 	}
 
-	accessToken := store.Get("access_token").(string)
-	expiry := store.Get("expiry").(int64)
-	if expiry > (time.Now().UnixNano() / int64(time.Second)) {
-		res, err := discord.RefreshToken(store.Get("refresh_token").(string))
+	if store.Expiry > (time.Now().UnixNano() / int64(time.Second)) {
+		res, err := discord.RefreshToken(store.RefreshToken)
 		if err != nil { // Tell client to re-authenticate
 			ctx.JSON(200, gin.H{
 				"success": false,
@@ -57,15 +60,17 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 			return
 		}
 
-		accessToken = res.AccessToken
+		store.AccessToken = res.AccessToken
+		store.RefreshToken = res.RefreshToken
+		store.Expiry = (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn)
 
-		store.Set("access_token", res.AccessToken)
-		store.Set("refresh_token", res.RefreshToken)
-		store.Set("expiry", (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn))
-		store.Save()
+		if err := session.Store.Set(userId, store); err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
 	}
 
-	if err := utils.LoadGuilds(accessToken, userId); err != nil {
+	if err := utils.LoadGuilds(store.AccessToken, userId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

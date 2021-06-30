@@ -26,16 +26,17 @@ import (
 const freePanelLimit = 3
 
 type panelBody struct {
-	ChannelId      uint64   `json:"channel_id,string"`
-	MessageId      uint64   `json:"message_id,string"`
-	Title          string   `json:"title"`
-	Content        string   `json:"content"`
-	Colour         uint32   `json:"colour"`
-	CategoryId     uint64   `json:"category_id,string"`
-	Emote          string   `json:"emote"`
-	WelcomeMessage *string  `json:"welcome_message"`
-	Mentions       []string `json:"mentions"`
-	Teams          []string `json:"teams"`
+	ChannelId       uint64                 `json:"channel_id,string"`
+	MessageId       uint64                 `json:"message_id,string"`
+	Title           string                 `json:"title"`
+	Content         string                 `json:"content"`
+	Colour          uint32                 `json:"colour"`
+	CategoryId      uint64                 `json:"category_id,string"`
+	Emote           string                 `json:"emote"`
+	WelcomeMessage  *string                `json:"welcome_message"`
+	Mentions        []string               `json:"mentions"`
+	WithDefaultTeam bool                   `json:"default_team"`
+	Teams           []database.SupportTeam `json:"teams"`
 }
 
 func CreatePanel(ctx *gin.Context) {
@@ -120,7 +121,7 @@ func CreatePanel(ctx *gin.Context) {
 		TargetCategory:  data.CategoryId,
 		ReactionEmote:   emoji,
 		WelcomeMessage:  data.WelcomeMessage,
-		WithDefaultTeam: utils.ContainsString(data.Teams, "default"),
+		WithDefaultTeam: data.WithDefaultTeam,
 		CustomId:        customId,
 	}
 
@@ -179,31 +180,22 @@ func CreatePanel(ctx *gin.Context) {
 }
 
 // returns (response_code, error)
-func insertTeams(guildId uint64, panelId int, teamIds []string) (int, error) {
+func insertTeams(guildId uint64, panelId int, teams []database.SupportTeam) (int, error) {
 	// insert teams
 	group, _ := errgroup.WithContext(context.Background())
-	for _, teamId := range teamIds {
-		if teamId == "default" {
-			continue // already handled
-		}
-
-		teamId, err := strconv.Atoi(teamId)
-		if err != nil {
-			return 400, err
-		}
-
+	for _, team := range teams {
 		group.Go(func() error {
 			// ensure team exists
-			exists, err := dbclient.Client.SupportTeam.Exists(teamId, guildId)
+			exists, err := dbclient.Client.SupportTeam.Exists(team.Id, guildId)
 			if err != nil {
 				return err
 			}
 
 			if !exists {
-				return fmt.Errorf("team with id %d not found", teamId)
+				return fmt.Errorf("team with id %d not found", team.Id)
 			}
 
-			return dbclient.Client.PanelTeams.Add(panelId, teamId)
+			return dbclient.Client.PanelTeams.Add(panelId, team.Id)
 		})
 	}
 
@@ -266,11 +258,23 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 }
 
 func (p *panelBody) verifyTitle() bool {
-	return len(p.Title) > 0 && len(p.Title) <= 80
+	if len(p.Title) > 80 {
+		return false
+	} else if len(p.Title) == 0 { // Fill default
+		p.Title = "Open a ticket!"
+	}
+
+	return true
 }
 
 func (p *panelBody) verifyContent() bool {
-	return len(p.Content) > 0 && len(p.Content) < 1025
+	if len(p.Content) > 1024 {
+		return false
+	} else if len(p.Content) == 0 { // Fill default
+		p.Content = "By clicking the button, a ticket will be opened for you."
+	}
+
+	return true
 }
 
 func (p *panelBody) getEmoji() (emoji string, ok bool) {

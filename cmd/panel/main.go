@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http"
-	"github.com/TicketsBot/GoPanel/app/http/endpoints/manage"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/messagequeue"
@@ -13,6 +13,7 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
+	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/worker/bot/i18n"
 	"github.com/apex/log"
@@ -36,7 +37,7 @@ func main() {
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
-	manage.Archiver = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
+	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
 
 	utils.LoadEmoji()
 	if err := i18n.LoadMessages(database.Client); err != nil {
@@ -48,7 +49,7 @@ func main() {
 	}
 
 	messagequeue.Client = messagequeue.NewRedisClient()
-	go Listen(messagequeue.Client)
+	go ListenChat(messagequeue.Client)
 
 	rpc.PremiumClient = premium.NewPremiumLookupClient(
 		premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
@@ -60,19 +61,19 @@ func main() {
 	http.StartServer()
 }
 
-func Listen(client messagequeue.RedisClient) {
-	ch := make(chan messagequeue.TicketMessage)
-	go client.ListenForMessages(ch)
+func ListenChat(client messagequeue.RedisClient) {
+	ch := make(chan chatrelay.MessageData)
+	go chatrelay.Listen(client.Client, ch)
 
-	for decoded := range ch {
-		manage.SocketsLock.Lock()
-		for _, socket := range manage.Sockets {
-			if socket.Guild == decoded.GuildId && socket.Ticket == decoded.TicketId {
-				if err := socket.Ws.WriteJSON(decoded); err != nil {
+	for event := range ch {
+		root.SocketsLock.RLock()
+		for _, socket := range root.Sockets {
+			if socket.GuildId == event.Ticket.GuildId && socket.TicketId == event.Ticket.Id {
+				if err := socket.Ws.WriteJSON(event.Message); err != nil {
 					fmt.Println(err.Error())
 				}
 			}
 		}
-		manage.SocketsLock.Unlock()
+		root.SocketsLock.RUnlock()
 	}
 }

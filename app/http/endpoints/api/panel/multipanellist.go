@@ -12,7 +12,7 @@ import (
 func MultiPanelList(ctx *gin.Context) {
 	type multiPanelResponse struct {
 		database.MultiPanel
-		Panels []database.Panel `json:"panels"`
+		Panels []int `json:"panels"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
@@ -33,13 +33,20 @@ func MultiPanelList(ctx *gin.Context) {
 			MultiPanel: multiPanel,
 		}
 
+		// TODO: Use a join
 		group.Go(func() error {
 			panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
 			if err != nil {
 				return err
 			}
 
-			data[i].Panels = panels
+			panelIds := make([]int, len(panels))
+			for i, panel := range panels {
+				panelIds[i] = panel.PanelId
+			}
+
+			data[i].Panels = panelIds
+
 			return nil
 		})
 	}
@@ -51,6 +58,6 @@ func MultiPanelList(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success": true,
-		"data": data,
+		"data":    data,
 	})
 }
