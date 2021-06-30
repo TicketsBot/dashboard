@@ -245,7 +245,7 @@
 
     async function updateStatus() {
         const data = {
-            status: status,
+            status: bot.status,
         };
 
         const res = await axios.post(`${API_URL}/user/whitelabel/status`, data);
