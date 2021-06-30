@@ -14,7 +14,7 @@ func PremiumHandler(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -23,5 +23,6 @@ func PremiumHandler(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"premium": premiumTier >= premium.Premium,
+		"tier":    premiumTier,
 	})
 }

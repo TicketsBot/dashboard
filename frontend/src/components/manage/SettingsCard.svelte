@@ -130,11 +130,17 @@
 
         // Overrides
         if (data.archive_channel === "0") {
-            data.archive_channel = channels.find((c) => c.type === 0).id;
+            let first = channels.find((c) => c.type === 0);
+            if (first !== undefined) {
+                data.archive_channel = first.id;
+            }
         }
 
         if (data.category === "0") {
-            data.category = channels.find((c) => c.type === 4).id;
+            let first = channels.find((c) => c.type === 4);
+            if (first !== undefined) {
+                data.category = first.id;
+            }
         }
     }
 

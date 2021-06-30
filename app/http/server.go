@@ -111,18 +111,17 @@ func StartServer() {
 		userGroup.GET("/permissionlevel", api.GetPermissionLevel)
 
 		{
-			whitelabelGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(false))
-			whitelabelApiGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(true))
+			whitelabelGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(true))
 
 			whitelabelGroup.GET("/", api_whitelabel.WhitelabelGet)
-			whitelabelApiGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors)
-			whitelabelApiGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
-			whitelabelApiGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey)
-			whitelabelApiGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
-			whitelabelApiGroup.POST("/create-interactions", api_whitelabel.GetWhitelabelCreateInteractions())
+			whitelabelGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors)
+			whitelabelGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
+			whitelabelGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey)
+			whitelabelGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
+			whitelabelGroup.POST("/create-interactions", api_whitelabel.GetWhitelabelCreateInteractions())
 
-			whitelabelApiGroup.POST("/", createLimiter(10, time.Minute), api_whitelabel.WhitelabelPost)
-			whitelabelApiGroup.POST("/status", createLimiter(1, time.Second*5), api_whitelabel.WhitelabelStatusPost)
+			whitelabelGroup.POST("/", createLimiter(10, time.Minute), api_whitelabel.WhitelabelPost)
+			whitelabelGroup.POST("/status", createLimiter(1, time.Second*5), api_whitelabel.WhitelabelStatusPost)
 		}
 	}
 
