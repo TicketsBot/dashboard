@@ -265,13 +265,19 @@
     async function loadBot() {
         const res = await axios.get(`${API_URL}/user/whitelabel/`);
         if (res.status !== 200 || !res.data.success) {
+            if (res.status === 402) {
+                window.location.replace("https://ticketsbot.net/premium");
+                return false;
+            }
+
             if (res.status !== 404) {
                 notifyError(res.data.error);
             }
-            return;
+            return true;
         }
 
         bot = res.data;
+        return true;
     }
 
     async function loadErrors() {
@@ -330,24 +336,8 @@
         notifySuccess('Slash commands have been created. Please note, Discord may take up to an hour to show them in your client');
     }
 
-    async function checkPremium() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/premium`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        let isWhitelabel = res.data.tier >= 1;
-        if (!isWhitelabel) {
-            window.location.replace("https://ticketsbot.net/premium");
-        }
-
-        return isWhitelabel;
-    }
-
     withLoadingScreen(async () => {
-        if (await checkPremium()) {
-            await loadBot();
+        if (await loadBot()) {
             await loadErrors();
             await loadInteractionUrl();
             await loadPublicKey();
