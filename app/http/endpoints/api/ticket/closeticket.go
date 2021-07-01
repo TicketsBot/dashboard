@@ -29,7 +29,7 @@ func CloseTicket(ctx *gin.Context) {
 	var body closeBody
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": true,
+			"success": false,
 			"error":   "Missing reason",
 		})
 		return

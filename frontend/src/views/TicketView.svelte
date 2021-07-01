@@ -59,7 +59,7 @@
             reason: closeReason,
         };
 
-        const res = await axios.delete(`${API_URL}/api/${guildId}/tickets/${ticketId}`, data);
+        const res = await axios.delete(`${API_URL}/api/${guildId}/tickets/${ticketId}`, {data: data});
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
