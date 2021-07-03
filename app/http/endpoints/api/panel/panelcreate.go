@@ -40,6 +40,7 @@ type panelBody struct {
 	Teams           []database.SupportTeam `json:"teams"`
 	ImageUrl        *string                `json:"image_url,omitempty"`
 	ThumbnailUrl    *string                `json:"thumbnail_url,omitempty"`
+	ButtonStyle     component.ButtonStyle  `json:"button_style,string"`
 }
 
 func CreatePanel(ctx *gin.Context) {
@@ -94,7 +95,7 @@ func CreatePanel(ctx *gin.Context) {
 	customId := utils.RandString(80)
 
 	emoji, _ := data.getEmoji() // already validated
-	msgId, err := data.sendEmbed(&botContext, data.Title, customId, emoji, data.ImageUrl, data.ThumbnailUrl, premiumTier > premium.None)
+	msgId, err := data.sendEmbed(&botContext, data.Title, customId, emoji, data.ImageUrl, data.ThumbnailUrl, data.ButtonStyle, premiumTier > premium.None)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
@@ -128,6 +129,7 @@ func CreatePanel(ctx *gin.Context) {
 		CustomId:        customId,
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
+		ButtonStyle:     int(data.ButtonStyle),
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -269,6 +271,14 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
+	if !p.verifyButtonStyle() {
+		ctx.AbortWithStatusJSON(400, gin.H{
+			"success": false,
+			"error":   "Invalid button style",
+		})
+		return false
+	}
+
 	return true
 }
 
@@ -343,7 +353,11 @@ func (p *panelBody) verifyThumbnailUrl() bool {
 	return p.ThumbnailUrl == nil || (len(*p.ThumbnailUrl) <= 255 && urlRegex.MatchString(*p.ThumbnailUrl))
 }
 
-func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote string, imageUrl, thumbnailUrl *string, isPremium bool) (uint64, error) {
+func (p *panelBody) verifyButtonStyle() bool {
+	return p.ButtonStyle >= component.ButtonStylePrimary && p.ButtonStyle <= component.ButtonStyleDanger
+}
+
+func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote string, imageUrl, thumbnailUrl *string, buttonStyle component.ButtonStyle, isPremium bool) (uint64, error) {
 	e := embed.NewEmbed().
 		SetTitle(p.Title).
 		SetDescription(p.Content).
@@ -365,26 +379,16 @@ func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote
 	data := rest.CreateMessageData{
 		Embed: e,
 		Components: []component.Component{
-			{
-				Type: component.ComponentActionRow,
-				ComponentData: component.ActionRow{
-					Components: []component.Component{
-						{
-							Type: component.ComponentButton,
-							ComponentData: component.Button{
-								Label:    title,
-								CustomId: customId,
-								Style:    component.ButtonStylePrimary,
-								Emoji: emoji.Emoji{
-									Name: emote,
-								},
-								Url:      nil,
-								Disabled: false,
-							},
-						},
-					},
+			component.BuildActionRow(component.BuildButton(component.Button{
+				Label:    title,
+				CustomId: customId,
+				Style:    buttonStyle,
+				Emoji: emoji.Emoji{
+					Name: emote,
 				},
-			},
+				Url:      nil,
+				Disabled: false,
+			})),
 		},
 	}
 

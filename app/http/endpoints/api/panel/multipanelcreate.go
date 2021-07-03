@@ -210,7 +210,7 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 		buttons[i] = component.BuildButton(component.Button{
 			Label:    panel.Title,
 			CustomId: panel.CustomId,
-			Style:    component.ButtonStylePrimary,
+			Style:    component.ButtonStyle(panel.ButtonStyle),
 			Emoji: emoji.Emoji{
 				Name: panel.ReactionEmote,
 			},

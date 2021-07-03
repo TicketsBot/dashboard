@@ -54,6 +54,7 @@ func StartServer() {
 
 	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Admin))
 	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Support))
+	guildAuthApiEveryone := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Everyone))
 	{
 		guildAuthApiSupport.GET("/channels", api.ChannelsHandler)
 		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
@@ -79,7 +80,8 @@ func StartServer() {
 		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
 
 		guildAuthApiSupport.GET("/transcripts", createLimiter(5, 5 * time.Second), createLimiter(20, time.Minute), api_transcripts.ListTranscripts)
-		guildAuthApiSupport.GET("/transcripts/:ticketId", createLimiter(10, 10 * time.Second), api_transcripts.GetTranscriptHandler)
+		// Allow regular users to get their own transcripts, make sure you check perms inside
+		guildAuthApiEveryone.GET("/transcripts/:ticketId", createLimiter(10, 10 * time.Second), api_transcripts.GetTranscriptHandler)
 
 		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)

@@ -39,6 +39,7 @@ func GetTranscriptHandler(ctx *gin.Context) {
 	}
 
 	// Verify the user has permissions to be here
+	// ticket.UserId cannot be 0
 	if ticket.UserId != userId {
 		permLevel, err := utils.GetPermissionLevel(guildId, userId)
 		if err != nil {

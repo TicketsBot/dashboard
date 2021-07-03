@@ -9,6 +9,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"strconv"
@@ -106,7 +107,8 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.Title != data.Title ||
 		existing.ReactionEmote != data.Emote ||
 		existing.ImageUrl != data.ImageUrl ||
-		existing.ThumbnailUrl != data.ThumbnailUrl
+		existing.ThumbnailUrl != data.ThumbnailUrl ||
+		component.ButtonStyle(existing.ButtonStyle) != data.ButtonStyle
 
 	emoji, _ := data.getEmoji() // already validated
 	newMessageId := existing.MessageId
@@ -115,7 +117,7 @@ func UpdatePanel(ctx *gin.Context) {
 		// delete old message, ignoring error
 		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
-		newMessageId, err = data.sendEmbed(&botContext, data.Title, existing.CustomId, data.Emote, data.ImageUrl, data.ThumbnailUrl, premiumTier > premium.None)
+		newMessageId, err = data.sendEmbed(&botContext, data.Title, existing.CustomId, data.Emote, data.ImageUrl, data.ThumbnailUrl, data.ButtonStyle, premiumTier > premium.None)
 		if err != nil {
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
@@ -146,6 +148,9 @@ func UpdatePanel(ctx *gin.Context) {
 		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: data.WithDefaultTeam,
 		CustomId:        existing.CustomId,
+		ImageUrl:        data.ImageUrl,
+		ThumbnailUrl:    data.ThumbnailUrl,
+		ButtonStyle:     int(data.ButtonStyle),
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {

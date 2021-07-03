@@ -14,6 +14,14 @@
     <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
     <EmojiInput label="Button Emoji" col4=true bind:value={data.emote}/>
   </div>
+  <div class="row">
+    <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
+      <option value="1">Blue</option>
+      <option value="2">Grey</option>
+      <option value="3">Green</option>
+      <option value="4">Red</option>
+    </Dropdown>
+  </div>
   <div class="row" style="justify-content: center">
     <div class="col-3">
       <Button icon="fas fa-sliders-h" fullWidth=true type="button"
@@ -44,8 +52,8 @@
         </div>
       </div>
       <div class="row">
-        <Input col2={true} label="Large Image URL" bind:value={data.image_url} />
-        <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} />
+        <Input col2={true} label="Large Image URL" bind:value={data.image_url}/>
+        <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url}/>
       </div>
     </div>
   </div>
@@ -60,10 +68,10 @@
 
     import {createEventDispatcher, onMount} from 'svelte';
     import {colourToInt} from "../../js/util";
-    import {setDefaultHeaders} from "../../includes/Auth.svelte";
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import EmojiInput from "../form/EmojiInput.svelte";
     import Select from 'svelte-select';
+    import Dropdown from "../form/Dropdown.svelte";
 
     export let guildId;
     export let seedDefault = true;
@@ -83,6 +91,7 @@
             mentions: [],
             default_team: true,
             teams: [],
+            button_style: "1",
         };
     }
 

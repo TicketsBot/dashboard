@@ -31,6 +31,7 @@ func AuthenticateGuild(isApiMethod bool, requiredPermissionLevel permission.Perm
 
 			ctx.Keys["guildid"] = parsed
 
+			// TODO: Do we need this? Only really serves as a check whether the bot is in the server
 			guild, found := cache.Instance.GetGuild(parsed, false)
 			if !found {
 				if isApiMethod {
@@ -41,8 +42,6 @@ func AuthenticateGuild(isApiMethod bool, requiredPermissionLevel permission.Perm
 				ctx.Abort()
 				return
 			}
-
-			ctx.Keys["guild"] = guild
 
 			// Verify the user has permissions to be here
 			userId := ctx.Keys["userid"].(uint64)
