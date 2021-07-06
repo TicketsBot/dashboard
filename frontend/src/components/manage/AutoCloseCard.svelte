@@ -9,7 +9,7 @@
         <Checkbox col4={true} label="Enabled" bind:value={data.enabled}/>
         <Checkbox col4={true} label="Close On User Leave" bind:value={data.on_user_leave}/>
       </div>
-      <div class="row">
+      <div class="row" style="justify-content: space-between">
         <div class="col-2" style="flex-direction: row">
           <Duration label="Since Open With No Response" badge="Premium" disabled={!isPremium}
                     bind:days={sinceOpenDays} bind:hours={sinceOpenHours} bind:minutes={sinceOpenMinutes}/>
@@ -40,6 +40,12 @@
         display: flex;
         width: 100%;
         height: 100%;
+    }
+
+    @media only screen and (max-width: 950px) {
+        .row {
+            flex-direction: column;
+        }
     }
 
     .form-wrapper > .row:not(:last-child) {

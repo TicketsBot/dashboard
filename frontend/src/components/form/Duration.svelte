@@ -58,7 +58,7 @@
     input {
         border-top-right-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
-        width: 100px;
+        width: 100%;
         -moz-appearance: textfield;
     }
 

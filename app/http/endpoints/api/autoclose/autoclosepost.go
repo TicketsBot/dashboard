@@ -39,7 +39,6 @@ func PostAutoClose(ctx *gin.Context) {
 	}
 
 	// Time period cannot be negative, convertFromAutoCloseBody will not allow
-
 	if (settings.SinceOpenWithNoResponse != nil && *settings.SinceOpenWithNoResponse > maxLength) ||
 		(settings.SinceLastMessage != nil && *settings.SinceLastMessage > maxLength) {
 		ctx.JSON(400, utils.ErrorStr("Time period cannot be longer than %d days", maxDays))
