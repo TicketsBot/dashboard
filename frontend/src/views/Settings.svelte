@@ -1,15 +1,15 @@
 <div class="content">
   <div class="main-col">
     <div class="card">
-      <SettingsCard guildId={guildId}/>
+      <SettingsCard {guildId}/>
     </div>
     <div class="card">
-      <AutoCloseCard/>
+      <AutoCloseCard {guildId}/>
     </div>
   </div>
   <div class="right-col">
     <div class="card">
-      <ClaimsCard guildId={guildId}/>
+      <ClaimsCard {guildId}/>
     </div>
   </div>
 </div>

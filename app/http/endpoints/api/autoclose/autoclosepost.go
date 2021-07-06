@@ -1,36 +1,48 @@
 package api
 
 import (
+	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/database"
+	"github.com/TicketsBot/GoPanel/rpc"
+	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
+	"time"
 )
+
+var maxDays = 90
+var maxLength = time.Hour * 24 * time.Duration(maxDays)
 
 func PostAutoClose(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	var settings database.AutoCloseSettings
-	if err := ctx.BindJSON(&settings); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+	var body autoCloseBody
+	if err := ctx.BindJSON(&body); err != nil {
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
-	if settings.Enabled && (settings.SinceLastMessage == nil || settings.SinceOpenWithNoResponse == nil || settings.OnUserLeave == nil) {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error": "No time period provided",
-		})
+	settings := convertFromAutoCloseBody(body)
+
+	// get premium
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	if (settings.SinceOpenWithNoResponse != nil && *settings.SinceOpenWithNoResponse < 0) || (settings.SinceLastMessage != nil && *settings.SinceLastMessage < 0) {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error": "Negative time period provided",
-		})
+	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+
+	if premiumTier < premium.Premium {
+		settings.SinceOpenWithNoResponse = nil
+		settings.SinceLastMessage = nil
+	}
+
+	// Time period cannot be negative, convertFromAutoCloseBody will not allow
+
+	if (settings.SinceOpenWithNoResponse != nil && *settings.SinceOpenWithNoResponse > maxLength) ||
+		(settings.SinceLastMessage != nil && *settings.SinceLastMessage > maxLength) {
+		ctx.JSON(400, utils.ErrorStr("Time period cannot be longer than %d days", maxDays))
 		return
 	}
 
@@ -41,14 +53,9 @@ func PostAutoClose(ctx *gin.Context) {
 	}
 
 	if err := dbclient.Client.AutoClose.Set(guildId, settings); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
-		"success": true,
-	})
+	ctx.JSON(200, utils.SuccessResponse)
 }

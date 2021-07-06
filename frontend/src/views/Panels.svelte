@@ -258,7 +258,8 @@
             return;
         }
 
-        panels = res.data;
+        // convert button_style to string
+        panels = res.data.map((p) => Object.assign({}, p, {button_style: p.button_style.toString()}));
     }
 
     async function loadMultiPanels() {

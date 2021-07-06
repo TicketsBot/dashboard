@@ -46,6 +46,7 @@
         border-color: #2e3136 !important;
         border-left: none;
         color: white;
+        z-index: 2;
     }
 
     :global(.svelte-emoji-picker__trigger:active) {
