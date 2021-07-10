@@ -24,7 +24,6 @@ func GetTranscriptHandler(ctx *gin.Context) {
 	// get ticket object
 	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
 	if err != nil {
-		// TODO: 500 error page
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),
