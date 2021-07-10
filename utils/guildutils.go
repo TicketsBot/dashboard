@@ -29,7 +29,7 @@ func LoadGuilds(accessToken string, userId uint64) error {
 			GuildId:         guild.Id,
 			Name:            guild.Name,
 			Owner:           guild.Owner,
-			UserPermissions: int32(guild.Permissions),
+			UserPermissions: guild.Permissions,
 			Icon:            guild.Icon,
 		})
 	}
