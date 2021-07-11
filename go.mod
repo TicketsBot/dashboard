@@ -18,6 +18,7 @@ require (
 	github.com/gorilla/sessions v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgx/v4 v4.7.1
+	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
 	github.com/rxdn/gdl v0.0.0-20210701115435-816eb486d5d0

@@ -11,7 +11,7 @@ func LoadGuilds(accessToken string, userId uint64) error {
 	authHeader := fmt.Sprintf("Bearer %s", accessToken)
 
 	data := rest.CurrentUserGuildsData{
-		Limit: 100,
+		Limit: 200,
 	}
 
 	guilds, err := rest.GetCurrentUserGuilds(authHeader, nil, data)
