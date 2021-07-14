@@ -5,6 +5,7 @@ import livereload from 'rollup-plugin-livereload';
 import {terser} from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 import replace from "@rollup/plugin-replace";
+import {babel} from '@rollup/plugin-babel';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -58,6 +59,11 @@ export default {
             dedupe: ['svelte']
         }),
         commonjs(),
+        babel({
+            babelHelpers: 'bundled',
+            extensions: ['.js', '.mjs', '.html', '.svelte'],
+            include: ['src/**', 'node_modules/svelte/**'],
+        }),
 
         replace({
             env: JSON.stringify({
