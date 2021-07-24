@@ -25,7 +25,6 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	var data panelBody
-
 	if err := ctx.BindJSON(&data); err != nil {
 		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
 		return
