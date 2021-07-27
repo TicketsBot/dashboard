@@ -68,7 +68,11 @@ func CreatePanel(ctx *gin.Context) {
 	data.MessageId = 0
 
 	// Check panel quota
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, false, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, false, botContext.Token, botContext.RateLimiter)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	if premiumTier == premium.None {
 		panels, err := dbclient.Client.Panel.GetByGuild(guildId)

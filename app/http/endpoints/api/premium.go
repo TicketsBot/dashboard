@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/rpc"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,11 @@ func PremiumHandler(ctx *gin.Context) {
 		return
 	}
 
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	ctx.JSON(200, gin.H{
 		"premium": premiumTier >= premium.Premium,

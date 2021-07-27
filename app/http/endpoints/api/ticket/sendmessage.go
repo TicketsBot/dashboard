@@ -7,6 +7,7 @@ import (
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
@@ -59,7 +60,12 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Verify guild is premium
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
 	if premiumTier == premium.None {
 		ctx.AbortWithStatusJSON(402, gin.H{
 			"success": false,

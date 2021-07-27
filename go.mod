@@ -5,9 +5,9 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20210220155137-a562b2f1bbbb
-	github.com/TicketsBot/common v0.0.0-20210604175952-03cfa14c16e1
-	github.com/TicketsBot/database v0.0.0-20210724134842-d5a99b5a6f18
-	github.com/TicketsBot/worker v0.0.0-20210715115321-395f29f5d5e1
+	github.com/TicketsBot/common v0.0.0-20210727122454-304ff13e33cb
+	github.com/TicketsBot/database v0.0.0-20210725125137-5540e9ff7484
+	github.com/TicketsBot/worker v0.0.0-20210727130432-3df3cd1246a3
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2

@@ -177,7 +177,12 @@ func WebChatWs(ctx *gin.Context) {
 			}
 
 			// Verify the guild is premium
-			premiumTier := rpc.PremiumClient.GetTierByGuildId(authData.GuildId, true, botContext.Token, botContext.RateLimiter)
+			premiumTier, err := rpc.PremiumClient.GetTierByGuildId(authData.GuildId, true, botContext.Token, botContext.RateLimiter)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+
 			if premiumTier == premium.None {
 				fmt.Println(4)
 				conn.Close()

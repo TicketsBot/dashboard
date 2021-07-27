@@ -56,7 +56,12 @@ func MultiPanelCreate(ctx *gin.Context) {
 	}
 
 	// get premium status
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
 
 	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
 	if err != nil {

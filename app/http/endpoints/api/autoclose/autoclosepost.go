@@ -31,7 +31,11 @@ func PostAutoClose(ctx *gin.Context) {
 		return
 	}
 
-	premiumTier := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	if premiumTier < premium.Premium {
 		settings.SinceOpenWithNoResponse = nil
