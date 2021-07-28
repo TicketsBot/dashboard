@@ -101,6 +101,9 @@ func UpdatePanel(ctx *gin.Context) {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
+
+		// Delete old panel
+		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
 	// check if we need to update the message
