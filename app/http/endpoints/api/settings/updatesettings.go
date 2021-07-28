@@ -23,7 +23,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	// Get a list of all channel IDs
 	channels := cache.Instance.GetGuildChannels(guildId)
 
-	// Get prefix
+	// TODO: Errors
 	validPrefix := settings.updatePrefix(guildId)
 	validWelcomeMessage := settings.updateWelcomeMessage(guildId)
 	validTicketLimit := settings.updateTicketLimit(guildId)
@@ -33,6 +33,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	settings.updatePingEveryone(guildId)
 	settings.updateUsersCanClose(guildId)
 	settings.updateCloseConfirmation(guildId)
+	settings.updateFeedbackEnabled(guildId)
 
 	ctx.JSON(200, gin.H{
 		"prefix": validPrefix,
@@ -134,4 +135,9 @@ func (s *Settings) updateUsersCanClose(guildId uint64) {
 
 func (s *Settings) updateCloseConfirmation(guildId uint64) {
 	go dbclient.Client.CloseConfirmation.Set(guildId, s.CloseConfirmation)
+}
+
+
+func (s *Settings) updateFeedbackEnabled(guildId uint64) {
+	go dbclient.Client.FeedbackEnabled.Set(guildId, s.FeedbackEnabled)
 }

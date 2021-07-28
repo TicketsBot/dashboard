@@ -6,22 +6,24 @@
   <div slot="body" class="body-wrapper">
     <form class="settings-form" on:submit|preventDefault={updateSettings}>
       <div class="row">
-        <Input label="prefix (max len. 8)" placeholder="t!" col4=true bind:value={data.prefix} />
-        <Number label="per user ticket limit" col4=true min=1 max=10 bind:value={data.ticket_limit} />
+        <Input label="prefix (max len. 8)" placeholder="t!" col4=true bind:value={data.prefix}/>
+        <Number label="per user ticket limit" col4=true min=1 max=10 bind:value={data.ticket_limit}/>
         <Checkbox label="allow users to close tickets" col4=true bind:value={data.users_can_close}/>
         <Checkbox label="ticket close confirmation" col4=true bind:value={data.close_confirmation}/>
       </div>
       <div class="row">
-        <Textarea label="welcome message" placeholder="Thanks for opening a ticket!" col1=true bind:value={data.welcome_message} />
+        <Textarea label="welcome message" placeholder="Thanks for opening a ticket!" col1=true
+                  bind:value={data.welcome_message}/>
       </div>
       <div class="row">
-        <ChannelDropdown label="Archive Channel" col2=true channels={channels} bind:value={data.archive_channel} />
-        <CategoryDropdown label="Channel Category" col2=true channels={channels} bind:value={data.category} />
+        <ChannelDropdown label="Archive Channel" col2=true channels={channels} bind:value={data.archive_channel}/>
+        <CategoryDropdown label="Channel Category" col2=true channels={channels} bind:value={data.category}/>
       </div>
       <div class="row">
-        <NamingScheme col4=true bind:value={data.naming_scheme} />
+        <NamingScheme col4=true bind:value={data.naming_scheme}/>
+        <Checkbox label="Ask Users To Rate Service" col4=true bind:value={data.feedback_enabled}/>
       </div>
-      <div class="row">
+      <div class="row" style="justify-content: flex-start">
         <div class="col-1">
           <Button icon="fas fa-paper-plane" fullWidth=true>Submit</Button>
         </div>
@@ -32,9 +34,6 @@
 
 <script>
     import ChannelDropdown from "../ChannelDropdown.svelte";
-
-    export let guildId;
-
     import Card from "../Card.svelte";
     import Input from "../form/Input.svelte";
     import Number from "../form/Number.svelte";
@@ -48,6 +47,8 @@
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import Button from "../Button.svelte";
     import NamingScheme from "../NamingScheme.svelte";
+
+    export let guildId;
 
     setDefaultHeaders();
 

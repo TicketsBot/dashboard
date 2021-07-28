@@ -51,12 +51,17 @@ func main() {
 	messagequeue.Client = messagequeue.NewRedisClient()
 	go ListenChat(messagequeue.Client)
 
-	rpc.PremiumClient = premium.NewPremiumLookupClient(
-		premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
-		messagequeue.Client.Client,
-		cache.Instance.PgCache,
-		database.Client,
-	)
+	if !config.Conf.Debug {
+		rpc.PremiumClient = premium.NewPremiumLookupClient(
+			premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
+			messagequeue.Client.Client,
+			cache.Instance.PgCache,
+			database.Client,
+		)
+	} else {
+		c := premium.NewMockLookupClient(premium.Whitelabel, premium.SourcePatreon)
+		rpc.PremiumClient = &c
+	}
 
 	http.StartServer()
 }

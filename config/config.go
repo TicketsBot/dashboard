@@ -12,6 +12,7 @@ type (
 	Config struct {
 		Admins          []uint64
 		ForceWhitelabel []uint64
+		Debug           bool
 		Server          Server
 		Oauth           Oauth
 		Database        Database
@@ -122,6 +123,7 @@ func fromEnvvar() {
 	Conf = Config{
 		Admins:          admins,
 		ForceWhitelabel: forcedWhitelabel,
+		Debug:           os.Getenv("DEBUG") != "",
 		Server: Server{
 			Host:     os.Getenv("SERVER_ADDR"),
 			BaseUrl:  os.Getenv("BASE_URL"),

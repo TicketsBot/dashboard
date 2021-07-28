@@ -18,6 +18,7 @@ type Settings struct {
 	PingEveryone      bool                  `json:"ping_everyone"`
 	UsersCanClose     bool                  `json:"users_can_close"`
 	CloseConfirmation bool                  `json:"close_confirmation"`
+	FeedbackEnabled   bool                  `json:"feedback_enabled"`
 }
 
 func GetSettingsHandler(ctx *gin.Context) {
@@ -90,6 +91,12 @@ func GetSettingsHandler(ctx *gin.Context) {
 	// close confirmation
 	group.Go(func() (err error) {
 		settings.CloseConfirmation, err = dbclient.Client.CloseConfirmation.Get(guildId)
+		return
+	})
+
+	// close confirmation
+	group.Go(func() (err error) {
+		settings.FeedbackEnabled, err = dbclient.Client.FeedbackEnabled.Get(guildId)
 		return
 	})
 
