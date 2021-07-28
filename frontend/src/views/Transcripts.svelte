@@ -37,6 +37,7 @@
             <tr>
               <th>Ticket ID</th>
               <th>Username</th>
+              <th>Rating</th>
               <th class="reason">Close Reason</th>
               <th>Transcript</th>
             </tr>
@@ -46,6 +47,13 @@
               <tr>
                 <td>{transcript.ticket_id}</td>
                 <td>{transcript.username}</td>
+                <td>
+                  {#if transcript.rating}
+                    {transcript.rating} ⭐
+                  {:else}
+                    No rating
+                  {/if}
+                </td>
                 <td class="reason">{transcript.close_reason || 'No reason specified'}</td>
                 <td>
                   <Navigate to="{`/manage/${guildId}/transcripts/view/${transcript.ticket_id}`}" styles="link">

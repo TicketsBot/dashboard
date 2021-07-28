@@ -30,6 +30,7 @@ type transcript struct {
 	TicketId    int     `json:"ticket_id"`
 	Username    string  `json:"username"`
 	CloseReason *string `json:"close_reason"`
+	Rating      *uint8  `json:"rating"`
 }
 
 func ListTranscripts(ctx *gin.Context) {
@@ -89,12 +90,30 @@ func ListTranscripts(ctx *gin.Context) {
 		}
 	}
 
+	// Get ratings
+	ticketIds := make([]int, len(tickets))
+	for i, ticket := range tickets {
+		ticketIds[i] = ticket.Id
+	}
+
+	ratings, err := dbclient.Client.ServiceRatings.GetMulti(guildId, ticketIds)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
 	transcripts := make([]transcript, len(tickets))
 	for i, ticket := range tickets {
+		var rating *uint8
+		if v, ok := ratings[ticket.Id]; ok {
+			rating = &v
+		}
+
 		transcripts[i] = transcript{
 			TicketId:    ticket.Id,
 			Username:    usernames[ticket.UserId],
 			CloseReason: ticket.CloseReason,
+			Rating:      rating,
 		}
 	}
 
@@ -128,7 +147,6 @@ func getTickets(guildId uint64, before, after int) ([]database.TicketWithCloseRe
 			reverse(tickets)
 		}
 	}
-
 
 	status := http.StatusOK
 	if err != nil {
