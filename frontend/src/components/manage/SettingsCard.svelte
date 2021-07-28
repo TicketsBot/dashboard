@@ -21,7 +21,7 @@
       </div>
       <div class="row">
         <NamingScheme col4=true bind:value={data.naming_scheme}/>
-        <Checkbox label="Ask Users To Rate Service" col4=true bind:value={data.feedback_enabled}/>
+        <Checkbox label="Enable User Feedback" col4=true bind:value={data.feedback_enabled}/>
       </div>
       <div class="row" style="justify-content: flex-start">
         <div class="col-1">
