@@ -28,6 +28,7 @@ type (
 		Ratelimit      Ratelimit
 		Session        Session
 		Secret         string
+		RealIpHeaders  []string
 		TrustedProxies []string
 	}
 
@@ -137,8 +138,9 @@ func fromEnvvar() {
 				Threads: sessionThreads,
 				Secret:  os.Getenv("SESSION_SECRET"),
 			},
-			Secret: os.Getenv("JWT_SECRET"),
+			Secret:         os.Getenv("JWT_SECRET"),
 			TrustedProxies: strings.Split(os.Getenv("TRUSTED_PROXIES"), ","),
+			RealIpHeaders: strings.Split(os.Getenv("REAL_IP_HEADERS"), ","),
 		},
 		Oauth: Oauth{
 			Id:          oauthId,

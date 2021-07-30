@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
 	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
@@ -32,7 +31,7 @@ func StartServer() {
 
 	router := gin.Default()
 
-	router.RemoteIPHeaders = append(router.RemoteIPHeaders, "X-Forwarded-For", "X-Real-IP", "CF-Connecting-IP")
+	router.RemoteIPHeaders = config.Conf.Server.RealIpHeaders
 	if err := router.SetTrustedProxies(config.Conf.Server.TrustedProxies); err != nil {
 		panic(err)
 	}
@@ -47,12 +46,6 @@ func StartServer() {
 	router.Use(createLimiter(600, time.Minute*10))
 
 	router.Use(middleware.Cors(config.Conf))
-
-	router.Use(func(ctx *gin.Context) {
-		fmt.Println(ctx.Request.Header)
-		fmt.Println(ctx.ClientIP())
-		fmt.Println(ctx.RemoteIP())
-	})
 
 	router.GET("/webchat", root.WebChatWs)
 
