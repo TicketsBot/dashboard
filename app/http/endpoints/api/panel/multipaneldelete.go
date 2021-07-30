@@ -13,7 +13,6 @@ import (
 
 func MultiPanelDelete(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
-	ctx.ClientIP()
 
 	multiPanelId, err := strconv.Atoi(ctx.Param("panelid"))
 	if err != nil {
