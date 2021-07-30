@@ -31,6 +31,11 @@ func StartServer() {
 
 	router := gin.Default()
 
+	router.RemoteIPHeaders = append(router.RemoteIPHeaders, "CF-Connecting-IP")
+	if err := router.SetTrustedProxies(config.Conf.Server.TrustedProxies); err != nil {
+		panic(err)
+	}
+
 	// Sessions
 	session.Store = session.NewRedisStore()
 

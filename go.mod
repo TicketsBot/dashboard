@@ -12,7 +12,7 @@ require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
-	github.com/gin-gonic/gin v1.7.1
+	github.com/gin-gonic/gin v1.7.2-0.20210726235953-11aa11a65618
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/gorilla/sessions v1.2.0 // indirect

@@ -22,12 +22,13 @@ type (
 	}
 
 	Server struct {
-		Host      string
-		BaseUrl   string
-		MainSite  string
-		Ratelimit Ratelimit
-		Session   Session
-		Secret    string
+		Host           string
+		BaseUrl        string
+		MainSite       string
+		Ratelimit      Ratelimit
+		Session        Session
+		Secret         string
+		TrustedProxies []string
 	}
 
 	Ratelimit struct {
@@ -137,6 +138,7 @@ func fromEnvvar() {
 				Secret:  os.Getenv("SESSION_SECRET"),
 			},
 			Secret: os.Getenv("JWT_SECRET"),
+			TrustedProxies: strings.Split(os.Getenv("TRUSTED_PROXIES"), ","),
 		},
 		Oauth: Oauth{
 			Id:          oauthId,
