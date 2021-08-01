@@ -19,11 +19,12 @@
         <ChannelDropdown label="Archive Channel" col2=true channels={channels} bind:value={data.archive_channel}/>
         <CategoryDropdown label="Channel Category" col2=true channels={channels} bind:value={data.category}/>
       </div>
-      <div class="row">
+      <div class="row" style="justify-content: flex-start">
         <NamingScheme col4=true bind:value={data.naming_scheme}/>
         <Checkbox label="Enable User Feedback" col4=true bind:value={data.feedback_enabled}/>
+        <Checkbox label="Hide Claim Button" col4=true bind:value={data.hide_claim_button}/>
       </div>
-      <div class="row" style="justify-content: flex-start">
+      <div class="row">
         <div class="col-1">
           <Button icon="fas fa-paper-plane" fullWidth=true>Submit</Button>
         </div>

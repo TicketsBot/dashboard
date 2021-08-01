@@ -24,6 +24,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	channels := cache.Instance.GetGuildChannels(guildId)
 
 	// TODO: Errors
+	settings.updateSettings(guildId)
 	validPrefix := settings.updatePrefix(guildId)
 	validWelcomeMessage := settings.updateWelcomeMessage(guildId)
 	validTicketLimit := settings.updateTicketLimit(guildId)
@@ -46,6 +47,10 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 }
 
 // TODO: Return error
+func (s *Settings) updateSettings(guildId uint64) {
+	go dbclient.Client.Settings.Set(guildId, s.Settings)
+}
+
 func (s *Settings) updatePrefix(guildId uint64) bool {
 	if s.Prefix == "" || len(s.Prefix) > 8 {
 		return false

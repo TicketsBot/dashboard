@@ -9,6 +9,7 @@ import (
 )
 
 type Settings struct {
+	database.Settings
 	Prefix            string                `json:"prefix"`
 	WelcomeMessaage   string                `json:"welcome_message"`
 	TicketLimit       uint8                 `json:"ticket_limit"`
@@ -27,6 +28,11 @@ func GetSettingsHandler(ctx *gin.Context) {
 	var settings Settings
 
 	group, _ := errgroup.WithContext(context.Background())
+
+	group.Go(func() (err error) {
+		settings.Settings, err = dbclient.Client.Settings.Get(guildId)
+		return
+	})
 
 	// prefix
 	group.Go(func() (err error) {
