@@ -1,11 +1,17 @@
 package api
 
 import (
+	"context"
+	"errors"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
+	"github.com/rxdn/gdl/objects/interaction"
+	"github.com/rxdn/gdl/rest"
+	"golang.org/x/sync/errgroup"
 )
 
 func UpdateSettingsHandler(ctx *gin.Context) {
@@ -15,7 +21,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	if err := ctx.BindJSON(&settings); err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -24,7 +30,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	channels := cache.Instance.GetGuildChannels(guildId)
 
 	// TODO: Errors
-	settings.updateSettings(guildId)
+	err := settings.updateSettings(guildId)
 	validPrefix := settings.updatePrefix(guildId)
 	validWelcomeMessage := settings.updateWelcomeMessage(guildId)
 	validTicketLimit := settings.updateTicketLimit(guildId)
@@ -37,18 +43,68 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	settings.updateFeedbackEnabled(guildId)
 
 	ctx.JSON(200, gin.H{
-		"prefix": validPrefix,
+		"prefix":          validPrefix,
 		"welcome_message": validWelcomeMessage,
-		"ticket_limit": validTicketLimit,
+		"ticket_limit":    validTicketLimit,
 		"archive_channel": validArchiveChannel,
-		"category": validCategory,
-		"naming_scheme": validNamingScheme,
+		"category":        validCategory,
+		"naming_scheme":   validNamingScheme,
+		"error":           err,
 	})
 }
 
-// TODO: Return error
-func (s *Settings) updateSettings(guildId uint64) {
-	go dbclient.Client.Settings.Set(guildId, s.Settings)
+func (s *Settings) updateSettings(guildId uint64) error {
+	group, _ := errgroup.WithContext(context.Background())
+
+	group.Go(func() error {
+		return dbclient.Client.Settings.Set(guildId, s.Settings)
+	})
+
+	group.Go(func() error {
+		return setOpenCommandPermissions(guildId, s.DisableOpenCommand)
+	})
+
+	return group.Wait()
+}
+
+func setOpenCommandPermissions(guildId uint64, disabled bool) error {
+	ctx, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		return err
+	}
+
+	commands, err := rest.GetGlobalCommands(ctx.Token, ctx.RateLimiter, ctx.BotId)
+	if err != nil {
+		return err
+	}
+
+	var commandId uint64
+	for _, cmd := range commands {
+		if cmd.Name == "open" {
+			commandId = cmd.Id
+			break
+		}
+	}
+
+	if commandId == 0 {
+		return errors.New("open command not found")
+	}
+
+	data := rest.CommandWithPermissionsData{
+		Id:            commandId,
+		ApplicationId: ctx.BotId,
+		GuildId:       guildId,
+		Permissions: []interaction.ApplicationCommandPermissions{
+			{
+				Id:         guildId,
+				Type:       interaction.ApplicationCommandPermissionTypeRole,
+				Permission: !disabled,
+			},
+		},
+	}
+
+	_, err = rest.EditCommandPermissions(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, commandId, data)
+	return err
 }
 
 func (s *Settings) updatePrefix(guildId uint64) bool {
@@ -113,6 +169,7 @@ func (s *Settings) updateArchiveChannel(channels []channel.Channel, guildId uint
 }
 
 var validScheme = []database.NamingScheme{database.Id, database.Username}
+
 func (s *Settings) updateNamingScheme(guildId uint64) bool {
 	var valid bool
 	for _, scheme := range validScheme {
@@ -141,7 +198,6 @@ func (s *Settings) updateUsersCanClose(guildId uint64) {
 func (s *Settings) updateCloseConfirmation(guildId uint64) {
 	go dbclient.Client.CloseConfirmation.Set(guildId, s.CloseConfirmation)
 }
-
 
 func (s *Settings) updateFeedbackEnabled(guildId uint64) {
 	go dbclient.Client.FeedbackEnabled.Set(guildId, s.FeedbackEnabled)

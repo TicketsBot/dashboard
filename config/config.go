@@ -53,6 +53,7 @@ type (
 	}
 
 	Bot struct {
+		Id                    uint64
 		Token                 string
 		PremiumLookupProxyUrl string `toml:"premium-lookup-proxy-url"`
 		PremiumLookupProxyKey string `toml:"premium-lookup-proxy-key"`
@@ -119,6 +120,7 @@ func fromEnvvar() {
 	rateLimitMax, _ := strconv.Atoi(os.Getenv("RATELIMIT_MAX"))
 	sessionThreads, _ := strconv.Atoi(os.Getenv("SESSION_DB_THREADS"))
 	oauthId, _ := strconv.ParseUint(os.Getenv("OAUTH_ID"), 10, 64)
+	botId, _ := strconv.ParseUint(os.Getenv("BOT_ID"), 10, 64)
 	redisPort, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	redisThreads, _ := strconv.Atoi(os.Getenv("REDIS_THREADS"))
 
@@ -140,7 +142,7 @@ func fromEnvvar() {
 			},
 			Secret:         os.Getenv("JWT_SECRET"),
 			TrustedProxies: strings.Split(os.Getenv("TRUSTED_PROXIES"), ","),
-			RealIpHeaders: strings.Split(os.Getenv("REAL_IP_HEADERS"), ","),
+			RealIpHeaders:  strings.Split(os.Getenv("REAL_IP_HEADERS"), ","),
 		},
 		Oauth: Oauth{
 			Id:          oauthId,
@@ -151,6 +153,7 @@ func fromEnvvar() {
 			Uri: os.Getenv("DATABASE_URI"),
 		},
 		Bot: Bot{
+			Id:                    botId,
 			Token:                 os.Getenv("BOT_TOKEN"),
 			PremiumLookupProxyUrl: os.Getenv("PREMIUM_PROXY_URL"),
 			PremiumLookupProxyKey: os.Getenv("PREMIUM_PROXY_KEY"),

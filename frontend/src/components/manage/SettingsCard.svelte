@@ -23,6 +23,7 @@
         <NamingScheme col4=true bind:value={data.naming_scheme}/>
         <Checkbox label="Enable User Feedback" col4=true bind:value={data.feedback_enabled}/>
         <Checkbox label="Hide Claim Button" col4=true bind:value={data.hide_claim_button}/>
+        <Checkbox label="Disable /open Command" col4=true bind:value={data.disable_open_command}/>
       </div>
       <div class="row">
         <div class="col-1">

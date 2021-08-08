@@ -56,7 +56,7 @@ func GetGuilds(ctx *gin.Context) {
 			fakeGuild := guild.Guild{
 				Id:          g.GuildId,
 				Owner:       g.Owner,
-				Permissions: uint64(g.UserPermissions),
+				Permissions: g.UserPermissions,
 			}
 
 			if g.Owner {

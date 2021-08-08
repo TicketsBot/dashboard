@@ -22,9 +22,11 @@ func ContextForGuild(guildId uint64) (ctx BotContext, err error) {
 			return ctx, err
 		}
 
+		ctx.BotId = res.BotId
 		ctx.Token = res.Token
 		keyPrefix = fmt.Sprintf("ratelimiter:%d", whitelabelBotId)
 	} else {
+		ctx.BotId = config.Conf.Bot.Id
 		ctx.Token = config.Conf.Bot.Token
 		keyPrefix = "ratelimiter:public"
 	}

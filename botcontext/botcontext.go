@@ -16,6 +16,7 @@ import (
 )
 
 type BotContext struct {
+	BotId       uint64
 	Token       string
 	RateLimiter *ratelimit.Ratelimiter
 }
@@ -112,7 +113,6 @@ func (ctx BotContext) SearchMembers(guildId uint64, query string) (members []mem
 
 	return
 }
-
 
 func (ctx BotContext) ListMembers(guildId uint64) (members []member.Member, err error) {
 	data := rest.ListGuildMembersData{
