@@ -7,7 +7,7 @@
     <form class="settings-form" on:submit|preventDefault={updateSettings}>
       <div class="row">
         <Input label="prefix (max len. 8)" placeholder="t!" col4=true bind:value={data.prefix}/>
-        <Number label="per user ticket limit" col4=true min=1 max=10 bind:value={data.ticket_limit}/>
+        <Number label="per user simultaneous ticket limit" col4=true min=1 max=10 bind:value={data.ticket_limit}/>
         <Checkbox label="allow users to close tickets" col4=true bind:value={data.users_can_close}/>
         <Checkbox label="ticket close confirmation" col4=true bind:value={data.close_confirmation}/>
       </div>
