@@ -176,8 +176,7 @@
     }
 
     async function loadData(paginationSettings) {
-        let query = buildQuery(paginationSettings);
-        const res = await axios.get(`${API_URL}/api/${guildId}/transcripts?${query.toString()}`);
+        const res = await axios.post(`${API_URL}/api/${guildId}/transcripts`, paginationSettings);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return false;

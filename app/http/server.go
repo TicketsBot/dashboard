@@ -84,7 +84,8 @@ func StartServer() {
 		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate)
 		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
 
-		guildAuthApiSupport.GET("/transcripts", createLimiter(5, 5 * time.Second), createLimiter(20, time.Minute), api_transcripts.ListTranscripts)
+		// Should be a GET, but easier to take a body for development purposes
+		guildAuthApiSupport.POST("/transcripts", createLimiter(5, 5 * time.Second), createLimiter(20, time.Minute), api_transcripts.ListTranscripts)
 		// Allow regular users to get their own transcripts, make sure you check perms inside
 		guildApiNoAuth.GET("/transcripts/:ticketId", createLimiter(10, 10 * time.Second), api_transcripts.GetTranscriptHandler)
 
@@ -95,7 +96,7 @@ func StartServer() {
 
 		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler)
 		guildAuthApiSupport.PUT("/tags", api_tags.CreateTag)
-		guildAuthApiSupport.DELETE("/tags/:tag", api_tags.DeleteTag)
+		guildAuthApiSupport.DELETE("/tags", api_tags.DeleteTag)
 
 		guildAuthApiAdmin.GET("/claimsettings", api_settings.GetClaimSettings)
 		guildAuthApiAdmin.POST("/claimsettings", api_settings.PostClaimSettings)

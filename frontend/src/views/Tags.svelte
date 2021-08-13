@@ -88,7 +88,11 @@
     }
 
     async function deleteTag(id) {
-        const res = await axios.delete(`${API_URL}/api/${guildId}/tags/${id}`);
+        const data = {
+            tag_id: id
+        };
+
+        const res = await axios.delete(`${API_URL}/api/${guildId}/tags`, {data: data});
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
