@@ -25,9 +25,10 @@
     import Input from "../form/Input.svelte";
     import Textarea from "../form/Textarea.svelte";
     import Colour from "../form/Colour.svelte";
-    import {colourToInt} from "../../js/util";
+    import {colourToInt, intToColour} from "../../js/util";
     import ChannelDropdown from "../ChannelDropdown.svelte";
     import PanelDropdown from "../PanelDropdown.svelte";
+    import {onMount} from "svelte";
 
     export let data = {};
 
@@ -49,6 +50,16 @@
     function updateColour() {
         data.colour = colourToInt(tempColour);
     }
+
+    function applyOverrides() {
+        tempColour = intToColour(data.colour);
+    }
+
+    onMount(() => {
+        if (!seedDefault) {
+            applyOverrides();
+        }
+    })
 </script>
 
 <style>

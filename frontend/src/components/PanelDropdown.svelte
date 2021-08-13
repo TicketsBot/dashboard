@@ -1,3 +1,5 @@
+
+
 <label class="form-label">{label}</label>
 <div class="multiselect-super">
   <Select placeholder="Select..." items={panels} optionIdentifier="panel_id" getOptionLabel={labelMapper}
@@ -7,6 +9,7 @@
 
 <script>
     import Select from 'svelte-select';
+    import {onMount} from "svelte";
 
     export let label;
     export let panels = [];
@@ -25,4 +28,12 @@
 
         selected = panelsRaw.map((panel) => panel.panel_id);
     }
+
+    function applyOverrides() {
+        panelsRaw = panels.filter((p) => selected.includes(p.panel_id));
+    }
+
+    onMount(() => {
+        applyOverrides();
+    });
 </script>

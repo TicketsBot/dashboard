@@ -67,7 +67,7 @@
     import ChannelDropdown from "../ChannelDropdown.svelte";
 
     import {createEventDispatcher, onMount} from 'svelte';
-    import {colourToInt} from "../../js/util";
+    import {colourToInt, intToColour} from "../../js/util";
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import EmojiInput from "../form/EmojiInput.svelte";
     import Select from 'svelte-select';
@@ -175,6 +175,8 @@
         if (data.mentions) {
             $: data.mentions.forEach((id) => mentionsRaw.push(mentionValues.find((val) => val.value === id)));
         }
+
+        tempColour = intToColour(data.colour);
     }
 
     onMount(() => {

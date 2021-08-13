@@ -162,7 +162,6 @@ func WebChatWs(ctx *gin.Context) {
 			}
 
 			if permLevel < permission.Admin {
-				fmt.Println(3)
 				conn.Close()
 				return
 			}
@@ -184,7 +183,6 @@ func WebChatWs(ctx *gin.Context) {
 			}
 
 			if premiumTier == premium.None {
-				fmt.Println(4)
 				conn.Close()
 				return
 			}
