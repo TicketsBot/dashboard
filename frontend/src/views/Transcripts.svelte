@@ -99,7 +99,7 @@
     let filterSettings = {};
     let transcripts = [];
 
-    const pageLimit = 30;
+    const pageLimit = 15;
     let page = 1;
 
     let handleInputTicketId = () => {
@@ -122,10 +122,8 @@
             return;
         }
 
-        let paginationSettings = {
-            after: transcripts[0].ticket_id,
-        };
 
+        let paginationSettings = buildPaginationSettings(page - 1);
         if (await loadData(paginationSettings)) {
             page--;
         }
@@ -136,42 +134,25 @@
             return;
         }
 
-        let paginationSettings = {
-            before: transcripts[transcripts.length - 1].ticket_id,
-        };
-
+        let paginationSettings = buildPaginationSettings(page + 1);
         if (await loadData(paginationSettings)) {
             page++;
         }
     }
 
-    function buildQuery(paginationSettings) {
-        let query = new URLSearchParams();
-        if (paginationSettings['before'] !== undefined) {
-            query.append('before', paginationSettings['before']);
-        }
-
-        if (paginationSettings['after'] !== undefined) {
-            query.append('after', paginationSettings['after']);
-        }
-
-        if (filterSettings['ticketId'] !== undefined) {
-            query.append('ticketid', filterSettings.ticketId);
-        }
-
-        if (filterSettings['username'] !== undefined) {
-            query.append('username', filterSettings.username);
-        }
-
-        if (filterSettings['userId'] !== undefined) {
-            query.append('userid', filterSettings.userId);
-        }
-
-        return query;
+    function buildPaginationSettings(page) {
+        // Undefined fields won't be included in the JSON
+        return {
+            id: filterSettings.ticketId,
+            username: filterSettings.username,
+            user_id: filterSettings.userId,
+            page: page,
+        };
     }
 
     async function filter() {
-        await loadData({});
+        let opts = buildPaginationSettings(1);
+        await loadData(opts);
         page = 1;
     }
 
