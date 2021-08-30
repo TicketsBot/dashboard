@@ -250,13 +250,15 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
-	_, validEmoji := p.getEmoji()
-	if !validEmoji {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Invalid emoji. Simply use the emoji's name from Discord.",
-		})
-		return false
+	if p.Emote != "" { // Allow no emoji
+		_, validEmoji := p.getEmoji()
+		if !validEmoji {
+			ctx.AbortWithStatusJSON(400, gin.H{
+				"success": false,
+				"error":   "Invalid emoji. Simply use the emoji itself, or the emoji's name from Discord.",
+			})
+			return false
+		}
 	}
 
 	if !p.verifyWelcomeMessage() {
@@ -307,6 +309,7 @@ func (p *panelBody) verifyContent() bool {
 }
 
 func (p *panelBody) getEmoji() (emoji string, ok bool) {
+	p.Emote = strings.TrimSpace(p.Emote)
 	p.Emote = strings.Replace(p.Emote, ":", "", -1)
 
 	emoji, ok = utils.GetEmoji(p.Emote)
@@ -377,19 +380,24 @@ func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote
 
 	if !isPremium {
 		// TODO: Don't harcode
-		e.SetFooter("Powered by ticketsbot.net", "https://cdn.discordapp.com/avatars/508391840525975553/ac2647ffd4025009e2aa852f719a8027.png?size=256")
+		e.SetFooter("Powered by ticketsbot.net", "https://ticketsbot.net/assets/img/logo.png")
+	}
+
+	var buttonEmoji *emoji.Emoji
+	if emote != "" {
+		buttonEmoji = &emoji.Emoji{
+			Name: emote,
+		}
 	}
 
 	data := rest.CreateMessageData{
-		Embed: e,
+		Embeds: []*embed.Embed{e},
 		Components: []component.Component{
 			component.BuildActionRow(component.BuildButton(component.Button{
 				Label:    title,
 				CustomId: customId,
 				Style:    buttonStyle,
-				Emoji: emoji.Emoji{
-					Name: emote,
-				},
+				Emoji:    buttonEmoji,
 				Url:      nil,
 				Disabled: false,
 			})),

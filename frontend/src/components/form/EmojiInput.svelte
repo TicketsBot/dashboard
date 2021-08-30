@@ -1,7 +1,7 @@
 <div class:col-1={col1} class:col-2={col2} class:col-3={col3} class:col-4={col4}>
   <label for="input" class="form-label">{label}</label>
   <div class="wrapper">
-    <input id="input" class="form-input" readonly placeholder="{placeholder}" disabled="{disabled}" bind:value={value}>
+    <input id="input" class="form-input" placeholder="{placeholder}" disabled="{disabled}" bind:value={value}>
     {#if !disabled}
       <EmojiSelector on:emoji={onUpdate}/>
     {/if}

@@ -62,7 +62,6 @@ func MultiPanelCreate(ctx *gin.Context) {
 		return
 	}
 
-
 	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
 	if err != nil {
 		var unwrapped request.RestError
@@ -212,13 +211,18 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 
 	buttons := make([]component.Component, len(panels))
 	for i, panel := range panels {
+		var buttonEmoji *emoji.Emoji
+		if panel.ReactionEmote != "" {
+			buttonEmoji = &emoji.Emoji{
+				Name: panel.ReactionEmote,
+			}
+		}
+
 		buttons[i] = component.BuildButton(component.Button{
 			Label:    panel.Title,
 			CustomId: panel.CustomId,
 			Style:    component.ButtonStyle(panel.ButtonStyle),
-			Emoji: emoji.Emoji{
-				Name: panel.ReactionEmote,
-			},
+			Emoji:    buttonEmoji,
 		})
 	}
 
@@ -240,7 +244,7 @@ func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium b
 	}
 
 	data := rest.CreateMessageData{
-		Embed: e,
+		Embeds:     []*embed.Embed{e},
 		Components: rows,
 	}
 
