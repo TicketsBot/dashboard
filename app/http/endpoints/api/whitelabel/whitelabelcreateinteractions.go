@@ -8,6 +8,7 @@ import (
 	"github.com/TicketsBot/worker/bot/command/impl/admin"
 	"github.com/TicketsBot/worker/bot/command/manager"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/interaction"
 	"github.com/rxdn/gdl/rest"
 	"time"
 )
@@ -48,7 +49,7 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"success": false,
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 			return
 		}
@@ -59,14 +60,14 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 			if err != nil {
 				ctx.JSON(500, gin.H{
 					"success": false,
-					"error": err.Error(),
+					"error":   err.Error(),
 				})
 				return
 			}
 
 			ctx.JSON(400, gin.H{
 				"success": false,
-				"error": fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds())),
+				"error":   fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds())),
 			})
 
 			return
@@ -76,7 +77,7 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"success": false,
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 			return
 		}
@@ -95,6 +96,7 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 				Name:        option.Name,
 				Description: option.Description,
 				Options:     option.Options,
+				Type:        interaction.ApplicationCommandTypeChatInput,
 			}
 
 			interactions = append(interactions, data)
@@ -107,7 +109,7 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 		} else {
 			ctx.JSON(500, gin.H{
 				"success": false,
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 	}
