@@ -58,7 +58,7 @@ export default {
             browser: true,
             dedupe: ['svelte']
         }),
-        commonjs(),
+        commonjs({ sourceMap: false }),
         babel({
             babelHelpers: 'bundled',
             extensions: ['.js', '.mjs', '.html', '.svelte'],

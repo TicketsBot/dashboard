@@ -11,6 +11,7 @@ type wrappedQueryOptions struct {
 	Id       int    `json:"id,string"`
 	Username string `json:"username"`
 	UserId   uint64 `json:"user_id,string"`
+	PanelId  int    `json:"panel_id"`
 	Page     int    `json:"page"`
 }
 
@@ -43,6 +44,7 @@ func (o *wrappedQueryOptions) toQueryOptions(guildId uint64) (database.TicketQue
 		GuildId: guildId,
 		UserIds: userIds,
 		Open:    utils.BoolPtr(false),
+		PanelId: o.PanelId,
 		Order:   database.OrderTypeDescending,
 		Limit:   pageLimit,
 		Offset:  offset,

@@ -15,7 +15,7 @@ import (
 	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/premium"
-	"github.com/TicketsBot/worker/bot/i18n"
+	"github.com/TicketsBot/worker/i18n"
 	"github.com/apex/log"
 	"github.com/rxdn/gdl/rest/request"
 	"math/rand"
@@ -40,9 +40,8 @@ func main() {
 	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
 
 	utils.LoadEmoji()
-	if err := i18n.LoadMessages(database.Client); err != nil {
-		panic(err)
-	}
+
+	i18n.LoadMessages()
 
 	if config.Conf.Bot.ProxyUrl != "" {
 		request.RegisterHook(utils.ProxyHook)

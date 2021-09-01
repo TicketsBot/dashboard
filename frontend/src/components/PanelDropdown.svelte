@@ -1,10 +1,8 @@
-
-
 <label class="form-label">{label}</label>
 <div class="multiselect-super">
   <Select placeholder="Select..." items={panels} optionIdentifier="panel_id" getOptionLabel={labelMapper}
-          getSelectionLabel={labelMapper} bind:selectedValue={panelsRaw}
-          on:select={update} isMulti={true}/>
+          getSelectionLabel={labelMapper} bind:selectedValue={selectedRaw}
+          on:select={update} on:clear={handleClear} {isMulti} />
 </div>
 
 <script>
@@ -13,24 +11,48 @@
 
     export let label;
     export let panels = [];
-    export let selected = [];
+    export let selected;
+    export let isMulti = true;
 
-    let panelsRaw = [];
+    let selectedRaw;
 
     function labelMapper(panel) {
-        return panel.title;
+        return panel.title || "";
     }
 
     function update() {
-        if (panelsRaw === undefined) {
-            panelsRaw = [];
+        if (selectedRaw === undefined) {
+            selectedRaw = [];
         }
 
-        selected = panelsRaw.map((panel) => panel.panel_id);
+        if (isMulti) {
+            selected = selectedRaw.map((panel) => panel.panel_id);
+        } else {
+            if (selectedRaw) {
+                selected = selectedRaw.panel_id;
+            } else {
+                selected = undefined;
+            }
+        }
+    }
+
+    function handleClear() {
+        if (isMulti) {
+            selected = [];
+        } else {
+            selected = undefined;
+        }
     }
 
     function applyOverrides() {
-        panelsRaw = panels.filter((p) => selected.includes(p.panel_id));
+        if (isMulti) {
+            selected = [];
+            selectedRaw = panels.filter((p) => selected.includes(p.panel_id));
+        } else {
+            if (selectedRaw) {
+                selectedRaw = selectedRaw.panel_id;
+            }
+        }
     }
 
     onMount(() => {

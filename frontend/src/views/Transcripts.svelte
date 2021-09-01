@@ -1,6 +1,6 @@
 <div class="content">
   <div class="col">
-    <Card footer="{false}" dropdown="{true}" ref="filter-card">
+    <Card footer={false} ref="filter-card">
       <span slot="title">
         <i class="fas fa-filter"></i>
         Filter Logs
@@ -9,14 +9,18 @@
       <div slot="body" class="body-wrapper">
         <form class="form-wrapper" on:submit|preventDefault={filter}>
           <div class="row">
-            <Input col3=true label="Ticket ID" placeholder="Ticket ID"
+            <Input col4=true label="Ticket ID" placeholder="Ticket ID"
                    on:input={handleInputTicketId} bind:value={filterSettings.ticketId}/>
 
-            <Input col3=true label="Username" placeholder="Username" on:input={handleInputUsername}
+            <Input col4=true label="Username" placeholder="Username" on:input={handleInputUsername}
                    bind:value={filterSettings.username}/>
 
-            <Input col3=true label="User ID" placeholder="User ID" on:input={handleInputUserId}
+            <Input col4=true label="User ID" placeholder="User ID" on:input={handleInputUserId}
                    bind:value={filterSettings.userId}/>
+
+            <div class="col-4">
+              <PanelDropdown label="Panel" isMulti={false} bind:panels bind:selected={selectedPanel} />
+            </div>
           </div>
           <div class="row centre">
             <Button icon="fas fa-search">Filter</Button>
@@ -90,6 +94,7 @@
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
     import {Navigate} from 'svelte-router-spa'
+    import PanelDropdown from "../components/PanelDropdown.svelte";
 
     setDefaultHeaders();
 
@@ -98,6 +103,9 @@
 
     let filterSettings = {};
     let transcripts = [];
+
+    let panels = [];
+    let selectedPanel;
 
     const pageLimit = 15;
     let page = 1;
@@ -146,6 +154,7 @@
             id: filterSettings.ticketId,
             username: filterSettings.username,
             user_id: filterSettings.userId,
+            panel_id: selectedPanel,
             page: page,
         };
     }
@@ -154,6 +163,16 @@
         let opts = buildPaginationSettings(1);
         await loadData(opts);
         page = 1;
+    }
+
+    async function loadPanels() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/panels`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        panels = res.data;
     }
 
     async function loadData(paginationSettings) {
@@ -172,6 +191,7 @@
     })
 
     withLoadingScreen(async () => {
+        await loadPanels();
         await loadData({})
     })
 </script>
