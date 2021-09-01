@@ -19,11 +19,18 @@
         <ChannelDropdown label="Archive Channel" col2=true channels={channels} bind:value={data.archive_channel}/>
         <CategoryDropdown label="Channel Category" col2=true channels={channels} bind:value={data.category}/>
       </div>
-      <div class="row" style="justify-content: flex-start">
+      <div class="row">
         <NamingScheme col4=true bind:value={data.naming_scheme}/>
         <Checkbox label="Enable User Feedback" col4=true bind:value={data.feedback_enabled}/>
         <Checkbox label="Hide Claim Button" col4=true bind:value={data.hide_claim_button}/>
         <Checkbox label="Disable /open Command" col4=true bind:value={data.disable_open_command}/>
+      </div>
+      <div class="row">
+        <Dropdown col3={true} label="Context Menu Permission Level" bind:value={data.context_menu_permission_level}>
+          <option value="0">Everyone</option>
+          <option value="1">Support Representative</option>
+          <option value="2">Administrator</option>
+        </Dropdown>
       </div>
       <div class="row">
         <div class="col-1">
@@ -49,6 +56,7 @@
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import Button from "../Button.svelte";
     import NamingScheme from "../NamingScheme.svelte";
+    import Dropdown from "../form/Dropdown.svelte";
 
     export let guildId;
 
@@ -165,6 +173,7 @@
         justify-content: space-between;
         width: 100%;
         height: 100%;
+        margin-top: 10px;
     }
 
     .settings-form {

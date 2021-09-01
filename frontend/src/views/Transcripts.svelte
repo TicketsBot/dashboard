@@ -125,27 +125,39 @@
         filterSettings.username = undefined;
     };
 
+
+    let loading = false;
+
     async function loadPrevious() {
+        if (loading) return;
+
         if (page === 1) {
             return;
         }
 
-
         let paginationSettings = buildPaginationSettings(page - 1);
+
+        loading = true;
         if (await loadData(paginationSettings)) {
             page--;
         }
+        loading = false;
     }
 
     async function loadNext() {
+        if (loading) return;
+
         if (transcripts.length < pageLimit || transcripts[transcripts.length - 1].ticket_id === 1) {
             return;
         }
 
         let paginationSettings = buildPaginationSettings(page + 1);
+
+        loading = true;
         if (await loadData(paginationSettings)) {
             page++;
         }
+        loading = false;
     }
 
     function buildPaginationSettings(page) {
