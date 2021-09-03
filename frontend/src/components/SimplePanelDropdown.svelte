@@ -1,6 +1,12 @@
 <Dropdown {col1} {col2} {col3} {col4} bind:value label={label}>
+  {#if allowNone}
+    <option value=null>
+      None
+    </option>
+  {/if}
+
   {#each panels as panel}
-    <option value="{panel.panel_id}">
+    <option value={panel.panel_id}>
       {panel.title}
     </option>
   {/each}
@@ -11,6 +17,7 @@
 
     export let value;
     export let label;
+    export let allowNone = false;
     export let panels = [];
 
     export let col1 = false;

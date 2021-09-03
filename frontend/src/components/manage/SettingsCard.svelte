@@ -35,7 +35,7 @@
           </Dropdown>
 
           <Checkbox label="Add Message Sender To Ticket" col3={true} bind:value={data.context_menu_add_sender} />
-          <SimplePanelDropdown label="Use Settings From Panel" col3={true} bind:panels bind:value={data.context_menu_panel} />
+          <SimplePanelDropdown label="Use Settings From Panel" col3={true} allowNone={true} bind:panels bind:value={data.context_menu_panel} />
         </div>
       </div>
       <div class="row">
@@ -100,7 +100,17 @@
     };
 
     async function updateSettings() {
-        const res = await axios.post(`${API_URL}/api/${guildId}/settings`, data);
+        // Svelte hack
+        let mapped = Object.fromEntries(Object.entries(data).map(([k,v]) => {
+            if(v === "null") {
+                return [k, null];
+            } else {
+                return [k,v];
+            }
+        }));
+
+
+        const res = await axios.post(`${API_URL}/api/${guildId}/settings`, mapped);
         if (res.status === 200) {
             if (showValidations(res.data)) {
                 notifySuccess('Your settings have been saved.');
