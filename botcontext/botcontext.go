@@ -3,7 +3,7 @@ package botcontext
 import (
 	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/database"
@@ -26,7 +26,7 @@ func (ctx BotContext) Db() *database.Database {
 }
 
 func (ctx BotContext) Cache() permission.PermissionCache {
-	return permission.NewRedisCache(messagequeue.Client.Client)
+	return permission.NewRedisCache(redis.Client.Client)
 }
 
 func (ctx BotContext) IsBotAdmin(userId uint64) bool {

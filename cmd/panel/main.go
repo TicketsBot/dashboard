@@ -8,7 +8,7 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -17,6 +17,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/worker/i18n"
 	"github.com/apex/log"
+	"github.com/getsentry/sentry-go"
 	"github.com/rxdn/gdl/rest/request"
 	"math/rand"
 	"time"
@@ -34,6 +35,16 @@ func main() {
 
 	config.LoadConfig()
 
+	sentryOpts := sentry.ClientOptions{
+		Dsn:              config.Conf.SentryDsn,
+		Debug:            config.Conf.Debug,
+		AttachStacktrace: true,
+
+	}
+	if err := sentry.Init(sentryOpts); err != nil {
+		fmt.Printf("Error initialising sentry: %s", err.Error())
+	}
+
 	database.ConnectToDatabase()
 	cache.Instance = cache.NewCache()
 
@@ -47,13 +58,13 @@ func main() {
 		request.RegisterHook(utils.ProxyHook)
 	}
 
-	messagequeue.Client = messagequeue.NewRedisClient()
-	go ListenChat(messagequeue.Client)
+	redis.Client = redis.NewRedisClient()
+	go ListenChat(redis.Client)
 
 	if !config.Conf.Debug {
 		rpc.PremiumClient = premium.NewPremiumLookupClient(
 			premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
-			messagequeue.Client.Client,
+			redis.Client.Client,
 			cache.Instance.PgCache,
 			database.Client,
 		)
@@ -65,7 +76,7 @@ func main() {
 	http.StartServer()
 }
 
-func ListenChat(client messagequeue.RedisClient) {
+func ListenChat(client redis.RedisClient) {
 	ch := make(chan chatrelay.MessageData)
 	go chatrelay.Listen(client.Client, ch)
 

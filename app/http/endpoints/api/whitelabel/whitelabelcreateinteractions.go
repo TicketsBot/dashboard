@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/worker/bot/command/impl/admin"
 	"github.com/TicketsBot/worker/bot/command/manager"
 	"github.com/gin-gonic/gin"
@@ -45,7 +45,7 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 		key := fmt.Sprintf("tickets:interaction-create-cooldown:%d", bot.BotId)
 
 		// try to set first, prevent race condition
-		wasSet, err := messagequeue.Client.SetNX(key, 1, time.Minute).Result()
+		wasSet, err := redis.Client.SetNX(redis.DefaultContext(), key, 1, time.Minute).Result()
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"success": false,
@@ -56,7 +56,7 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 
 		// on cooldown, tell user how long left
 		if !wasSet {
-			expiration, err := messagequeue.Client.TTL(key).Result()
+			expiration, err := redis.Client.TTL(redis.DefaultContext(), key).Result()
 			if err != nil {
 				ctx.JSON(500, gin.H{
 					"success": false,

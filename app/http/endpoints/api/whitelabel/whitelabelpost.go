@@ -2,7 +2,7 @@ package api
 
 import (
 	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/common/tokenchange"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
@@ -86,7 +86,7 @@ func WhitelabelPost(ctx *gin.Context) {
 		OldId: existing.BotId,
 	}
 
-	if err := tokenchange.PublishTokenChange(messagequeue.Client.Client, tokenChangeData); err != nil {
+	if err := tokenchange.PublishTokenChange(redis.Client.Client, tokenChangeData); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),

@@ -1,9 +1,11 @@
-package messagequeue
+package redis
 
 import (
+	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
+	"time"
 )
 
 type RedisClient struct {
@@ -22,4 +24,9 @@ func NewRedisClient() RedisClient {
 	return RedisClient{
 		client,
 	}
+}
+
+func DefaultContext() context.Context {
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*3)
+	return ctx
 }

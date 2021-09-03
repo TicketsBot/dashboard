@@ -1,4 +1,4 @@
-package messagequeue
+package redis
 
 import (
 	"encoding/json"
@@ -12,6 +12,6 @@ func (c *RedisClient) PublishPanelCreate(settings database.Panel) {
 		return
 	}
 
-	c.Publish("tickets:panel:create", string(encoded))
+	c.Publish(DefaultContext(), "tickets:panel:create", string(encoded))
 }
 

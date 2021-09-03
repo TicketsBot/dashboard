@@ -1,4 +1,4 @@
-package messagequeue
+package redis
 
 import (
 	"encoding/json"
@@ -26,5 +26,5 @@ func (c *RedisClient) PublishTicketClose(guildId uint64, ticketId int, userId ui
 		return
 	}
 
-	c.Publish("tickets:close", string(encoded))
+	c.Publish(DefaultContext(), "tickets:close", string(encoded))
 }

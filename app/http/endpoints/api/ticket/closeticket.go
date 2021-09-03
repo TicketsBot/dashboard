@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/closerelay"
 	"github.com/gin-gonic/gin"
@@ -61,7 +61,7 @@ func CloseTicket(ctx *gin.Context) {
 		Reason:   body.Reason,
 	}
 
-	if err := closerelay.Publish(messagequeue.Client.Client, data); err != nil {
+	if err := closerelay.Publish(redis.Client.Client, data); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

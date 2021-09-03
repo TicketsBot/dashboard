@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/messagequeue"
-	"github.com/go-redis/redis"
+	wrapper "github.com/TicketsBot/GoPanel/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 var ErrNoSession = errors.New("no session data found")
@@ -16,14 +16,14 @@ type RedisStore struct {
 
 func NewRedisStore() *RedisStore {
 	return &RedisStore{
-		client: messagequeue.Client.Client,
+		client: wrapper.Client.Client,
 	}
 }
 
 var keyPrefix = "panel:session:"
 
 func (s *RedisStore) Get(userId uint64) (SessionData, error) {
-	raw, err := s.client.Get(fmt.Sprintf("%s:%d", keyPrefix, userId)).Result()
+	raw, err := s.client.Get(wrapper.DefaultContext(), fmt.Sprintf("%s:%d", keyPrefix, userId)).Result()
 	if err != nil {
 		if err == redis.Nil {
 			err = ErrNoSession
@@ -46,9 +46,9 @@ func (s *RedisStore) Set(userId uint64, data SessionData) error {
 		return err
 	}
 
-	return s.client.Set(fmt.Sprintf("%s:%d", keyPrefix, userId), encoded, 0).Err()
+	return s.client.Set(wrapper.DefaultContext(), fmt.Sprintf("%s:%d", keyPrefix, userId), encoded, 0).Err()
 }
 
 func (s *RedisStore) Clear(userId uint64) error {
-	return s.client.Del(fmt.Sprintf("%s:%d", keyPrefix, userId)).Err()
+	return s.client.Del(wrapper.DefaultContext(), fmt.Sprintf("%s:%d", keyPrefix, userId)).Err()
 }

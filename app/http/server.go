@@ -15,13 +15,10 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/middleware"
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
-	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/ulule/limiter/v3"
-	mgin "github.com/ulule/limiter/v3/drivers/middleware/gin"
-	"github.com/ulule/limiter/v3/drivers/store/memory"
 	"log"
 	"time"
 )
@@ -43,93 +40,110 @@ func StartServer() {
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
 	router.Use(gin.Recovery())
-	router.Use(createLimiter(600, time.Minute*10))
+	router.Use(middleware.MultiReadBody)
+	router.Use(sentrygin.New(sentrygin.Options{})) // Defaults are ok
+
+	router.Use(rl(middleware.RateLimitTypeIp, 60, time.Minute))
+	router.Use(rl(middleware.RateLimitTypeUser, 60, time.Minute))
+	router.Use(rl(middleware.RateLimitTypeGuild, 600, time.Minute*5))
 
 	router.Use(middleware.Cors(config.Conf))
 
-	router.GET("/webchat", root.WebChatWs)
+	router.GET("/webchat", root.WebChatWs, middleware.Logging)
 
-	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
-	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler)
+	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler, middleware.Logging)
+	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler, middleware.Logging)
 
 	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
 	{
-		apiGroup.GET("/session", api.SessionHandler)
+		apiGroup.GET("/session", api.SessionHandler, middleware.Logging)
 	}
 
 	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Admin))
 	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Support))
 	guildApiNoAuth := apiGroup.Group("/:id", middleware.ParseGuildId)
 	{
-		guildAuthApiSupport.GET("/channels", api.ChannelsHandler)
-		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
-		guildAuthApiSupport.GET("/user/:user", api.UserHandler)
-		guildAuthApiSupport.GET("/roles", api.RolesHandler)
-		guildAuthApiSupport.GET("/members/search", createLimiter(5, time.Second), createLimiter(10, time.Second * 30), createLimiter(75, time.Minute * 30), api.SearchMembers)
+		guildAuthApiSupport.GET("/channels", api.ChannelsHandler, middleware.Logging)
+		guildAuthApiSupport.GET("/premium", api.PremiumHandler, middleware.Logging)
+		guildAuthApiSupport.GET("/user/:user", api.UserHandler, middleware.Logging)
+		guildAuthApiSupport.GET("/roles", api.RolesHandler, middleware.Logging)
+		guildAuthApiSupport.GET("/members/search",
+			rl(middleware.RateLimitTypeGuild, 5, time.Second),
+			rl(middleware.RateLimitTypeGuild, 10, time.Second*30),
+			rl(middleware.RateLimitTypeGuild, 75, time.Minute*30),
+			api.SearchMembers,
+			middleware.Logging,
+		)
 
-		guildAuthApiAdmin.GET("/settings", api_settings.GetSettingsHandler)
-		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)
+		guildAuthApiAdmin.GET("/settings", api_settings.GetSettingsHandler, middleware.Logging)
+		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler, middleware.Logging)
 
-		guildAuthApiSupport.GET("/blacklist", api_blacklist.GetBlacklistHandler)
-		guildAuthApiSupport.POST("/blacklist/:user", api_blacklist.AddBlacklistHandler)
-		guildAuthApiSupport.DELETE("/blacklist/:user", api_blacklist.RemoveBlacklistHandler)
+		guildAuthApiSupport.GET("/blacklist", api_blacklist.GetBlacklistHandler, middleware.Logging)
+		guildAuthApiSupport.POST("/blacklist/:user", api_blacklist.AddBlacklistHandler, middleware.Logging)
+		guildAuthApiSupport.DELETE("/blacklist/:user", api_blacklist.RemoveBlacklistHandler, middleware.Logging)
 
-		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
-		guildAuthApiAdmin.POST("/panels", api_panels.CreatePanel)
-		guildAuthApiAdmin.PATCH("/panels/:panelid", api_panels.UpdatePanel)
-		guildAuthApiAdmin.DELETE("/panels/:panelid", api_panels.DeletePanel)
+		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels, middleware.Logging)
+		guildAuthApiAdmin.POST("/panels", api_panels.CreatePanel, middleware.Logging)
+		guildAuthApiAdmin.PATCH("/panels/:panelid", api_panels.UpdatePanel, middleware.Logging)
+		guildAuthApiAdmin.DELETE("/panels/:panelid", api_panels.DeletePanel, middleware.Logging)
 
-		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList)
-		guildAuthApiAdmin.POST("/multipanels", api_panels.MultiPanelCreate)
-		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate)
-		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
+		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList, middleware.Logging)
+		guildAuthApiAdmin.POST("/multipanels", api_panels.MultiPanelCreate, middleware.Logging)
+		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate, middleware.Logging)
+		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete, middleware.Logging)
 
 		// Should be a GET, but easier to take a body for development purposes
-		guildAuthApiSupport.POST("/transcripts", createLimiter(5, 5 * time.Second), createLimiter(20, time.Minute), api_transcripts.ListTranscripts)
+		guildAuthApiSupport.POST("/transcripts",
+			rl(middleware.RateLimitTypeUser, 5, 5*time.Second),
+			rl(middleware.RateLimitTypeUser, 20, time.Minute),
+			api_transcripts.ListTranscripts,
+			middleware.Logging,
+		)
+
 		// Allow regular users to get their own transcripts, make sure you check perms inside
-		guildApiNoAuth.GET("/transcripts/:ticketId", createLimiter(10, 10 * time.Second), api_transcripts.GetTranscriptHandler)
+		guildApiNoAuth.GET("/transcripts/:ticketId", rl(middleware.RateLimitTypeGuild, 10, 10*time.Second), api_transcripts.GetTranscriptHandler, middleware.Logging)
 
-		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
-		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)
-		guildAuthApiSupport.POST("/tickets/:ticketId", createLimiter(5, time.Second * 5), api_ticket.SendMessage)
-		guildAuthApiSupport.DELETE("/tickets/:ticketId", api_ticket.CloseTicket)
+		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets, middleware.Logging)
+		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket, middleware.Logging)
+		guildAuthApiSupport.POST("/tickets/:ticketId", rl(middleware.RateLimitTypeGuild, 5, time.Second*5), api_ticket.SendMessage, middleware.Logging)
+		guildAuthApiSupport.DELETE("/tickets/:ticketId", api_ticket.CloseTicket, middleware.Logging)
 
-		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler)
-		guildAuthApiSupport.PUT("/tags", api_tags.CreateTag)
-		guildAuthApiSupport.DELETE("/tags", api_tags.DeleteTag)
+		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler, middleware.Logging)
+		guildAuthApiSupport.PUT("/tags", api_tags.CreateTag, middleware.Logging)
+		guildAuthApiSupport.DELETE("/tags", api_tags.DeleteTag, middleware.Logging)
 
-		guildAuthApiAdmin.GET("/claimsettings", api_settings.GetClaimSettings)
-		guildAuthApiAdmin.POST("/claimsettings", api_settings.PostClaimSettings)
+		guildAuthApiAdmin.GET("/claimsettings", api_settings.GetClaimSettings, middleware.Logging)
+		guildAuthApiAdmin.POST("/claimsettings", api_settings.PostClaimSettings, middleware.Logging)
 
-		guildAuthApiAdmin.GET("/autoclose", api_autoclose.GetAutoClose)
-		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
+		guildAuthApiAdmin.GET("/autoclose", api_autoclose.GetAutoClose, middleware.Logging)
+		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose, middleware.Logging)
 
-		guildAuthApiAdmin.GET("/team", api_team.GetTeams)
-		guildAuthApiAdmin.GET("/team/:teamid", createLimiter(10, time.Second * 30), api_team.GetMembers)
-		guildAuthApiAdmin.POST("/team", createLimiter(10, time.Minute), api_team.CreateTeam)
-		guildAuthApiAdmin.PUT("/team/:teamid/:snowflake", createLimiter(5, time.Second * 10), api_team.AddMember)
-		guildAuthApiAdmin.DELETE("/team/:teamid", api_team.DeleteTeam)
-		guildAuthApiAdmin.DELETE("/team/:teamid/:snowflake", createLimiter(30, time.Minute), api_team.RemoveMember)
+		guildAuthApiAdmin.GET("/team", api_team.GetTeams, middleware.Logging)
+		guildAuthApiAdmin.GET("/team/:teamid", rl(middleware.RateLimitTypeUser ,10, time.Second*30), api_team.GetMembers, middleware.Logging)
+		guildAuthApiAdmin.POST("/team", rl(middleware.RateLimitTypeUser, 10, time.Minute), api_team.CreateTeam, middleware.Logging)
+		guildAuthApiAdmin.PUT("/team/:teamid/:snowflake", rl(middleware.RateLimitTypeGuild, 5, time.Second*10), api_team.AddMember, middleware.Logging)
+		guildAuthApiAdmin.DELETE("/team/:teamid", api_team.DeleteTeam, middleware.Logging)
+		guildAuthApiAdmin.DELETE("/team/:teamid/:snowflake", rl(middleware.RateLimitTypeGuild, 30, time.Minute), api_team.RemoveMember, middleware.Logging)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
 	{
-		userGroup.GET("/guilds", api.GetGuilds)
-		userGroup.POST("/guilds/reload", api.ReloadGuildsHandler)
-		userGroup.GET("/permissionlevel", api.GetPermissionLevel)
+		userGroup.GET("/guilds", api.GetGuilds, middleware.Logging)
+		userGroup.POST("/guilds/reload", api.ReloadGuildsHandler, middleware.Logging)
+		userGroup.GET("/permissionlevel", api.GetPermissionLevel, middleware.Logging)
 
 		{
 			whitelabelGroup := userGroup.Group("/whitelabel", middleware.VerifyWhitelabel(true))
 
-			whitelabelGroup.GET("/", api_whitelabel.WhitelabelGet)
-			whitelabelGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors)
-			whitelabelGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
-			whitelabelGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey)
-			whitelabelGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
-			whitelabelGroup.POST("/create-interactions", api_whitelabel.GetWhitelabelCreateInteractions())
+			whitelabelGroup.GET("/", api_whitelabel.WhitelabelGet, middleware.Logging)
+			whitelabelGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors, middleware.Logging)
+			whitelabelGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds, middleware.Logging)
+			whitelabelGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey, middleware.Logging)
+			whitelabelGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey, middleware.Logging)
+			whitelabelGroup.POST("/create-interactions", api_whitelabel.GetWhitelabelCreateInteractions(), middleware.Logging)
 
-			whitelabelGroup.POST("/", createLimiter(10, time.Minute), api_whitelabel.WhitelabelPost)
-			whitelabelGroup.POST("/status", createLimiter(1, time.Second*5), api_whitelabel.WhitelabelStatusPost)
+			whitelabelGroup.POST("/", rl(middleware.RateLimitTypeUser, 10, time.Minute), api_whitelabel.WhitelabelPost, middleware.Logging)
+			whitelabelGroup.POST("/status", rl(middleware.RateLimitTypeUser, 1, time.Second*5), api_whitelabel.WhitelabelStatusPost, middleware.Logging)
 		}
 	}
 
@@ -138,40 +152,6 @@ func StartServer() {
 	}
 }
 
-func serveTemplate(templateName string) func(*gin.Context) {
-	return func(ctx *gin.Context) {
-		guildId := ctx.Keys["guildid"].(uint64)
-		userId := ctx.Keys["userid"].(uint64)
-
-		store, err := session.Store.Get(userId)
-		if err != nil {
-			if err == session.ErrNoSession {
-				ctx.JSON(401, gin.H{
-					"success": false,
-					"auth": true,
-				})
-			} else {
-				ctx.JSON(500, utils.ErrorJson(err))
-			}
-
-			return
-		}
-
-		ctx.HTML(200, templateName, gin.H{
-			"name":         store.Name,
-			"guildId":      guildId,
-			"avatar":       store.Avatar,
-			"baseUrl":      config.Conf.Server.BaseUrl,
-		})
-	}
-}
-
-func createLimiter(limit int64, period time.Duration) func(*gin.Context) {
-	store := memory.NewStore()
-	rate := limiter.Rate{
-		Period: period,
-		Limit:  limit,
-	}
-
-	return mgin.NewMiddleware(limiter.New(store, rate))
+func rl(rlType middleware.RateLimitType, limit int, period time.Duration) func(*gin.Context) {
+	return middleware.CreateRateLimiter(rlType, limit, period)
 }

@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/common/statusupdates"
 	"github.com/gin-gonic/gin"
 )
@@ -68,7 +68,7 @@ func WhitelabelStatusPost(ctx *gin.Context) {
 		return
 	}
 
-	go statusupdates.Publish(messagequeue.Client.Client, bot.BotId)
+	go statusupdates.Publish(redis.Client.Client, bot.BotId)
 
 	ctx.JSON(200, gin.H{
 		"success": true,

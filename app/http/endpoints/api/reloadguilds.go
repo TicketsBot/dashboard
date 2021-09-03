@@ -3,7 +3,8 @@ package api
 import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/session"
-	"github.com/TicketsBot/GoPanel/messagequeue"
+	"github.com/TicketsBot/GoPanel/redis"
+	wrapper "github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/gin-gonic/gin"
@@ -14,14 +15,14 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
 	key := fmt.Sprintf("tickets:dashboard:guildreload:%d", userId)
-	res, err := messagequeue.Client.SetNX(key, 1, time.Second*10).Result()
+	res, err := redis.Client.SetNX(wrapper.DefaultContext(), key, 1, time.Second*10).Result()
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	if !res {
-		ttl, err := messagequeue.Client.TTL(key).Result()
+		ttl, err := redis.Client.TTL(wrapper.DefaultContext(), key).Result()
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return

@@ -13,6 +13,7 @@ type (
 		Admins          []uint64
 		ForceWhitelabel []uint64
 		Debug           bool
+		SentryDsn       string
 		Server          Server
 		Oauth           Oauth
 		Database        Database
@@ -97,6 +98,7 @@ func fromToml() {
 	}
 }
 
+// TODO: Proper env package
 func fromEnvvar() {
 	var admins []uint64
 	for _, id := range strings.Split(os.Getenv("ADMINS"), ",") {
@@ -128,6 +130,7 @@ func fromEnvvar() {
 		Admins:          admins,
 		ForceWhitelabel: forcedWhitelabel,
 		Debug:           os.Getenv("DEBUG") != "",
+		SentryDsn:       os.Getenv("SENTRY_DSN"),
 		Server: Server{
 			Host:     os.Getenv("SERVER_ADDR"),
 			BaseUrl:  os.Getenv("BASE_URL"),
