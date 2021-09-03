@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/TicketsBot/GoPanel/config"
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -14,13 +13,13 @@ func Logging(ctx *gin.Context) {
 
 	statusCode := ctx.Writer.Status()
 
-	if !config.Conf.Debug && statusCode >= 200 && statusCode <= 299 {
-		return
-	}
-
-	level := sentry.LevelInfo
+	var level sentry.Level
 	if statusCode >= 500 {
 		level = sentry.LevelError
+	} else if statusCode >= 400 {
+		level = sentry.LevelWarning
+	} else {
+		level = sentry.LevelInfo
 	}
 
 	body, _ := ioutil.ReadAll(ctx.Request.Body)
