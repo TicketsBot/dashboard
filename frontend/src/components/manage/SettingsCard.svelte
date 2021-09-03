@@ -25,12 +25,18 @@
         <Checkbox label="Hide Claim Button" col4=true bind:value={data.hide_claim_button}/>
         <Checkbox label="Disable /open Command" col4=true bind:value={data.disable_open_command}/>
       </div>
-      <div class="row">
-        <Dropdown col3={true} label="Context Menu Permission Level" bind:value={data.context_menu_permission_level}>
-          <option value="0">Everyone</option>
-          <option value="1">Support Representative</option>
-          <option value="2">Administrator</option>
-        </Dropdown>
+      <div class="from-message-settings">
+        <h3>Start Ticket From Message Settings</h3>
+        <div class="row">
+          <Dropdown col3={true} label="Required Permission Level" bind:value={data.context_menu_permission_level}>
+            <option value="0">Everyone</option>
+            <option value="1">Support Representative</option>
+            <option value="2">Administrator</option>
+          </Dropdown>
+
+          <Checkbox label="Add Message Sender To Ticket" col3={true} bind:value={data.context_menu_add_sender} />
+          <SimplePanelDropdown label="Use Settings From Panel" col3={true} bind:panels bind:value={data.context_menu_panel} />
+        </div>
       </div>
       <div class="row">
         <div class="col-1">
@@ -57,12 +63,25 @@
     import Button from "../Button.svelte";
     import NamingScheme from "../NamingScheme.svelte";
     import Dropdown from "../form/Dropdown.svelte";
+    import PanelDropdown from "../PanelDropdown.svelte";
+    import SimplePanelDropdown from "../SimplePanelDropdown.svelte";
 
     export let guildId;
 
     setDefaultHeaders();
 
     let channels = [];
+    let panels = [];
+
+    async function loadPanels() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/panels`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        panels = res.data;
+    }
 
     async function loadChannels() {
         const res = await axios.get(`${API_URL}/api/${guildId}/channels`);
@@ -156,6 +175,7 @@
     }
 
     withLoadingScreen(async () => {
+        await loadPanels();
         await loadChannels();
         await loadData();
     });
@@ -181,6 +201,10 @@
         flex-direction: column;
         width: 100%;
         height: 100%;
+    }
+
+    .from-message-settings {
+        border-top: 1px solid rgba(0, 0, 0, .25);
     }
 
     @media only screen and (max-width: 950px) {

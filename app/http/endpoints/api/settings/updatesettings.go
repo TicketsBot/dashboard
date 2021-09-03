@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
@@ -54,6 +55,10 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 }
 
 func (s *Settings) updateSettings(guildId uint64) error {
+	if err := s.Validate(guildId); err != nil {
+		return err
+	}
+
 	group, _ := errgroup.WithContext(context.Background())
 
 	group.Go(func() error {
@@ -62,6 +67,30 @@ func (s *Settings) updateSettings(guildId uint64) error {
 
 	group.Go(func() error {
 		return setOpenCommandPermissions(guildId, s.DisableOpenCommand)
+	})
+
+	return group.Wait()
+}
+
+func (s *Settings) Validate(guildId uint64) error {
+	group, _ := errgroup.WithContext(context.Background())
+
+	// Validate panel from same guild
+	group.Go(func() error {
+		if s.ContextMenuPanel != nil {
+			panelId := *s.ContextMenuPanel
+
+			panel, err := dbclient.Client.Panel.GetById(panelId)
+			if err != nil {
+				return err
+			}
+
+			if guildId != panel.GuildId {
+				return fmt.Errorf("guild ID doesn't match")
+			}
+		}
+
+		return nil
 	})
 
 	return group.Wait()

@@ -14,7 +14,7 @@
     export let selected;
     export let isMulti = true;
 
-    let selectedRaw;
+    let selectedRaw = isMulti ? panels.filter((p) => selected.includes(p.panel_id)) : selected;
 
     function labelMapper(panel) {
         return panel.title || "";
@@ -53,6 +53,10 @@
                 selectedRaw = selectedRaw.panel_id;
             }
         }
+
+
+        console.log(selectedRaw)
+        console.log(selected)
     }
 
     onMount(() => {
