@@ -40,7 +40,7 @@ func StartServer() {
 	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
 
 	router.Use(gin.Recovery())
-	router.Use(middleware.MultiReadBody)
+	router.Use(middleware.MultiReadBody, middleware.ReadResponse)
 	router.Use(middleware.Logging)
 	router.Use(sentrygin.New(sentrygin.Options{})) // Defaults are ok
 

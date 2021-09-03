@@ -22,7 +22,15 @@ func Logging(ctx *gin.Context) {
 		level = sentry.LevelInfo
 	}
 
-	body, _ := ioutil.ReadAll(ctx.Request.Body)
+	requestBody, _ := ioutil.ReadAll(ctx.Request.Body)
+
+	var responseBody []byte
+	if statusCode >= 400 && statusCode <= 599 {
+		cw, ok := ctx.Writer.(*CustomWriter)
+		if ok {
+			responseBody = cw.Read()
+		}
+	}
 
 	sentry.CaptureEvent(&sentry.Event{
 		Extra: map[string]interface{}{
@@ -31,7 +39,8 @@ func Logging(ctx *gin.Context) {
 			"path": ctx.Request.URL.Path,
 			"guild_id": ctx.Keys["guildid"],
 			"user_id": ctx.Keys["userid"],
-			"body": string(body),
+			"request_body": string(requestBody),
+			"response": string(responseBody),
 		},
 		Level:      level,
 		Message:    fmt.Sprintf("HTTP %d on %s %s", statusCode, ctx.Request.Method, ctx.FullPath()),
