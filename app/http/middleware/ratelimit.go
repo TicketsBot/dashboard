@@ -69,7 +69,7 @@ func CreateRateLimiter(rlType RateLimitType, max int, period time.Duration) gin.
 
 func writeHeaders(ctx *gin.Context, res *redis_rate.Result) {
 	ctx.Keys["rl_sr"] = res.Remaining
-	fmt.Println(res.Remaining)
+
 	ctx.Header("X-RateLimit-Limit", strconv.Itoa(res.Limit.Rate))
 	ctx.Header("X-RateLimit-Remaining", strconv.Itoa(res.Remaining))
 	ctx.Header("X-RateLimit-Reset-After", strconv.FormatInt(res.ResetAfter.Milliseconds(), 10))
