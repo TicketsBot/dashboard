@@ -45,6 +45,7 @@ func StartServer() {
 	router.Use(sentrygin.New(sentrygin.Options{})) // Defaults are ok
 
 	router.Use(rl(middleware.RateLimitTypeIp, 60, time.Minute))
+	router.Use(rl(middleware.RateLimitTypeIp, 20, time.Second*10))
 	router.Use(rl(middleware.RateLimitTypeUser, 60, time.Minute))
 	router.Use(rl(middleware.RateLimitTypeGuild, 600, time.Minute*5))
 
@@ -120,7 +121,7 @@ func StartServer() {
 		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
 
 		guildAuthApiAdmin.GET("/team", api_team.GetTeams)
-		guildAuthApiAdmin.GET("/team/:teamid", rl(middleware.RateLimitTypeUser ,10, time.Second*30), api_team.GetMembers)
+		guildAuthApiAdmin.GET("/team/:teamid", rl(middleware.RateLimitTypeUser, 10, time.Second*30), api_team.GetMembers)
 		guildAuthApiAdmin.POST("/team", rl(middleware.RateLimitTypeUser, 10, time.Minute), api_team.CreateTeam)
 		guildAuthApiAdmin.PUT("/team/:teamid/:snowflake", rl(middleware.RateLimitTypeGuild, 5, time.Second*10), api_team.AddMember)
 		guildAuthApiAdmin.DELETE("/team/:teamid", api_team.DeleteTeam)

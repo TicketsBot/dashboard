@@ -7,7 +7,7 @@ require (
 	github.com/TicketsBot/archiverclient v0.0.0-20210220155137-a562b2f1bbbb
 	github.com/TicketsBot/common v0.0.0-20210903095620-eb02b87cb4ca
 	github.com/TicketsBot/database v0.0.0-20210903140813-152a2383314c
-	github.com/TicketsBot/worker v0.0.0-20210903100019-6e6eab3a3196
+	github.com/TicketsBot/worker v0.0.0-20210904102739-4fb249194842
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/getsentry/sentry-go v0.11.0
@@ -25,6 +25,5 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rxdn/gdl v0.0.0-20210903095530-5a1c35525d2a
 	github.com/sirupsen/logrus v1.5.0
-	github.com/ulule/limiter/v3 v3.5.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 )

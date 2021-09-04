@@ -19,7 +19,6 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 	cm.RegisterCommands()
 
 	return func(ctx *gin.Context) {
-
 		userId := ctx.Keys["userid"].(uint64)
 
 		// Get bot
@@ -92,11 +91,16 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 
 			option := admin.BuildOption(cmd)
 
+			var description string
+			if properties.Type == interaction.ApplicationCommandTypeChatInput {
+				description = option.Description
+			}
+
 			data := rest.CreateCommandData{
 				Name:        option.Name,
-				Description: option.Description,
+				Description: description,
 				Options:     option.Options,
-				Type:        interaction.ApplicationCommandTypeChatInput,
+				Type:        properties.Type,
 			}
 
 			interactions = append(interactions, data)

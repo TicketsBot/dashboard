@@ -34,8 +34,9 @@
             <option value="2">Administrator</option>
           </Dropdown>
 
-          <Checkbox label="Add Message Sender To Ticket" col3={true} bind:value={data.context_menu_add_sender} />
-          <SimplePanelDropdown label="Use Settings From Panel" col3={true} allowNone={true} bind:panels bind:value={data.context_menu_panel} />
+          <Checkbox label="Add Message Sender To Ticket" col3={true} bind:value={data.context_menu_add_sender}/>
+          <SimplePanelDropdown label="Use Settings From Panel" col3={true} allowNone={true} bind:panels
+                               bind:value={data.context_menu_panel}/>
         </div>
       </div>
       <div class="row">
@@ -63,7 +64,6 @@
     import Button from "../Button.svelte";
     import NamingScheme from "../NamingScheme.svelte";
     import Dropdown from "../form/Dropdown.svelte";
-    import PanelDropdown from "../PanelDropdown.svelte";
     import SimplePanelDropdown from "../SimplePanelDropdown.svelte";
 
     export let guildId;
@@ -101,14 +101,13 @@
 
     async function updateSettings() {
         // Svelte hack
-        let mapped = Object.fromEntries(Object.entries(data).map(([k,v]) => {
-            if(v === "null") {
+        let mapped = Object.fromEntries(Object.entries(data).map(([k, v]) => {
+            if (v === "null") {
                 return [k, null];
             } else {
-                return [k,v];
+                return [k, v];
             }
         }));
-
 
         const res = await axios.post(`${API_URL}/api/${guildId}/settings`, mapped);
         if (res.status === 200) {
@@ -215,6 +214,8 @@
 
     .from-message-settings {
         border-top: 1px solid rgba(0, 0, 0, .25);
+        margin-top: 25px;
+        padding-top: 10px;
     }
 
     @media only screen and (max-width: 950px) {
