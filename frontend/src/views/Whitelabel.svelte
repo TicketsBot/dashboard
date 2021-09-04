@@ -205,7 +205,7 @@
             return;
         }
 
-        const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot+applications.commands&permissions=805825648';
+        const inviteUrl = 'https://discord.com/oauth2/authorize?client_id=' + res.data.id + '&scope=bot+applications.commands&permissions=805825784';
         window.open(inviteUrl, '_blank');
     }
 
