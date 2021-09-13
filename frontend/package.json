@@ -22,7 +22,7 @@
     "svelte": "^3.0.0"
   },
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "sirv-cli": "^1.0.0",
     "svelte-emoji-selector": "^1.0.1",
     "svelte-router-spa": "^6.0.2",
