@@ -5,9 +5,9 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20210220155137-a562b2f1bbbb
-	github.com/TicketsBot/common v0.0.0-20210903095620-eb02b87cb4ca
-	github.com/TicketsBot/database v0.0.0-20210903140813-152a2383314c
-	github.com/TicketsBot/worker v0.0.0-20210904102739-4fb249194842
+	github.com/TicketsBot/common v0.0.0-20210910205523-7ce93fba6fa5
+	github.com/TicketsBot/database v0.0.0-20210906215136-2d0c54bd1109
+	github.com/TicketsBot/worker v0.0.0-20210910205947-89f7bd5ccf67
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/getsentry/sentry-go v0.11.0
@@ -23,7 +23,7 @@ require (
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20210903095530-5a1c35525d2a
+	github.com/rxdn/gdl v0.0.0-20210906182609-337cb3c44a4c
 	github.com/sirupsen/logrus v1.5.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 )

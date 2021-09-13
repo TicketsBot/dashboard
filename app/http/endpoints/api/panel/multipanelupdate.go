@@ -91,7 +91,8 @@ func MultiPanelUpdate(ctx *gin.Context) {
 	}
 
 	// send new message
-	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
+	messageData := data.IntoMessageData(premiumTier > premium.None)
+	messageId, err := messageData.send(&botContext, panels)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {

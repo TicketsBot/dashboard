@@ -83,15 +83,15 @@ func UpdatePanel(ctx *gin.Context) {
 			panelIds[i] = panel.PanelId
 		}
 
-		data := multiPanelCreateData{
+		messageData := multiPanelMessageData{
 			Title:     multiPanel.Title,
 			Content:   multiPanel.Content,
-			Colour:    int32(multiPanel.Colour),
+			Colour:    multiPanel.Colour,
 			ChannelId: multiPanel.ChannelId,
-			Panels:    panelIds,
+			IsPremium: premiumTier > premium.None,
 		}
 
-		messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
+		messageId, err := messageData.send(&botContext, panels)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -123,7 +123,8 @@ func UpdatePanel(ctx *gin.Context) {
 		// delete old message, ignoring error
 		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
-		newMessageId, err = data.sendEmbed(&botContext, data.Title, existing.CustomId, data.Emote, data.ImageUrl, data.ThumbnailUrl, data.ButtonStyle, premiumTier > premium.None)
+		messageData := data.IntoPanelMessageData(existing.CustomId, premiumTier > premium.None)
+		newMessageId, err = messageData.send(&botContext)
 		if err != nil {
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {

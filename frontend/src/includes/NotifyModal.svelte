@@ -1,5 +1,5 @@
 {#if $notifyModal}
-  <div class="modal" transition:fade>
+  <div class="modal" transition:fade="{{duration: 500}}">
     <div class="modal-wrapper" bind:this={wrapper}>
       <Card footer="{true}" footerRight="{true}" fill="{false}">
         <span slot="title">{$notifyTitle}</span>
@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <div class="modal-backdrop" transition:fade>
+  <div class="modal-backdrop" transition:fade="{{duration: 500}}">
   </div>
 {/if}
 

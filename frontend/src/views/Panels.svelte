@@ -22,6 +22,7 @@
               <th>Channel</th>
               <th>Panel Title</th>
               <th class="category-col">Ticket Channel Category</th>
+              <th>Resend</th>
               <th>Edit</th>
               <th>Delete</th>
             </tr>
@@ -32,6 +33,9 @@
                 <td>#{channels.find((c) => c.id === panel.channel_id)?.name ?? 'Unknown Channel'}</td>
                 <td>{panel.title}</td>
                 <td class="category-col">{channels.find((c) => c.id === panel.category_id)?.name ?? 'Unknown Category'}</td>
+                <td>
+                  <Button on:click={() => resendPanel(panel.panel_id)}>Resend</Button>
+                </td>
                 <td>
                   <Button on:click={() => openEditModal(panel.panel_id)}>Edit</Button>
                 </td>
@@ -71,6 +75,7 @@
             <thead>
             <tr>
               <th>Embed Title</th>
+              <th>Resend</th>
               <th>Edit</th>
               <th>Delete</th>
             </tr>
@@ -79,6 +84,9 @@
             {#each multiPanels as panel}
               <tr>
                 <td>{panel.title}</td>
+                <td>
+                  <Button on:click={() => resendMultiPanel(panel.id)}>Resend</Button>
+                </td>
                 <td>
                   <Button on:click={() => openMultiEditModal(panel.id)}>Edit</Button>
                 </td>
@@ -157,6 +165,16 @@
         multiEditModal = true;
     }
 
+    async function resendPanel(panelId) {
+        const res = await axios.post(`${API_URL}/api/${guildId}/panels/${panelId}`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        notifySuccess("Panel resent successfully");
+    }
+
     async function deletePanel(panelId) {
         const res = await axios.delete(`${API_URL}/api/${guildId}/panels/${panelId}`);
         if (res.status !== 200) {
@@ -165,6 +183,16 @@
         }
 
         panels = panels.filter((p) => p.panel_id !== panelId);
+    }
+
+    async function resendMultiPanel(id) {
+        const res = await axios.post(`${API_URL}/api/${guildId}/multipanels/${id}`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        notifySuccess("Multipanel resent successfully")
     }
 
     async function deleteMultiPanel(id) {

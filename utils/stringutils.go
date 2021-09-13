@@ -31,3 +31,7 @@ func Base64Decode(s string) string {
 func Base64Encode(s string) string {
 	return base64.StdEncoding.EncodeToString([]byte(s))
 }
+
+func StrPtr(s string) *string {
+	return &s
+}

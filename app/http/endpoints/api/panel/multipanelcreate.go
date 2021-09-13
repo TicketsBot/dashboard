@@ -12,13 +12,8 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
-	"github.com/rxdn/gdl/objects/channel/embed"
-	"github.com/rxdn/gdl/objects/guild/emoji"
-	"github.com/rxdn/gdl/objects/interaction/component"
-	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
-	"math"
 )
 
 type multiPanelCreateData struct {
@@ -27,6 +22,16 @@ type multiPanelCreateData struct {
 	Colour    int32  `json:"colour"`
 	ChannelId uint64 `json:"channel_id,string"`
 	Panels    []int  `json:"panels"`
+}
+
+func (d *multiPanelCreateData) IntoMessageData(isPremium bool) multiPanelMessageData {
+	return multiPanelMessageData{
+		ChannelId: d.ChannelId,
+		Title:     d.Title,
+		Content:   d.Content,
+		Colour:    int(d.Colour),
+		IsPremium: isPremium,
+	}
 }
 
 func MultiPanelCreate(ctx *gin.Context) {
@@ -62,7 +67,8 @@ func MultiPanelCreate(ctx *gin.Context) {
 		return
 	}
 
-	messageId, err := data.sendEmbed(&botContext, premiumTier > premium.None, panels)
+	messageData := data.IntoMessageData(premiumTier > premium.None)
+	messageId, err := messageData.send(&botContext, panels)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 {
@@ -196,62 +202,4 @@ func (d *multiPanelCreateData) validatePanels(guildId uint64) (panels []database
 	}
 
 	return
-}
-
-func (d *multiPanelCreateData) sendEmbed(ctx *botcontext.BotContext, isPremium bool, panels []database.Panel) (uint64, error) {
-	e := embed.NewEmbed().
-		SetTitle(d.Title).
-		SetDescription(d.Content).
-		SetColor(int(d.Colour))
-
-	if !isPremium {
-		// TODO: Don't harcode
-		e.SetFooter("Powered by ticketsbot.net", "https://cdn.discordapp.com/avatars/508391840525975553/ac2647ffd4025009e2aa852f719a8027.png?size=256")
-	}
-
-	buttons := make([]component.Component, len(panels))
-	for i, panel := range panels {
-		var buttonEmoji *emoji.Emoji
-		if panel.ReactionEmote != "" {
-			buttonEmoji = &emoji.Emoji{
-				Name: panel.ReactionEmote,
-			}
-		}
-
-		buttons[i] = component.BuildButton(component.Button{
-			Label:    panel.Title,
-			CustomId: panel.CustomId,
-			Style:    component.ButtonStyle(panel.ButtonStyle),
-			Emoji:    buttonEmoji,
-		})
-	}
-
-	var rows []component.Component
-	for i := 0; i <= int(math.Ceil(float64(len(buttons)/5))); i++ {
-		lb := i * 5
-		ub := lb + 5
-
-		if ub >= len(buttons) {
-			ub = len(buttons)
-		}
-
-		if lb >= ub {
-			break
-		}
-
-		row := component.BuildActionRow(buttons[lb:ub]...)
-		rows = append(rows, row)
-	}
-
-	data := rest.CreateMessageData{
-		Embeds:     []*embed.Embed{e},
-		Components: rows,
-	}
-
-	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, d.ChannelId, data)
-	if err != nil {
-		return 0, err
-	}
-
-	return msg.Id, nil
 }

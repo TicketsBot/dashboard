@@ -86,11 +86,13 @@ func StartServer() {
 
 		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
 		guildAuthApiAdmin.POST("/panels", api_panels.CreatePanel)
+		guildAuthApiAdmin.POST("/panels/:panelid", rl(middleware.RateLimitTypeGuild, 5, 5*time.Second), api_panels.ResendPanel)
 		guildAuthApiAdmin.PATCH("/panels/:panelid", api_panels.UpdatePanel)
 		guildAuthApiAdmin.DELETE("/panels/:panelid", api_panels.DeletePanel)
 
 		guildAuthApiAdmin.GET("/multipanels", api_panels.MultiPanelList)
 		guildAuthApiAdmin.POST("/multipanels", api_panels.MultiPanelCreate)
+		guildAuthApiAdmin.POST("/multipanels/:panelid", rl(middleware.RateLimitTypeGuild, 5, 5*time.Second), api_panels.MultiPanelResend)
 		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate)
 		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
 

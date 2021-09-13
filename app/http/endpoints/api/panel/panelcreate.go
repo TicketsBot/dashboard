@@ -13,10 +13,7 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
-	"github.com/rxdn/gdl/objects/channel/embed"
-	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
-	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
 	"regexp"
@@ -41,6 +38,26 @@ type panelBody struct {
 	ImageUrl        *string                `json:"image_url,omitempty"`
 	ThumbnailUrl    *string                `json:"thumbnail_url,omitempty"`
 	ButtonStyle     component.ButtonStyle  `json:"button_style,string"`
+}
+
+func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
+	var emoji *string
+	if p.Emote != "" {
+		emoji = &p.Emote
+	}
+
+	return panelMessageData{
+		ChannelId:    p.ChannelId,
+		Title:        p.Title,
+		Content:      p.Content,
+		CustomId:     customId,
+		Colour:       int(p.Colour),
+		ImageUrl:     p.ImageUrl,
+		ThumbnailUrl: p.ThumbnailUrl,
+		Emoji:        emoji,
+		ButtonStyle:  p.ButtonStyle,
+		IsPremium:    isPremium,
+	}
 }
 
 func CreatePanel(ctx *gin.Context) {
@@ -99,7 +116,10 @@ func CreatePanel(ctx *gin.Context) {
 	customId := utils.RandString(80)
 
 	emoji, _ := data.getEmoji() // already validated
-	msgId, err := data.sendEmbed(&botContext, data.Title, customId, emoji, data.ImageUrl, data.ThumbnailUrl, data.ButtonStyle, premiumTier > premium.None)
+	data.Emote = emoji
+
+	messageData := data.IntoPanelMessageData(customId, premiumTier > premium.None)
+	msgId, err := messageData.send(&botContext)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
@@ -362,52 +382,4 @@ func (p *panelBody) verifyThumbnailUrl() bool {
 
 func (p *panelBody) verifyButtonStyle() bool {
 	return p.ButtonStyle >= component.ButtonStylePrimary && p.ButtonStyle <= component.ButtonStyleDanger
-}
-
-func (p *panelBody) sendEmbed(ctx *botcontext.BotContext, title, customId, emote string, imageUrl, thumbnailUrl *string, buttonStyle component.ButtonStyle, isPremium bool) (uint64, error) {
-	e := embed.NewEmbed().
-		SetTitle(p.Title).
-		SetDescription(p.Content).
-		SetColor(int(p.Colour))
-
-	if imageUrl != nil {
-		e.SetImage(*imageUrl)
-	}
-
-	if thumbnailUrl != nil {
-		e.SetThumbnail(*thumbnailUrl)
-	}
-
-	if !isPremium {
-		// TODO: Don't harcode
-		e.SetFooter("Powered by ticketsbot.net", "https://ticketsbot.net/assets/img/logo.png")
-	}
-
-	var buttonEmoji *emoji.Emoji
-	if emote != "" {
-		buttonEmoji = &emoji.Emoji{
-			Name: emote,
-		}
-	}
-
-	data := rest.CreateMessageData{
-		Embeds: []*embed.Embed{e},
-		Components: []component.Component{
-			component.BuildActionRow(component.BuildButton(component.Button{
-				Label:    title,
-				CustomId: customId,
-				Style:    buttonStyle,
-				Emoji:    buttonEmoji,
-				Url:      nil,
-				Disabled: false,
-			})),
-		},
-	}
-
-	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, p.ChannelId, data)
-	if err != nil {
-		return 0, err
-	}
-
-	return msg.Id, nil
 }
