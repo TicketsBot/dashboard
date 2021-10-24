@@ -15,8 +15,12 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-1">
+    <div class="col-3-4">
       <PanelDropdown label="Panels" bind:panels bind:selected={data.panels} />
+    </div>
+
+    <div class="col-1-4">
+      <Checkbox label="Use Select Menu" bind:value={data.select_menu} />
     </div>
   </div>
 </form>
@@ -29,6 +33,7 @@
     import ChannelDropdown from "../ChannelDropdown.svelte";
     import PanelDropdown from "../PanelDropdown.svelte";
     import {onMount} from "svelte";
+    import Checkbox from "../form/Checkbox.svelte";
 
     export let data = {};
 
@@ -82,5 +87,21 @@
         .row {
             flex-direction: column;
         }
+    }
+
+    :global(.col-1-4) {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 25%;
+      height: 100%;
+    }
+
+    :global(.col-3-4) {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 75%;
+      height: 100%;
     }
 </style>

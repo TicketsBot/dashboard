@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20210220155137-a562b2f1bbbb
 	github.com/TicketsBot/common v0.0.0-20210910205523-7ce93fba6fa5
-	github.com/TicketsBot/database v0.0.0-20210906215136-2d0c54bd1109
+	github.com/TicketsBot/database v0.0.0-20211024191932-85d9cf1d71a8
 	github.com/TicketsBot/worker v0.0.0-20210910205947-89f7bd5ccf67
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
@@ -18,12 +18,12 @@ require (
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/go-redis/redis_rate/v9 v9.1.1
 	github.com/golang-jwt/jwt v3.2.1+incompatible
-	github.com/gorilla/sessions v1.2.0 // indirect
+	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20210906182609-337cb3c44a4c
+	github.com/rxdn/gdl v0.0.0-20210921120128-02188fdcfd88
 	github.com/sirupsen/logrus v1.5.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 )

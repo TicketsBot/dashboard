@@ -17,20 +17,22 @@ import (
 )
 
 type multiPanelCreateData struct {
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	Colour    int32  `json:"colour"`
-	ChannelId uint64 `json:"channel_id,string"`
-	Panels    []int  `json:"panels"`
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	Colour     int32  `json:"colour"`
+	ChannelId  uint64 `json:"channel_id,string"`
+	SelectMenu bool   `json:"select_menu"`
+	Panels     []int  `json:"panels"`
 }
 
 func (d *multiPanelCreateData) IntoMessageData(isPremium bool) multiPanelMessageData {
 	return multiPanelMessageData{
-		ChannelId: d.ChannelId,
-		Title:     d.Title,
-		Content:   d.Content,
-		Colour:    int(d.Colour),
-		IsPremium: isPremium,
+		ChannelId:  d.ChannelId,
+		Title:      d.Title,
+		Content:    d.Content,
+		Colour:     int(d.Colour),
+		SelectMenu: d.SelectMenu,
+		IsPremium:  isPremium,
 	}
 }
 
@@ -81,12 +83,13 @@ func MultiPanelCreate(ctx *gin.Context) {
 	}
 
 	multiPanel := database.MultiPanel{
-		MessageId: messageId,
-		ChannelId: data.ChannelId,
-		GuildId:   guildId,
-		Title:     data.Title,
-		Content:   data.Content,
-		Colour:    int(data.Colour),
+		MessageId:  messageId,
+		ChannelId:  data.ChannelId,
+		GuildId:    guildId,
+		Title:      data.Title,
+		Content:    data.Content,
+		Colour:     int(data.Colour),
+		SelectMenu: data.SelectMenu,
 	}
 
 	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(multiPanel)

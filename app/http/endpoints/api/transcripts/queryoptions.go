@@ -13,6 +13,7 @@ type wrappedQueryOptions struct {
 	UserId   uint64 `json:"user_id,string"`
 	PanelId  int    `json:"panel_id"`
 	Page     int    `json:"page"`
+	Rating   int    `json:"rating,string"`
 }
 
 func (o *wrappedQueryOptions) toQueryOptions(guildId uint64) (database.TicketQueryOptions, error) {
@@ -39,12 +40,17 @@ func (o *wrappedQueryOptions) toQueryOptions(guildId uint64) (database.TicketQue
 		offset = pageLimit * (o.Page - 1)
 	}
 
+	if o.Rating < 0 || o.Rating > 5 {
+		o.Rating = 0
+	}
+
 	opts := database.TicketQueryOptions{
 		Id:      o.Id,
 		GuildId: guildId,
 		UserIds: userIds,
 		Open:    utils.BoolPtr(false),
 		PanelId: o.PanelId,
+		Rating:  o.Rating,
 		Order:   database.OrderTypeDescending,
 		Limit:   pageLimit,
 		Offset:  offset,

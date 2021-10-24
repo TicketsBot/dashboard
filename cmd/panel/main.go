@@ -46,6 +46,7 @@ func main() {
 	}
 
 	database.ConnectToDatabase()
+
 	cache.Instance = cache.NewCache()
 
 	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))

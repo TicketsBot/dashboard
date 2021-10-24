@@ -17,10 +17,20 @@
 
             <Input col4=true label="User ID" placeholder="User ID" on:input={handleInputUserId}
                    bind:value={filterSettings.userId}/>
-
+          </div>
+          <div class="row">
             <div class="col-4">
               <PanelDropdown label="Panel" isMulti={false} bind:panels bind:selected={selectedPanel} />
             </div>
+
+            <Dropdown col4={true} label="Rating" bind:value={filterSettings.rating}>
+              <option value=0>Any</option>
+              <option value=1>1 ⭐</option>
+              <option value=2>2 ⭐</option>
+              <option value=3>3 ⭐</option>
+              <option value=4>4 ⭐</option>
+              <option value=5>5 ⭐</option>
+            </Dropdown>
           </div>
           <div class="row centre">
             <Button icon="fas fa-search">Filter</Button>
@@ -95,6 +105,7 @@
     import {setDefaultHeaders} from '../includes/Auth.svelte'
     import {Navigate} from 'svelte-router-spa'
     import PanelDropdown from "../components/PanelDropdown.svelte";
+    import Dropdown from "../components/form/Dropdown.svelte";
 
     setDefaultHeaders();
 
@@ -113,6 +124,10 @@
     let handleInputTicketId = () => {
         filterSettings.username = undefined;
         filterSettings.userId = undefined;
+
+        if (filterSettings.ticketId === "") {
+          filterSettings.ticketId = undefined;
+        }
     };
 
     let handleInputUsername = () => {
@@ -124,7 +139,6 @@
         filterSettings.ticketId = undefined;
         filterSettings.username = undefined;
     };
-
 
     let loading = false;
 
@@ -166,6 +180,7 @@
             id: filterSettings.ticketId,
             username: filterSettings.username,
             user_id: filterSettings.userId,
+            rating: filterSettings.rating,
             panel_id: selectedPanel,
             page: page,
         };

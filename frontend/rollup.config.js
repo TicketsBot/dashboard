@@ -6,6 +6,7 @@ import {terser} from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 import replace from "@rollup/plugin-replace";
 import {babel} from '@rollup/plugin-babel';
+import json from '@rollup/plugin-json';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -59,6 +60,7 @@ export default {
             dedupe: ['svelte']
         }),
         commonjs({ sourceMap: false }),
+        json(),
         babel({
             babelHelpers: 'bundled',
             extensions: ['.js', '.mjs', '.html', '.svelte'],

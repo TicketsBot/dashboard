@@ -88,6 +88,7 @@ func UpdatePanel(ctx *gin.Context) {
 			Content:   multiPanel.Content,
 			Colour:    multiPanel.Colour,
 			ChannelId: multiPanel.ChannelId,
+			SelectMenu: multiPanel.SelectMenu,
 			IsPremium: premiumTier > premium.None,
 		}
 
