@@ -53,9 +53,7 @@
               <th>Username</th>
               <th>Rating</th>
               <th class="reason">Close Reason</th>
-              {#if settings.store_transcripts}
-                <th>Transcript</th>
-              {/if}
+              <th>Transcript</th>
             </tr>
             </thead>
             <tbody>
@@ -121,8 +119,6 @@
 
     let panels = [];
     let selectedPanel;
-
-    let settings = {};
 
     const pageLimit = 15;
     let page = 1;
@@ -214,8 +210,6 @@
         notifyError(res.data.error);
         return;
       }
-
-      settings = res.data;
     }
 
       async function loadData(paginationSettings) {
