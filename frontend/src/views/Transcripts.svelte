@@ -53,7 +53,9 @@
               <th>Username</th>
               <th>Rating</th>
               <th class="reason">Close Reason</th>
-              <th>Transcript</th>
+              {#if settings.store_transcripts}
+                <th>Transcript</th>
+              {/if}
             </tr>
             </thead>
             <tbody>
@@ -69,11 +71,13 @@
                   {/if}
                 </td>
                 <td class="reason">{transcript.close_reason || 'No reason specified'}</td>
-                <td>
-                  <Navigate to="{`/manage/${guildId}/transcripts/view/${transcript.ticket_id}`}" styles="link">
-                    <Button>View</Button>
-                  </Navigate>
-                </td>
+                {#if settings.store_transcripts}
+                  <td>
+                    <Navigate to="{`/manage/${guildId}/transcripts/view/${transcript.ticket_id}`}" styles="link">
+                      <Button>View</Button>
+                    </Navigate>
+                  </td>
+                {/if}
               </tr>
             {/each}
             </tbody>
@@ -117,6 +121,8 @@
 
     let panels = [];
     let selectedPanel;
+
+    let settings = {};
 
     const pageLimit = 15;
     let page = 1;
@@ -202,7 +208,17 @@
         panels = res.data;
     }
 
-    async function loadData(paginationSettings) {
+    async function loadSettings() {
+      const res = await axios.get(`${API_URL}/api/${guildId}/settings`);
+      if (res.status !== 200) {
+        notifyError(res.data.error);
+        return;
+      }
+
+      settings = res.data;
+    }
+
+      async function loadData(paginationSettings) {
         const res = await axios.post(`${API_URL}/api/${guildId}/transcripts`, paginationSettings);
         if (res.status !== 200) {
             notifyError(res.data.error);
@@ -219,6 +235,7 @@
 
     withLoadingScreen(async () => {
         await loadPanels();
+        await loadSettings();
         await loadData({})
     })
 </script>

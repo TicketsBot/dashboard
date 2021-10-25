@@ -25,6 +25,9 @@
         <Checkbox label="Hide Claim Button" col4=true bind:value={data.hide_claim_button}/>
         <Checkbox label="Disable /open Command" col4=true bind:value={data.disable_open_command}/>
       </div>
+      <div class="row">
+        <Checkbox label="Store Ticket Transcripts" col4=true bind:value={data.store_transcripts}/>
+      </div>
       <div class="from-message-settings">
         <h3>Start Ticket From Message Settings</h3>
         <div class="row">
