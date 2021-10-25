@@ -71,7 +71,7 @@
                   {/if}
                 </td>
                 <td class="reason">{transcript.close_reason || 'No reason specified'}</td>
-                {#if settings.store_transcripts}
+                {#if transcript.has_transcript}
                   <td>
                     <Navigate to="{`/manage/${guildId}/transcripts/view/${transcript.ticket_id}`}" styles="link">
                       <Button>View</Button>

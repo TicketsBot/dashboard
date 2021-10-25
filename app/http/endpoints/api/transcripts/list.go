@@ -11,10 +11,11 @@ import (
 const pageLimit = 15
 
 type transcript struct {
-	TicketId    int     `json:"ticket_id"`
-	Username    string  `json:"username"`
-	CloseReason *string `json:"close_reason"`
-	Rating      *uint8  `json:"rating"`
+	TicketId      int     `json:"ticket_id"`
+	Username      string  `json:"username"`
+	CloseReason   *string `json:"close_reason"`
+	Rating        *uint8  `json:"rating"`
+	HasTranscript bool    `json:"has_transcript"`
 }
 
 func ListTranscripts(ctx *gin.Context) {
@@ -90,8 +91,9 @@ func ListTranscripts(ctx *gin.Context) {
 	transcripts := make([]transcript, len(tickets))
 	for i, ticket := range tickets {
 		transcript := transcript{
-			TicketId: ticket.Id,
-			Username: usernames[ticket.UserId],
+			TicketId:      ticket.Id,
+			Username:      usernames[ticket.UserId],
+			HasTranscript: ticket.HasTranscript,
 		}
 
 		if v, ok := ratings[ticket.Id]; ok {
