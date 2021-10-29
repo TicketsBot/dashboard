@@ -235,13 +235,13 @@
         }
     }
 
-    .advanced-settings {
+    :global(.advanced-settings) {
         transition: min-height .3s ease-in-out, margin-top .3s ease-in-out, margin-bottom .3s ease-in-out;
         position: relative;
         overflow: hidden;
     }
 
-    .advanced-settings-hide {
+    :global(.advanced-settings-hide) {
         height: 0;
         visibility: hidden;
 
@@ -256,7 +256,7 @@
         margin-bottom: 10px;
     }
 
-    .show-overflow {
+    :global(.show-overflow) {
         overflow: visible;
     }
 

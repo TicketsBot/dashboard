@@ -14,21 +14,24 @@ import (
 type multiPanelMessageData struct {
 	ChannelId uint64
 
-	Title      string
-	Content    string
-	Colour     int
-	SelectMenu bool
-	IsPremium  bool
+	Title                  string
+	Content                string
+	Colour                 int
+	SelectMenu             bool
+	IsPremium              bool
+	ImageUrl, ThumbnailUrl *string
 }
 
 func multiPanelIntoMessageData(panel database.MultiPanel, isPremium bool) multiPanelMessageData {
 	return multiPanelMessageData{
-		ChannelId:  panel.ChannelId,
-		Title:      panel.Title,
-		Content:    panel.Content,
-		Colour:     panel.Colour,
-		SelectMenu: panel.SelectMenu,
-		IsPremium:  isPremium,
+		ChannelId:    panel.ChannelId,
+		Title:        panel.Title,
+		Content:      panel.Content,
+		Colour:       panel.Colour,
+		SelectMenu:   panel.SelectMenu,
+		IsPremium:    isPremium,
+		ImageUrl:     panel.ImageUrl,
+		ThumbnailUrl: panel.ThumbnailUrl,
 	}
 }
 
@@ -37,6 +40,14 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 		SetTitle(d.Title).
 		SetDescription(d.Content).
 		SetColor(d.Colour)
+
+	if d.ImageUrl != nil {
+		e.SetImage(*d.ImageUrl)
+	}
+
+	if d.ThumbnailUrl != nil {
+		e.SetThumbnail(*d.ThumbnailUrl)
+	}
 
 	if !d.IsPremium {
 		// TODO: Don't harcode

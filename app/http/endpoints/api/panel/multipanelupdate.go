@@ -78,7 +78,7 @@ func MultiPanelUpdate(ctx *gin.Context) {
 
 	// delete old message
 	var unwrapped request.RestError
-	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId); err != nil && !(errors.As(err, &unwrapped) && unwrapped.IsClientError())  {
+	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId); err != nil && !(errors.As(err, &unwrapped) && unwrapped.IsClientError()) {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
@@ -106,13 +106,16 @@ func MultiPanelUpdate(ctx *gin.Context) {
 
 	// update DB
 	updated := database.MultiPanel{
-		Id:        multiPanel.Id,
-		MessageId: messageId,
-		ChannelId: data.ChannelId,
-		GuildId:   guildId,
-		Title:     data.Title,
-		Content:   data.Content,
-		Colour:    int(data.Colour),
+		Id:           multiPanel.Id,
+		MessageId:    messageId,
+		ChannelId:    data.ChannelId,
+		GuildId:      guildId,
+		Title:        data.Title,
+		Content:      data.Content,
+		Colour:       int(data.Colour),
+		SelectMenu:   data.SelectMenu,
+		ImageUrl:     data.ImageUrl,
+		ThumbnailUrl: data.ThumbnailUrl,
 	}
 
 	if err = dbclient.Client.MultiPanels.Update(multiPanel.Id, updated); err != nil {

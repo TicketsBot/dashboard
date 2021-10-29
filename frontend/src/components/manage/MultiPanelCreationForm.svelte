@@ -23,6 +23,25 @@
       <Checkbox label="Use Select Menu" bind:value={data.select_menu} />
     </div>
   </div>
+
+  <div class="row" style="justify-content: center">
+    <div class="col-1">
+      <Button icon="fas fa-sliders-h" fullWidth=true type="button"
+              on:click={toggleAdvancedSettings}>Toggle Advanced Settings
+      </Button>
+    </div>
+  </div>
+  <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
+       class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
+    <div class="inner" class:inner-show={advancedSettings}>
+      <div class="row">
+        <Input col1={true} label="Large Image URL" bind:value={data.image_url}/>
+      </div>
+      <div class="row">
+        <Input col1={true} label="Small Image URL" bind:value={data.thumbnail_url}/>
+      </div>
+    </div>
+  </div>
 </form>
 
 <script>
@@ -34,6 +53,7 @@
     import PanelDropdown from "../PanelDropdown.svelte";
     import {onMount} from "svelte";
     import Checkbox from "../form/Checkbox.svelte";
+    import Button from "../Button.svelte";
 
     export let data = {};
 
@@ -48,6 +68,20 @@
             channels: channels[0].id,
             panels: [],
         }
+    }
+
+    let advancedSettings = false;
+    let overflowShow = false;
+
+    function toggleAdvancedSettings() {
+      advancedSettings = !advancedSettings;
+      if (advancedSettings) {
+        setTimeout(() => {
+          overflowShow = true;
+        }, 300);
+      } else {
+        overflowShow = false;
+      }
     }
 
     let tempColour = '#7289da';
@@ -80,7 +114,6 @@
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
-        height: 100%;
     }
 
     @media only screen and (max-width: 950px) {
@@ -103,5 +136,22 @@
       align-items: flex-start;
       width: 75%;
       height: 100%;
+    }
+
+    .inner {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      position: absolute;
+      height: 100%;
+      width: 100%;
+
+      margin-top: 10px;
+    }
+
+    .advanced-settings-show {
+      visibility: visible;
+      min-height: 142px;
     }
 </style>

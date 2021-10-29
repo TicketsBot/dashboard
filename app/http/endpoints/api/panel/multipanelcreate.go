@@ -17,22 +17,26 @@ import (
 )
 
 type multiPanelCreateData struct {
-	Title      string `json:"title"`
-	Content    string `json:"content"`
-	Colour     int32  `json:"colour"`
-	ChannelId  uint64 `json:"channel_id,string"`
-	SelectMenu bool   `json:"select_menu"`
-	Panels     []int  `json:"panels"`
+	Title        string  `json:"title"`
+	Content      string  `json:"content"`
+	Colour       int32   `json:"colour"`
+	ChannelId    uint64  `json:"channel_id,string"`
+	SelectMenu   bool    `json:"select_menu"`
+	Panels       []int   `json:"panels"`
+	ImageUrl     *string `json:"image_url,omitempty"`
+	ThumbnailUrl *string `json:"thumbnail_url,omitempty"`
 }
 
 func (d *multiPanelCreateData) IntoMessageData(isPremium bool) multiPanelMessageData {
 	return multiPanelMessageData{
-		ChannelId:  d.ChannelId,
-		Title:      d.Title,
-		Content:    d.Content,
-		Colour:     int(d.Colour),
-		SelectMenu: d.SelectMenu,
-		IsPremium:  isPremium,
+		ChannelId:    d.ChannelId,
+		Title:        d.Title,
+		Content:      d.Content,
+		Colour:       int(d.Colour),
+		SelectMenu:   d.SelectMenu,
+		IsPremium:    isPremium,
+		ImageUrl:     d.ImageUrl,
+		ThumbnailUrl: d.ThumbnailUrl,
 	}
 }
 
