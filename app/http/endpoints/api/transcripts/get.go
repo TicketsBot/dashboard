@@ -2,10 +2,9 @@ package api
 
 import (
 	"errors"
-	"github.com/TicketsBot/GoPanel/database"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
-	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -22,7 +21,7 @@ func GetTranscriptHandler(ctx *gin.Context) {
 	}
 
 	// get ticket object
-	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
+	ticket, err := dbclient.Client.Tickets.Get(ticketId, guildId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
@@ -40,13 +39,13 @@ func GetTranscriptHandler(ctx *gin.Context) {
 	// Verify the user has permissions to be here
 	// ticket.UserId cannot be 0
 	if ticket.UserId != userId {
-		permLevel, err := utils.GetPermissionLevel(guildId, userId)
+		hasPermission, err := utils.HasPermissionToViewTicket(guildId, userId, ticket)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
-		if permLevel < permission.Support {
+		if !hasPermission {
 			ctx.JSON(403, utils.ErrorStr("You do not have permission to view this transcript"))
 			return
 		}

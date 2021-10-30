@@ -1,62 +1,64 @@
 <form class="settings-form" on:submit|preventDefault>
-  <div class="row">
-    <div class="col-1-3">
-      <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.title}/>
-    </div>
-    <div class="col-2-3">
+    <div class="row">
+        <div class="col-1-3">
+            <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.title}/>
+        </div>
+        <div class="col-2-3">
       <Textarea col1=true label="Panel Content" placeholder="By clicking the button, a ticket will be opened for you."
                 bind:value={data.content}/>
+        </div>
     </div>
-  </div>
-  <div class="row">
-    <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
-    <ChannelDropdown label="Panel Channel" col4=true {channels} bind:value={data.channel_id}/>
-    <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
-    <EmojiInput label="Button Emoji" col4=true bind:value={data.emote}/>
-  </div>
-  <div class="row">
-    <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
-      <option value="1">Blue</option>
-      <option value="2">Grey</option>
-      <option value="3">Green</option>
-      <option value="4">Red</option>
-    </Dropdown>
-  </div>
-  <div class="row" style="justify-content: center">
-    <div class="col-3">
-      <Button icon="fas fa-sliders-h" fullWidth=true type="button"
-              on:click={toggleAdvancedSettings}>Toggle Advanced Settings
-      </Button>
+    <div class="row">
+        <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
+        <ChannelDropdown label="Panel Channel" col4=true {channels} bind:value={data.channel_id}/>
+        <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
+        <EmojiInput label="Button Emoji" col4=true bind:value={data.emote}/>
     </div>
-  </div>
-  <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
-       class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
-    <div class="inner" class:inner-show={advancedSettings}>
-      <div class="row">
+    <div class="row">
+        <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
+            <option value="1">Blue</option>
+            <option value="2">Grey</option>
+            <option value="3">Green</option>
+            <option value="4">Red</option>
+        </Dropdown>
+    </div>
+    <div class="row" style="justify-content: center">
+        <div class="col-3">
+            <Button icon="fas fa-sliders-h" fullWidth=true type="button"
+                    on:click={toggleAdvancedSettings}>Toggle Advanced Settings
+            </Button>
+        </div>
+    </div>
+    <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
+         class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
+        <div class="inner" class:inner-show={advancedSettings}>
+            <div class="row">
       <Textarea col1=true bind:value={data.welcome_message} label="Welcome Message"
                 placeholder="If blank, your server's default welcome message will be used"
                 on:input={handleWelcomeMessageUpdate}/>
-      </div>
-      <div class="row">
-        <div class="col-2">
-          <label class="form-label">Mention On Open</label>
-          <div class="multiselect-super">
-            <Select items={mentionValues} bind:selectedValue={mentionsRaw} on:select={updateMentions} isMulti={true}/>
-          </div>
+            </div>
+            <div class="row">
+                <div class="col-2">
+                    <label class="form-label">Mention On Open</label>
+                    <div class="multiselect-super">
+                        <Select items={mentionValues} bind:selectedValue={mentionsRaw} on:select={updateMentions}
+                                isMulti={true}/>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Support Teams</label>
+                    <div class="multiselect-super">
+                        <Select items={teamsItems} bind:selectedValue={teamsRaw} on:select={updateTeams}
+                                isMulti={true}/>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <Input col2={true} label="Large Image URL" bind:value={data.image_url}/>
+                <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url}/>
+            </div>
         </div>
-        <div class="col-2">
-          <label class="form-label">Support Teams</label>
-          <div class="multiselect-super">
-            <Select items={teamsItems} bind:selectedValue={teamsRaw} on:select={updateTeams} isMulti={true}/>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <Input col2={true} label="Large Image URL" bind:value={data.image_url}/>
-        <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url}/>
-      </div>
     </div>
-  </div>
 </form>
 
 <script>
@@ -123,6 +125,7 @@
 
     function updateTeams() {
         if (teamsRaw === undefined) {
+            data.default_team = false;
             data.teams = [];
         } else {
             data.default_team = teamsRaw.find((option) => option.value === 'default') !== undefined;

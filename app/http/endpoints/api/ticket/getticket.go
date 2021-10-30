@@ -17,6 +17,7 @@ var MentionRegex, _ = regexp.Compile("<@(\\d+)>")
 
 func GetTicket(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
+	userId := ctx.Keys["userid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
@@ -59,6 +60,17 @@ func GetTicket(ctx *gin.Context) {
 			"success": false,
 			"error": "Ticket does not exist",
 		})
+		return
+	}
+
+	hasPermission, err := utils.HasPermissionToViewTicket(guildId, userId, ticket)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if !hasPermission {
+		ctx.JSON(403, utils.ErrorStr("You do not have permission to view this ticket"))
 		return
 	}
 

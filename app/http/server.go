@@ -77,14 +77,16 @@ func StartServer() {
 			middleware.Logging,
 		)
 
-		guildAuthApiAdmin.GET("/settings", api_settings.GetSettingsHandler)
+		// Must be readable to load transcripts page
+		guildAuthApiSupport.GET("/settings", api_settings.GetSettingsHandler)
 		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)
 
 		guildAuthApiSupport.GET("/blacklist", api_blacklist.GetBlacklistHandler)
 		guildAuthApiSupport.POST("/blacklist/:user", api_blacklist.AddBlacklistHandler)
 		guildAuthApiSupport.DELETE("/blacklist/:user", api_blacklist.RemoveBlacklistHandler)
 
-		guildAuthApiAdmin.GET("/panels", api_panels.ListPanels)
+		// Must be readable to load transcripts page
+		guildAuthApiSupport.GET("/panels", api_panels.ListPanels)
 		guildAuthApiAdmin.POST("/panels", api_panels.CreatePanel)
 		guildAuthApiAdmin.POST("/panels/:panelid", rl(middleware.RateLimitTypeGuild, 5, 5*time.Second), api_panels.ResendPanel)
 		guildAuthApiAdmin.PATCH("/panels/:panelid", api_panels.UpdatePanel)
