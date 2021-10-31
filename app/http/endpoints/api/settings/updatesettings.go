@@ -72,6 +72,8 @@ func (s *Settings) updateSettings(guildId uint64) error {
 	return group.Wait()
 }
 
+var validAutoArchive = []int{60, 1440, 4320, 10080}
+
 func (s *Settings) Validate(guildId uint64) error {
 	group, _ := errgroup.WithContext(context.Background())
 
@@ -91,6 +93,30 @@ func (s *Settings) Validate(guildId uint64) error {
 		}
 
 		return nil
+	})
+
+	group.Go(func() error {
+		valid := false
+		for _, duration := range validAutoArchive {
+			if duration == s.Settings.ThreadArchiveDuration {
+				valid = true
+				break
+			}
+		}
+
+		if !valid {
+			return fmt.Errorf("Invalid thread auto archive duration")
+		}
+
+		return nil
+	})
+
+	group.Go(func() error {
+		if s.Settings.UseThreads {
+			return fmt.Errorf("threads are disabled")
+		} else {
+			return nil
+		}
 	})
 
 	return group.Wait()

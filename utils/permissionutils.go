@@ -64,8 +64,8 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	// Admins should have access to all tickets
 	isAdmin, err := dbclient.Client.Permissions.IsAdmin(guildId, userId)
 	if err != nil {
-        return false, err
-    }
+		return false, err
+	}
 
 	if isAdmin {
 		return true, nil
@@ -74,14 +74,20 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	// TODO: Check in db
 	adminRoles, err := dbclient.Client.RolePermissions.GetAdminRoles(guildId)
 	if err != nil {
-        return false, err
-    }
+		return false, err
+	}
 
 	for _, roleId := range adminRoles {
-        if member.HasRole(roleId) {
-            return true, nil
-        }
-    }
+		if member.HasRole(roleId) {
+			return true, nil
+		}
+	}
+
+	// Check Discord permissions
+	hasAdminPermission := permission.HasPermissions(botContext, guildId, member.User.Id, discordperms.Administrator)
+	if hasAdminPermission {
+		return true, nil
+	}
 
 	// If ticket is not from a panel, we can use default team perms
 	if ticket.PanelId == nil {
@@ -106,12 +112,15 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 			if canView {
 				return true, nil
 			}
-		} else { // If panel does not use default team, check support teams
-			supportTeams, err := dbclient.Client.PanelTeams.GetTeams(*ticket.PanelId)
-			if err != nil {
-				return false, err
-			}
+		}
 
+		// If panel does not use the default team, or the user is not assigned to it, check support teams
+		supportTeams, err := dbclient.Client.PanelTeams.GetTeams(*ticket.PanelId)
+		if err != nil {
+			return false, err
+		}
+
+		if len(supportTeams) > 0 {
 			var supportTeamIds []int
 			for _, team := range supportTeams {
 				supportTeamIds = append(supportTeamIds, team.Id)
@@ -143,33 +152,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 }
 
 func isOnDefaultTeam(guildId, userId uint64, ctx botcontext.BotContext, member member.Member) (bool, error) {
-	// Check user perms for admin
-	if isAdmin, err := dbclient.Client.Permissions.IsAdmin(guildId, userId); err == nil {
-		if isAdmin {
-			return true, nil
-		}
-	} else {
-		return false, err
-	}
-
-	// Check roles from DB
-	adminRoles, err := dbclient.Client.RolePermissions.GetAdminRoles(guildId)
-	if err != nil {
-		return false, err
-	}
-
-	for _, adminRoleId := range adminRoles {
-		if member.HasRole(adminRoleId) {
-			return true, nil
-		}
-	}
-
-	// Check if user has Administrator permission
-	hasAdminPermission := permission.HasPermissions(ctx, guildId, member.User.Id, discordperms.Administrator)
-	if hasAdminPermission {
-		return true, nil
-	}
-
+	// Admin perms are already checked straight away, so we don't need to check for them here
 	// Check user perms for support
 	if isSupport, err := dbclient.Client.Permissions.IsSupport(guildId, member.User.Id); err == nil {
 		if isSupport {
@@ -187,7 +170,7 @@ func isOnDefaultTeam(guildId, userId uint64, ctx botcontext.BotContext, member m
 
 	for _, supportRoleId := range supportRoles {
 		if member.HasRole(supportRoleId) {
-			return false, nil
+			return true, nil
 		}
 	}
 
