@@ -207,9 +207,14 @@ func (s *Settings) updateCategory(channels []channel.Channel, guildId uint64) bo
 }
 
 func (s *Settings) updateArchiveChannel(channels []channel.Channel, guildId uint64) bool {
+	if s.ArchiveChannel == nil {
+		go dbclient.Client.ArchiveChannel.Set(guildId, nil)
+		return true
+	}
+
 	var valid bool
 	for _, ch := range channels {
-		if ch.Id == s.ArchiveChannel && ch.Type == channel.ChannelTypeGuildText {
+		if ch.Id == *s.ArchiveChannel && ch.Type == channel.ChannelTypeGuildText {
 			valid = true
 			break
 		}

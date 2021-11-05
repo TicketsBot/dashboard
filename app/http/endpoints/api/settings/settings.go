@@ -14,7 +14,7 @@ type Settings struct {
 	WelcomeMessaage   string                `json:"welcome_message"`
 	TicketLimit       uint8                 `json:"ticket_limit"`
 	Category          uint64                `json:"category,string"`
-	ArchiveChannel    uint64                `json:"archive_channel,string"`
+	ArchiveChannel    *uint64               `json:"archive_channel,string"`
 	NamingScheme      database.NamingScheme `json:"naming_scheme"`
 	PingEveryone      bool                  `json:"ping_everyone"`
 	UsersCanClose     bool                  `json:"users_can_close"`

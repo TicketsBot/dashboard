@@ -16,7 +16,7 @@
                   bind:value={data.welcome_message}/>
       </div>
       <div class="row">
-        <ChannelDropdown label="Archive Channel" col2=true channels={channels} bind:value={data.archive_channel}/>
+        <ChannelDropdown label="Archive Channel" col2=true channels={channels} withNull={true} bind:value={data.archive_channel}/>
         <CategoryDropdown label="Channel Category" col2=true channels={channels} bind:value={data.category}/>
       </div>
       <div class="row">
