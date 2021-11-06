@@ -51,6 +51,9 @@ func StartServer() {
 
 	router.Use(middleware.Cors(config.Conf))
 
+	// util endpoints
+	router.GET("/ip", root.IpHandler)
+
 	router.GET("/webchat", root.WebChatWs)
 
 	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
