@@ -4,6 +4,7 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
 	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
+	api_customisation "github.com/TicketsBot/GoPanel/app/http/endpoints/api/customisation"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
@@ -126,6 +127,9 @@ func StartServer() {
 
 		guildAuthApiAdmin.GET("/autoclose", api_autoclose.GetAutoClose)
 		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
+
+		guildAuthApiAdmin.GET("/customisation/colours", api_customisation.GetColours)
+		guildAuthApiAdmin.POST("/customisation/colours", api_customisation.UpdateColours)
 
 		guildAuthApiAdmin.GET("/team", api_team.GetTeams)
 		guildAuthApiAdmin.GET("/team/:teamid", rl(middleware.RateLimitTypeUser, 10, time.Second*30), api_team.GetMembers)

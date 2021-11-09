@@ -19,6 +19,7 @@ import Tags from './views/Tags.svelte'
 import Teams from './views/Teams.svelte'
 import Tickets from './views/Tickets.svelte'
 import TicketView from './views/TicketView.svelte'
+import Appearance from './views/Appearance.svelte';
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -33,6 +34,7 @@ export const routes = [
         nestedRoutes: [
             {name: 'index', component: Error404, layout: ErrorLayout},
             {name: 'settings', component: Settings, layout: ManageLayout},
+            {name: 'appearance', component: Appearance, layout: ManageLayout},
             {
                 name: 'transcripts',
                 nestedRoutes: [

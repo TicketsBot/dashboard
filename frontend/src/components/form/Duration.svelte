@@ -3,7 +3,7 @@
     <div class="parent">
       <label class="form-label">{label}</label>
       {#if badge !== undefined}
-        <div class="badge" style="margin-left: 4px">{badge}</div>
+        <Badge>{badge}</Badge>
       {/if}
     </div>
   </div>
@@ -27,6 +27,8 @@
 </div>
 
 <script>
+    import Badge from "../Badge.svelte";
+
     export let label;
     export let badge;
     export let disabled = false; // note: bind:disabled isn't valid
@@ -103,15 +105,5 @@
         padding: 0 10px;
         margin: 0 0 0.5em 0;
         height: 40px;
-    }
-
-    :global(.badge) {
-        display: flex;
-        align-items: center;
-
-        background-color: #3472f7;
-        border-radius: 2px;
-        font-size: 14px;
-        padding: 0 4px;
     }
 </style>
