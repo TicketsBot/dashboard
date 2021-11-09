@@ -6,6 +6,7 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 func PremiumHandler(ctx *gin.Context) {
@@ -20,7 +21,10 @@ func PremiumHandler(ctx *gin.Context) {
 		return
 	}
 
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	// If error, will default to false
+	includeVoting, _ := strconv.ParseBool(ctx.Query("include_voting"))
+
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, includeVoting, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

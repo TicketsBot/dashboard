@@ -115,7 +115,7 @@
     }
 
     async function loadPremium() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/premium`);
+        const res = await axios.get(`${API_URL}/api/${guildId}/premium?include_voting=true`);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;

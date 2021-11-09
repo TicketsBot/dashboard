@@ -22,7 +22,7 @@
               {/if}
               <td>
                 <Navigate to="/manage/{guildId}/tickets/view/{ticket.id}" styles="link">
-                  <Button type="button"}>View</Button>
+                  <Button type="button">View</Button>
                 </Navigate>
               </td>
             </tr>

@@ -35,6 +35,12 @@
         cursor: pointer;
     }
 
+    :global(.link-blue) {
+        color: #3472f7;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
     .icon {
         width: 24px;
     }
