@@ -112,6 +112,7 @@ func StartServer() {
 
 		// Allow regular users to get their own transcripts, make sure you check perms inside
 		guildApiNoAuth.GET("/transcripts/:ticketId", rl(middleware.RateLimitTypeGuild, 10, 10*time.Second), api_transcripts.GetTranscriptHandler)
+		guildApiNoAuth.GET("/transcripts/:ticketId/render", rl(middleware.RateLimitTypeGuild, 10, 10*time.Second), api_transcripts.GetTranscriptRenderHandler)
 
 		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)

@@ -1,33 +1,5 @@
-<div class="discord-container">
-  <div>
-    <div class="channel-header">
-      <span class="channel-name">#ticket-{ticketId}</span>
-    </div>
-  </div>
-  <div id="message-container">
-    {#each messages as message}
-      <div class="message">
-        {#if message.timestamp > epoch}
-          <span class="timestamp">
-              [{message.timestamp.toLocaleTimeString([], dateFormatSettings)} {message.timestamp.toLocaleDateString()}]
-          </span>
-        {/if}
-
-        <img src="https://cdn.discordapp.com/avatars/{message.author.id}/{message.author.avatar}.webp?size=256"
-             class="avatar">
-        <b class="username">{message.author.username}</b>
-        <span class="content">{message.content}</span>
-
-        {#if message.attachments !== undefined && message.attachments.length > 0}
-          {#each message.attachments as attachment}
-            <a href="{attachment.url}" target="_blank" title="{attachment.filename}" class="attachment"><i
-                    class="far fa-file-alt fa-2x"></i></a>
-          {/each}
-        {/if}
-      </div>
-    {/each}
-  </div>
-</div>
+<iframe srcdoc={html} style="border: none; width: 100%; height: 100%">
+</iframe>
 
 <script>
     import axios from "axios";
@@ -41,23 +13,18 @@
     let guildId = currentRoute.namedParams.id;
     let ticketId = currentRoute.namedParams.ticketid;
 
-    setDefaultHeaders()
+    setDefaultHeaders();
 
-    let messages = [];
-    let epoch = new Date('2015');
-    let dateFormatSettings = {
-        hour: '2-digit',
-        minute: '2-digit'
-    };
+    let html = '';
 
     async function loadData() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/transcripts/${ticketId}`);
+        const res = await axios.get(`${API_URL}/api/${guildId}/transcripts/${ticketId}/render`);
         if (res.status !== 200) {
             errorPage(res.data.error);
             return;
         }
 
-        messages = res.data.map(message => Object.assign({}, message, {timestamp: new Date(message.timestamp)}));
+        html = res.data;
     }
 
     withLoadingScreen(loadData);

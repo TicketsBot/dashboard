@@ -61,6 +61,7 @@ type (
 		ObjectStore           string
 		AesKey                string `toml:"aes-key"`
 		ProxyUrl              string `toml:"discord-proxy-url"`
+		RenderServiceUrl      string `toml:"render-service-url"`
 	}
 
 	Redis struct {
@@ -163,6 +164,7 @@ func fromEnvvar() {
 			ObjectStore:           os.Getenv("LOG_ARCHIVER_URL"),
 			AesKey:                os.Getenv("LOG_AES_KEY"),
 			ProxyUrl:              os.Getenv("DISCORD_PROXY_URL"),
+			RenderServiceUrl:      os.Getenv("RENDER_SERVICE_URL"),
 		},
 		Redis: Redis{
 			Host:     os.Getenv("REDIS_HOST"),
