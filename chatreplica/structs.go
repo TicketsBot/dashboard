@@ -53,3 +53,7 @@ type Badge string
 const (
 	BadgeBot Badge = "bot"
 )
+
+func badgePtr(b Badge) *Badge {
+    return &b
+}
