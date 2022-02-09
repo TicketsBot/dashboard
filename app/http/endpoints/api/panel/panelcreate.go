@@ -38,6 +38,7 @@ type panelBody struct {
 	ImageUrl        *string                `json:"image_url,omitempty"`
 	ThumbnailUrl    *string                `json:"thumbnail_url,omitempty"`
 	ButtonStyle     component.ButtonStyle  `json:"button_style,string"`
+	FormId          int                    `json:"form_id"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
@@ -138,6 +139,11 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
+	var formId *int
+	if data.FormId != 0 { // Already validated
+		formId = &data.FormId
+	}
+
 	// Store in DB
 	panel := database.Panel{
 		MessageId:       msgId,
@@ -154,6 +160,7 @@ func CreatePanel(ctx *gin.Context) {
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
 		ButtonStyle:     int(data.ButtonStyle),
+		FormId:          formId,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -305,6 +312,19 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
+	{
+		ok, err := p.verifyFormId(guildId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+			return false
+		}
+
+		if !ok {
+			ctx.AbortWithStatusJSON(400, utils.ErrorStr("Guild ID for form does not match"))
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -382,4 +402,25 @@ func (p *panelBody) verifyThumbnailUrl() bool {
 
 func (p *panelBody) verifyButtonStyle() bool {
 	return p.ButtonStyle >= component.ButtonStylePrimary && p.ButtonStyle <= component.ButtonStyleDanger
+}
+
+func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {
+	if p.FormId == 0 { // TODO: Use nil
+		return true, nil
+	} else {
+		form, ok, err := dbclient.Client.Forms.Get(p.FormId)
+		if err != nil {
+			return false, err
+		}
+
+		if !ok {
+			return false, nil
+		}
+
+		if form.GuildId != guildId {
+			return false, nil
+		}
+
+		return true, nil
+	}
 }

@@ -5,6 +5,7 @@ import (
 	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
 	api_customisation "github.com/TicketsBot/GoPanel/app/http/endpoints/api/customisation"
+	api_forms "github.com/TicketsBot/GoPanel/app/http/endpoints/api/forms"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
@@ -101,6 +102,14 @@ func StartServer() {
 		guildAuthApiAdmin.POST("/multipanels/:panelid", rl(middleware.RateLimitTypeGuild, 5, 5*time.Second), api_panels.MultiPanelResend)
 		guildAuthApiAdmin.PATCH("/multipanels/:panelid", api_panels.MultiPanelUpdate)
 		guildAuthApiAdmin.DELETE("/multipanels/:panelid", api_panels.MultiPanelDelete)
+
+		guildAuthApiSupport.GET("/forms", api_forms.GetForms)
+		guildAuthApiAdmin.POST("/forms", rl(middleware.RateLimitTypeGuild, 30, time.Hour), api_forms.CreateForm)
+		guildAuthApiAdmin.PATCH("/forms/:form_id", rl(middleware.RateLimitTypeGuild, 30, time.Hour), api_forms.UpdateForm)
+		guildAuthApiAdmin.DELETE("/forms/:form_id", api_forms.DeleteForm)
+		guildAuthApiAdmin.POST("/forms/:form_id", api_forms.CreateInput)
+		guildAuthApiAdmin.PATCH("/forms/:form_id/:input_id", api_forms.UpdateInput)
+		guildAuthApiAdmin.DELETE("/forms/:form_id/:input_id", api_forms.DeleteInput)
 
 		// Should be a GET, but easier to take a body for development purposes
 		guildAuthApiSupport.POST("/transcripts",

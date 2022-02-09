@@ -84,12 +84,12 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 
 		messageData := multiPanelMessageData{
-			Title:     multiPanel.Title,
-			Content:   multiPanel.Content,
-			Colour:    multiPanel.Colour,
-			ChannelId: multiPanel.ChannelId,
+			Title:      multiPanel.Title,
+			Content:    multiPanel.Content,
+			Colour:     multiPanel.Colour,
+			ChannelId:  multiPanel.ChannelId,
 			SelectMenu: multiPanel.SelectMenu,
-			IsPremium: premiumTier > premium.None,
+			IsPremium:  premiumTier > premium.None,
 		}
 
 		messageId, err := messageData.send(&botContext, panels)
@@ -142,6 +142,12 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
+	// Already validated
+	var formId *int
+	if data.FormId != 0 {
+		formId = &data.FormId
+	}
+
 	// Store in DB
 	panel := database.Panel{
 		PanelId:         panelId,
@@ -159,6 +165,7 @@ func UpdatePanel(ctx *gin.Context) {
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
 		ButtonStyle:     int(data.ButtonStyle),
+		FormId:          formId,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {

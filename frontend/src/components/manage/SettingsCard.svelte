@@ -227,7 +227,7 @@
             justify-content: center;
         }
 
-        :global(.col-4, .col-3, .col-2) {
+        :global(.col-4, .col-3, .col-2, .col-3-4) {
             width: 100% !important;
         }
     }

@@ -1,0 +1,28 @@
+package forms
+
+import (
+	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/gin-gonic/gin"
+)
+
+func GetForms(ctx *gin.Context) {
+	guildId := ctx.Keys["guildid"].(uint64)
+
+	forms, err := dbclient.Client.Forms.GetForms(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	inputs, err := dbclient.Client.FormInput.GetInputsForGuild(guildId)
+	if err != nil {
+        ctx.JSON(500, utils.ErrorJson(err))
+        return
+    }
+
+	ctx.JSON(200, gin.H{
+		"forms": forms,
+		"inputs": inputs,
+	})
+}

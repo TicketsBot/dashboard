@@ -1,5 +1,7 @@
 <div class:col-1={col1} class:col-2={col2} class:col-3={col3} class:col-4={col4}>
-  <label for="input" class="form-label">{label}</label>
+  {#if label !== undefined}
+    <label for="input" class="form-label">{label}</label>
+  {/if}
   <select id="input" class="form-input" on:change bind:value={value}>
     <slot />
   </select>

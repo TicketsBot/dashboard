@@ -21,6 +21,13 @@
             <option value="3">Green</option>
             <option value="4">Red</option>
         </Dropdown>
+
+        <Dropdown col4=true label="Form" bind:value={data.form_id}>
+            <option value=0>Disabled</option>
+            {#each forms as form}
+                <option value={form.form_id}>{form.title}</option>
+            {/each}
+        </Dropdown>
     </div>
     <div class="row" style="justify-content: center">
         <div class="col-3">
@@ -94,12 +101,14 @@
             default_team: true,
             teams: [],
             button_style: "1",
+            form_id: 0,
         };
     }
 
     export let channels = [];
     export let roles = [];
     export let teams = [];
+    export let forms = [];
 
     let advancedSettings = false;
     let overflowShow = false;

@@ -20,6 +20,7 @@ import Teams from './views/Teams.svelte'
 import Tickets from './views/Tickets.svelte'
 import TicketView from './views/TicketView.svelte'
 import Appearance from './views/Appearance.svelte';
+import Forms from './views/Forms.svelte';
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -65,6 +66,7 @@ export const routes = [
             {name: 'blacklist', component: Blacklist, layout: ManageLayout},
             {name: 'tags', component: Tags, layout: ManageLayout},
             {name: 'teams', component: Teams, layout: ManageLayout},
+            {name: 'forms', component: Forms, layout: ManageLayout},
             {
                 name: 'tickets',
                 nestedRoutes: [
