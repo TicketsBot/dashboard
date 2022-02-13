@@ -16,8 +16,19 @@
                   bind:value={data.welcome_message}/>
       </div>
       <div class="row">
-        <ChannelDropdown label="Archive Channel" col2=true channels={channels} withNull={true} bind:value={data.archive_channel}/>
-        <CategoryDropdown label="Channel Category" col2=true channels={channels} bind:value={data.category}/>
+        <ChannelDropdown label="Archive Channel" col3=true channels={channels} withNull={true} bind:value={data.archive_channel}/>
+        <CategoryDropdown label="Channel Category" col3=true channels={channels} bind:value={data.category}/>
+        <Dropdown label="Overflow Category" col3=true bind:value={data.overflow_category_id}>
+          <option value=-1>Disabled</option>
+          <option value=-2>Uncategorised (Appears at top of channel list)</option>
+          {#each channels as channel}
+            {#if channel.type === 4}
+              <option value={channel.id}>
+                {channel.name}
+              </option>
+            {/if}
+          {/each}
+        </Dropdown>
       </div>
       <div class="row">
         <NamingScheme col4=true bind:value={data.naming_scheme}/>
@@ -103,7 +114,7 @@
     };
 
     async function updateSettings() {
-        // Svelte hack
+        // Svelte hack - I can't even remember what this does
         let mapped = Object.fromEntries(Object.entries(data).map(([k, v]) => {
             if (v === "null") {
                 return [k, null];
@@ -111,6 +122,18 @@
                 return [k, v];
             }
         }));
+
+        // "Normalise" data.overflow_category_id
+        // Svelte doesn't always keep its promise of using integers, so == instead of ===
+        if (mapped.overflow_category_id == -1) {
+            mapped.overflow_enabled = false;
+            mapped.overflow_category_id = null;
+        } else if (mapped.overflow_category_id == -2) {
+            mapped.overflow_enabled = true
+            mapped.overflow_category_id = null;
+        } else {
+            mapped.overflow_enabled = true;
+        }
 
         const res = await axios.post(`${API_URL}/api/${guildId}/settings`, mapped);
         if (res.status === 200) {
@@ -183,6 +206,14 @@
             if (first !== undefined) {
                 data.category = first.id;
             }
+        }
+
+        if (data.overflow_enabled === false) {
+          data.overflow_category_id = "-1";
+        } else if (data.overflow_enabled === true) {
+          if (data.overflow_category_id === null) {
+            data.overflow_category_id = "-2";
+          }
         }
     }
 

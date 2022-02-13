@@ -119,6 +119,25 @@ func (s *Settings) Validate(guildId uint64) error {
 		}
 	})
 
+	group.Go(func() error {
+        if s.Settings.OverflowCategoryId != nil {
+			ch, ok := cache.Instance.GetChannel(*s.Settings.OverflowCategoryId)
+			if !ok {
+				return fmt.Errorf("Invalid overflow category")
+			}
+
+			if ch.GuildId != guildId {
+				return fmt.Errorf("Overflow category guild ID does not match")
+			}
+
+			if ch.Type != channel.ChannelTypeGuildCategory {
+				return fmt.Errorf("Overflow category is not a category")
+			}
+        }
+
+		return nil
+    })
+
 	return group.Wait()
 }
 
