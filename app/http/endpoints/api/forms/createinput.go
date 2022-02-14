@@ -91,8 +91,8 @@ func (b *inputCreateBody) Validate(ctx *gin.Context) bool {
         return false
 	}
 
-	if len(b.Label) == 0 || len(b.Label) > 255 {
-		ctx.JSON(400, utils.ErrorStr("The input label must be between 1 and 255 characters"))
+	if len(b.Label) == 0 || len(b.Label) > 45 {
+		ctx.JSON(400, utils.ErrorStr("The input label must be between 1 and 45 characters"))
 		return false
 	}
 
