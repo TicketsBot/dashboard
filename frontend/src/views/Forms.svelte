@@ -39,8 +39,8 @@
           </div>
 
           <div class="manage">
-            {#if activeFormId !== null && inputs[activeFormId.toString()]}
-              {#each inputs[activeFormId.toString()] as input}
+            {#if activeFormId !== null}
+              {#each forms.find(form => form.form_id === activeFormId).inputs as input}
                 <FormInputRow data={input} formId={activeFormId} withSaveButton={true} withDeleteButton={true}
                               on:save={(e) => editInput(activeFormId, input.id, e.detail)}
                               on:delete={() => deleteInput(activeFormId, input.id)}/>
@@ -78,11 +78,14 @@
 
   let newTitle;
   let forms = [];
-  let inputs = {};
   let activeFormId = null;
   let inputCreationData = {};
 
   $: windowWidth = 0;
+
+  function getForm(formId) {
+    return forms.find(form => form.form_id === formId);
+  }
 
   async function createForm() {
     let data = {
@@ -97,7 +100,6 @@
 
     notifySuccess(`Form ${newTitle} has been created`);
     newTitle = '';
-    inputs[res.data.form_id] = {};
     forms = [...forms, res.data];
     activeFormId = res.data.form_id;
   }
@@ -112,7 +114,6 @@
     notifySuccess(`Form deleted successfully`);
 
     forms = forms.filter(form => form.form_id !== id);
-    delete inputs[id.toString()];
     if (forms.length > 0) {
       activeFormId = forms[0].form_id;
     } else {
@@ -129,8 +130,11 @@
       return;
     }
 
-    inputs[res.data.form_id] = [...inputs[res.data.form_id], res.data];
+    let form = getForm(res.data.form_id);
+    form.inputs = [...form.inputs, res.data];
+    forms = forms;
     inputCreationData = {};
+
     notifySuccess('Form input created successfully');
   }
 
@@ -143,8 +147,10 @@
       return;
     }
 
-    inputs[res.data.form_id] = inputs[res.data.form_id].filter(input => input.id !== inputId);
-    inputs[res.data.form_id] = [...inputs[res.data.form_id], res.data];
+    let form = getForm(formId);
+    form.inputs = form.inputs.filter(input => input.id !== inputId);
+    form.inputs = [...form.inputs, res.data];
+
     notifySuccess('Form input updated successfully');
   }
 
@@ -155,7 +161,11 @@
       return;
     }
 
-    inputs[formId] = inputs[formId].filter(input => input.id !== inputId);
+    // TODO: delete keyword?
+    let form = getForm(formId);
+    form.inputs = form.inputs.filter(input => input.id !== inputId);
+    forms = forms;
+
     notifySuccess('Form input deleted successfully');
   }
 
@@ -166,22 +176,10 @@
       return;
     }
 
-    forms = res.data.forms || [];
-    for (const form of forms) {
-      inputs[form.form_id] = {};
-    }
-
-    for (const [key, value] of Object.entries(res.data.inputs)) {
-      inputs[key] = value.map(input => ({...input, style: input.style.toString()}));
-    }
-
-    if (forms.length > 0) {
-      activeFormId = forms[0].form_id;
-    }
+    forms = res.data || [];
   }
 
   function getActiveFormTitle() {
-    console.log(forms);
     return activeFormId !== null ? forms.find(f => f.form_id === activeFormId).title : 'Unknown';
   }
 
