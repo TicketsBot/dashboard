@@ -33,7 +33,7 @@
             {#if activeFormId !== null}
               <div class="col-4">
                 <Button danger={true} type="button"
-                        on:click={() => deleteForm(activeFormId)}>Delete {getActiveFormTitle()}</Button>
+                        on:click={() => deleteForm(activeFormId)}>Delete {activeFormTitle}</Button>
               </div>
             {/if}
           </div>
@@ -79,6 +79,7 @@
   let newTitle;
   let forms = [];
   let activeFormId = null;
+  $: activeFormTitle = activeFormId !== null ? forms.find(f => f.form_id === activeFormId).title : 'Unknown';
   let inputCreationData = {};
 
   $: windowWidth = 0;
@@ -177,10 +178,6 @@
     }
 
     forms = res.data || [];
-  }
-
-  function getActiveFormTitle() {
-    return activeFormId !== null ? forms.find(f => f.form_id === activeFormId).title : 'Unknown';
   }
 
   withLoadingScreen(async () => {
