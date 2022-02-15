@@ -328,7 +328,7 @@
             return;
         }
 
-        forms = res.data.forms || [];
+        forms = res.data || [];
     }
 
     withLoadingScreen(async () => {
