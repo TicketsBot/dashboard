@@ -20,7 +20,7 @@ func FromArchiveMessages(messages []message.Message, ticketId int) Payload {
 			Id:          msg.Id,
 			Type:        msg.Type,
 			Author:      msg.Author.Id,
-			Time:        msg.Timestamp.Unix(),
+			Time:        msg.Timestamp.UnixMilli(),
 			Content:     msg.Content,
 			Embeds:      msg.Embeds,
 			Attachments: msg.Attachments,

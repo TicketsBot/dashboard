@@ -101,6 +101,8 @@
 
     notifySuccess(`Form ${newTitle} has been created`);
     newTitle = '';
+
+    activeFormId = null; // Error thrown from {#each forms.find} if we don't temporarily set this to null?
     forms = [...forms, res.data];
     activeFormId = res.data.form_id;
   }
@@ -134,7 +136,7 @@
     let form = getForm(res.data.form_id);
     form.inputs = [...form.inputs, res.data];
     forms = forms;
-    inputCreationData = {};
+    inputCreationData = {"style": "1"};
 
     notifySuccess('Form input created successfully');
   }
