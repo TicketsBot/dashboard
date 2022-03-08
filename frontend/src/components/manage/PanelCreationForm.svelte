@@ -23,7 +23,7 @@
         </Dropdown>
 
         <Dropdown col4=true label="Form" bind:value={data.form_id}>
-            <option value=0>Disabled</option>
+            <option value=0>None</option>
             {#each forms as form}
                 <option value={form.form_id}>{form.title}</option>
             {/each}
