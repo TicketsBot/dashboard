@@ -20,7 +20,7 @@ func CreateForm(ctx *gin.Context) {
 		return
 	}
 
-	if len(data.Title) > 255 {
+	if len(data.Title) > 45 {
 		ctx.JSON(400, utils.ErrorStr("Title is too long"))
         return
 	}
