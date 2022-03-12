@@ -102,9 +102,12 @@
     notifySuccess(`Form ${newTitle} has been created`);
     newTitle = '';
 
+    let form = res.data;
+    form.inputs = [];
+
     activeFormId = null; // Error thrown from {#each forms.find} if we don't temporarily set this to null?
-    forms = [...forms, res.data];
-    activeFormId = res.data.form_id;
+    forms = [...forms, form];
+    activeFormId = form.form_id;
   }
 
   async function deleteForm(id) {
