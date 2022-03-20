@@ -42,7 +42,8 @@
 
     // Dispatch with data
     function dispatchConfirm() {
-        dispatch('confirm', panel);
+        let mapped = {...panel, form_id: parseInt(panel.form_id)};
+        dispatch('confirm', mapped);
     }
 </script>
 
