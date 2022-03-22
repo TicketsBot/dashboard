@@ -1,10 +1,10 @@
-<div class="navbar" class:dropdown>
-  <div class="wrapper" class:dropdown>
+<div class="navbar" class:dropdown={$dropdown}>
+  <div class="wrapper" class:dropdown={$dropdown}>
     <div>
       <div class="burger-menu">
         <NavElement icon="fas fa-bars" on:click={dropdownNav}>Menu</NavElement>
       </div>
-      <div class="nav-section" class:dropdown>
+      <div class="nav-section" class:dropdown={$dropdown}>
         <!-- on:click required to close dropdown again -->
         <NavElement icon="fas fa-cogs" link="/manage/{guildId}/settings" on:click={closeDropdown}>Settings</NavElement>
         <NavElement icon="fas fa-copy" link="/manage/{guildId}/transcripts" on:click={closeDropdown}>Transcripts</NavElement>
@@ -18,7 +18,7 @@
       </div>
     </div>
     <div>
-      <div class="nav-section" class:dropdown>
+      <div class="nav-section" class:dropdown={$dropdown}>
         <NavElement icon="fas fa-server" link="/#">Servers</NavElement>
         <NavElement icon="fas fa-sign-out-alt" link="/logout">Logout</NavElement>
       </div>
@@ -28,16 +28,18 @@
 
 <script>
     export let guildId;
-    export let dropdown = false;
+    export let dropdown;
 
     import NavElement from "../components/NavElement.svelte";
 
     function dropdownNav() {
-        dropdown = !dropdown;
+      console.log(dropdown);
+        dropdown.update(v => !v);
     }
 
     function closeDropdown() {
-        dropdown = false;
+      console.log('cum');
+        dropdown.set(false);
     }
 </script>
 

@@ -1,7 +1,7 @@
 <Head/>
 
 <div class="wrapper">
-  <Navbar guildId={guildId} bind:dropdown={$dropdown}/>
+  <Navbar guildId={guildId} {dropdown}/>
   <div class="super-container" class:dropdown={$dropdown}>
     <LoadingScreen/>
     <div class="content-container" class:hide={$loadingScreen}>

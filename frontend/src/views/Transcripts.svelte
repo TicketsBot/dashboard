@@ -223,10 +223,6 @@
         return true;
     }
 
-    onMount(async () => {
-        dropdown.set(false)
-    })
-
     withLoadingScreen(async () => {
         await loadPanels();
         await loadSettings();

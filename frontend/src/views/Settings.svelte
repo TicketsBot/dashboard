@@ -23,10 +23,6 @@
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id
-
-    onMount(async () => {
-        dropdown.set(false)
-    })
 </script>
 
 <style>

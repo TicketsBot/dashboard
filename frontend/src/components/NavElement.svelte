@@ -1,11 +1,11 @@
 <div class="nav-element">
   {#if link}
-    <Navigate to="{link}" styles="link row" on:click>
+    <a href="{link}" class="link row" on:click>
       <div class="icon">
         <i class="{icon}"></i>
       </div>
       <slot/>
-    </Navigate>
+    </a>
   {:else}
     <a class="link row" on:click>
       <div class="icon">
@@ -17,10 +17,8 @@
 </div>
 
 <script>
-    export let icon;
-    export let link;
-
-    import {Navigate} from 'svelte-router-spa'
+  export let icon;
+  export let link;
 </script>
 
 <style>

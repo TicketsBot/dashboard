@@ -53,10 +53,6 @@
                 selectedRaw = selectedRaw.panel_id;
             }
         }
-
-
-        console.log(selectedRaw)
-        console.log(selected)
     }
 
     onMount(() => {
