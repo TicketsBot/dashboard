@@ -53,7 +53,7 @@ func GetTranscriptRenderHandler(ctx *gin.Context) {
 	}
 
 	// retrieve ticket messages from bucket
-	messages, err := utils.ArchiverClient.Get(guildId, ticketId)
+	transcript, err := utils.ArchiverClient.Get(guildId, ticketId)
 	if err != nil {
 		if errors.Is(err, archiverclient.ErrExpired) {
 			ctx.JSON(404, utils.ErrorStr("Transcript not found"))
@@ -65,12 +65,12 @@ func GetTranscriptRenderHandler(ctx *gin.Context) {
 	}
 
 	// Render
-	payload := chatreplica.FromArchiveMessages(messages, ticketId)
+	payload := chatreplica.FromTranscript(transcript, ticketId)
 	html, err := chatreplica.Render(payload)
 	if err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	ctx.Data(200, "text/html", html)
 }

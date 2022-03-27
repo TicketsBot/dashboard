@@ -39,8 +39,8 @@ func main() {
 		Dsn:              config.Conf.SentryDsn,
 		Debug:            config.Conf.Debug,
 		AttachStacktrace: true,
-
 	}
+
 	if err := sentry.Init(sentryOpts); err != nil {
 		fmt.Printf("Error initialising sentry: %s", err.Error())
 	}

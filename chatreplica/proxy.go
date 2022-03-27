@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
+	"github.com/getsentry/sentry-go"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -20,25 +21,33 @@ var client = &http.Client{
 func Render(payload Payload) ([]byte, error) {
 	encoded, err := json.Marshal(payload)
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	res, err := client.Post(config.Conf.Bot.RenderServiceUrl, "application/json", bytes.NewBuffer(encoded))
 	if err != nil {
-        return nil, err
-    }
-
-	fmt.Println(string(encoded))
+		return nil, err
+	}
 
 	if res.StatusCode != 200 {
-        return nil, fmt.Errorf("render service returned status code %d", res.StatusCode)
-    }
+		fmt.Println(string(encoded))
+
+		sentry.CaptureEvent(&sentry.Event{
+			Extra: map[string]interface{}{
+				"request_body": string(encoded),
+			},
+			Level:   sentry.LevelError,
+			Message: fmt.Sprintf("Render service returned status code %d", res.StatusCode),
+		})
+
+		return nil, fmt.Errorf("render service returned status code %d", res.StatusCode)
+	}
 
 	bytes, err := ioutil.ReadAll(res.Body)
 	defer res.Body.Close()
 	if err != nil {
-        return nil, err
-    }
+		return nil, err
+	}
 
 	return bytes, nil
 }

@@ -1,10 +1,12 @@
 package chatreplica
 
 import (
+	v2 "github.com/TicketsBot/logarchiver/model/v2"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/channel/message"
 	"github.com/rxdn/gdl/objects/user"
+	"strconv"
 )
 
 type (
@@ -54,6 +56,68 @@ const (
 	BadgeBot Badge = "bot"
 )
 
+// TODO: Use a generic ptr func
 func badgePtr(b Badge) *Badge {
-    return &b
+	return &b
+}
+
+func MessagesFromTranscript(messages []v2.Message) []Message {
+	// Can't assign length as we might filter
+	var wrappedMessages []Message
+
+	for _, msg := range messages {
+		if msg.Content == "" && len(msg.Embeds) == 0 && len(msg.Attachments) == 0 {
+			continue
+		}
+
+		wrappedMessages = append(wrappedMessages, Message{
+			Id:          msg.Id,
+			Type:        message.MessageTypeDefault,
+			Author:      msg.AuthorId,
+			Time:        msg.Timestamp.UnixMilli(),
+			Content:     msg.Content,
+			Embeds:      msg.Embeds,
+			Attachments: msg.Attachments,
+		})
+	}
+
+	return wrappedMessages
+}
+
+func EntitiesFromTranscript(entities v2.Entities) Entities {
+	users := make(map[string]User)
+	for _, user := range entities.Users {
+		var badge *Badge
+		if user.Bot {
+			badge = badgePtr(BadgeBot)
+		}
+
+		users[strconv.FormatUint(user.Id, 10)] = User{
+			Avatar:        user.AvatarUrl(256),
+			Username:      user.Username,
+			Discriminator: user.Discriminator,
+			Badge:         badge,
+		}
+	}
+
+	channels := make(map[string]Channel)
+	for _, channel := range entities.Channels {
+		channels[strconv.FormatUint(channel.Id, 10)] = Channel{
+			Name: channel.Name,
+		}
+	}
+
+	roles := make(map[string]Role)
+	for _, role := range entities.Roles {
+		roles[strconv.FormatUint(role.Id, 10)] = Role{
+			Name:  role.Name,
+			Color: int(role.Colour),
+		}
+	}
+
+	return Entities{
+		Users:    users,
+		Channels: channels,
+		Roles:    roles,
+	}
 }

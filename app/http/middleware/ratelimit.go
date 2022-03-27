@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis_rate/v9"
 	"hash/fnv"
@@ -38,7 +39,7 @@ func CreateRateLimiter(rlType RateLimitType, max int, period time.Duration) gin.
 		res, err := limiter.Allow(redis.DefaultContext(), name, limit)
 		if err != nil {
 			ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-			Logging(ctx)
+			Logging(sentry.LevelError)(ctx)
 			return
 		}
 
@@ -59,7 +60,7 @@ func CreateRateLimiter(rlType RateLimitType, max int, period time.Duration) gin.
 
 		if res.Allowed <= 0 {
 			ctx.AbortWithStatusJSON(429, utils.ErrorStr("You are being ratelimited"))
-			Logging(ctx)
+			Logging(sentry.LevelWarning)(ctx)
 			return
 		}
 
