@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: golang:1.14-alpine
+      - image: golang:1.18-alpine
     working_directory: /go/src/github.com/TicketsBot/GoPanel
 
     steps:

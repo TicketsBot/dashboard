@@ -23,6 +23,8 @@ github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 h1:NHD5GB6cj
 github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261/go.mod h1:2zPxDAN2TAPpxUPjxszjs3QFKreKrQh5al/R3cMXmYk=
 github.com/TicketsBot/worker v0.0.0-20220318232743-c143004d6762 h1:T3xT2PK3S8IigEZq0wOiJINjjr5IvsGLjqdz7uR8prs=
 github.com/TicketsBot/worker v0.0.0-20220318232743-c143004d6762/go.mod h1:Mp4vh8v5D7KzM7s0Hq+h1/c+/kT5HOXyqjaud/ThAMk=
+github.com/TicketsBot/worker v0.0.0-20220327032856-8a200fd3461d h1:+5HW2x0VO3LidPMvvE2d0/fF5tlIbC1DO7YzuBif0FQ=
+github.com/TicketsBot/worker v0.0.0-20220327032856-8a200fd3461d/go.mod h1:ljMAQMiB5Gf3jgI9EGugAPAErjh2Ykwx3toD8z33KGY=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/apex/log v1.1.2 h1:bnDuVoi+o98wOdVqfEzNDlY0tcmBia7r4YkjS9EqGYk=
 github.com/apex/log v1.1.2/go.mod h1:SyfRweFO+TlkIJ3DVizTSeI1xk7jOIIqOnUPZQTTsww=
