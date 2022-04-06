@@ -148,8 +148,8 @@ func (d *multiPanelCreateData) validateTitle() (err error) {
 }
 
 func (d *multiPanelCreateData) validateContent() (err error) {
-	if len(d.Content) > 1024 {
-		err = errors.New("Embed content must be between 1 and 1024 characters")
+	if len(d.Content) > 4096 {
+		err = errors.New("Embed content must be between 1 and 4096 characters")
 	} else if len(d.Content) == 0 { // Fill default
 		d.Content = "Click on the button corresponding to the type of ticket you wish to open"
 	}

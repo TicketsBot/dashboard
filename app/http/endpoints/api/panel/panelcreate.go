@@ -254,7 +254,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	if !p.verifyContent() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
-			"error":   "Panel content must be between 1 - 1024 characters in length",
+			"error":   "Panel content must be between 1 - 4096 characters in length",
 		})
 		return false
 	}
@@ -291,7 +291,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	if !p.verifyWelcomeMessage() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
-			"error":   "Welcome message must be null or between 1 - 1024 characters",
+			"error":   "Welcome message must be blank or between 1 - 4096 characters",
 		})
 		return false
 	}
@@ -339,7 +339,7 @@ func (p *panelBody) verifyTitle() bool {
 }
 
 func (p *panelBody) verifyContent() bool {
-	if len(p.Content) > 1024 {
+	if len(p.Content) > 4096 {
 		return false
 	} else if len(p.Content) == 0 { // Fill default
 		p.Content = "By clicking the button, a ticket will be opened for you."
@@ -381,7 +381,7 @@ func (p *panelBody) verifyCategory(channels []channel.Channel) bool {
 }
 
 func (p *panelBody) verifyWelcomeMessage() bool {
-	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) < 1025)
+	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) <= 4096)
 }
 
 func (p *panelBody) verifyImageUrl() bool {
