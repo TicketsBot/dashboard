@@ -8,7 +8,7 @@ require (
 	github.com/TicketsBot/common v0.0.0-20220311020409-8068ba1c2ea3
 	github.com/TicketsBot/database v0.0.0-20220217133004-d190910ad66f
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20220327033131-a7330f793044
+	github.com/TicketsBot/worker v0.0.0-20220411233045-a69c2a4c8b30
 	github.com/apex/log v1.1.2
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/getsentry/sentry-go v0.13.0

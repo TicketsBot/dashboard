@@ -19,10 +19,10 @@ github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c h1:OqGjFH6m
 github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c/go.mod h1:jgi2OXQKsd5nUnTIRkwvPmeuD/i7OhN68LKMssuQY1c=
 github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 h1:NHD5GB6cjlkpZFjC76Yli2S63/J2nhr8MuE6KlYJpQM=
 github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261/go.mod h1:2zPxDAN2TAPpxUPjxszjs3QFKreKrQh5al/R3cMXmYk=
-github.com/TicketsBot/worker v0.0.0-20220327032856-8a200fd3461d h1:+5HW2x0VO3LidPMvvE2d0/fF5tlIbC1DO7YzuBif0FQ=
-github.com/TicketsBot/worker v0.0.0-20220327032856-8a200fd3461d/go.mod h1:ljMAQMiB5Gf3jgI9EGugAPAErjh2Ykwx3toD8z33KGY=
 github.com/TicketsBot/worker v0.0.0-20220327033131-a7330f793044 h1:6yIgtfOJ9xjeZBgzXJT3B59NUcv75Kq0WDvfGhxW1HE=
 github.com/TicketsBot/worker v0.0.0-20220327033131-a7330f793044/go.mod h1:ljMAQMiB5Gf3jgI9EGugAPAErjh2Ykwx3toD8z33KGY=
+github.com/TicketsBot/worker v0.0.0-20220411233045-a69c2a4c8b30 h1:gfW/cIeA1DyH53q96Jqq+gqdIsuzIYYGHljwbHrChWY=
+github.com/TicketsBot/worker v0.0.0-20220411233045-a69c2a4c8b30/go.mod h1:ljMAQMiB5Gf3jgI9EGugAPAErjh2Ykwx3toD8z33KGY=
 github.com/ajg/form v1.5.1/go.mod h1:uL1WgH+h2mgNtvBq0339dVnzXdBETtL2LeUXaIv25UY=
 github.com/apex/log v1.1.2 h1:bnDuVoi+o98wOdVqfEzNDlY0tcmBia7r4YkjS9EqGYk=
 github.com/apex/log v1.1.2/go.mod h1:SyfRweFO+TlkIJ3DVizTSeI1xk7jOIIqOnUPZQTTsww=
