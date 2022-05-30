@@ -120,7 +120,7 @@ func (s *Settings) Validate(guildId uint64) error {
 	})
 
 	group.Go(func() error {
-        if s.Settings.OverflowCategoryId != nil {
+		if s.Settings.OverflowCategoryId != nil {
 			ch, ok := cache.Instance.GetChannel(*s.Settings.OverflowCategoryId)
 			if !ok {
 				return fmt.Errorf("Invalid overflow category")
@@ -133,10 +133,10 @@ func (s *Settings) Validate(guildId uint64) error {
 			if ch.Type != channel.ChannelTypeGuildCategory {
 				return fmt.Errorf("Overflow category is not a category")
 			}
-        }
+		}
 
 		return nil
-    })
+	})
 
 	return group.Wait()
 }
@@ -191,7 +191,7 @@ func (s *Settings) updatePrefix(guildId uint64) bool {
 }
 
 func (s *Settings) updateWelcomeMessage(guildId uint64) bool {
-	if s.WelcomeMessaage == "" || len(s.WelcomeMessaage) > 1000 {
+	if s.WelcomeMessaage == "" || len(s.WelcomeMessaage) > 4096 {
 		return false
 	}
 
