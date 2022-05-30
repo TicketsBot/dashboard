@@ -48,9 +48,20 @@ func CloseTicket(ctx *gin.Context) {
 	// Verify the ticket exists
 	if ticket.UserId == 0 {
 		ctx.AbortWithStatusJSON(404, gin.H{
-			"success": true,
+			"success": false,
 			"error":   "Ticket does not exist",
 		})
+		return
+	}
+
+	hasPermission, err := utils.HasPermissionToViewTicket(guildId, userId, ticket)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if !hasPermission {
+		ctx.JSON(403, utils.ErrorStr("You do not have permission to close this ticket"))
 		return
 	}
 
