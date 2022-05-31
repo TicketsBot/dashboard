@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -8,7 +9,6 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -91,11 +91,6 @@ func WhitelabelPost(ctx *gin.Context) {
 	})
 }
 
-const (
-	unixTimestamp2015 = 1420070400
-	tokenEpoch        = 1293840000
-)
-
 func validateToken(token string) bool {
 	// Check for 2 dots
 	if strings.Count(token, ".") != 2 {
@@ -105,26 +100,18 @@ func validateToken(token string) bool {
 	split := strings.Split(token, ".")
 
 	// Validate bot ID
+	// TODO: We could check the date on the snowflake
 	if _, err := strconv.ParseUint(utils.Base64Decode(split[0]), 10, 64); err != nil {
 		return false
 	}
 
-	// TODO: We could check the date on the snowflake
-
 	// Validate time
-	timestamp, err := strconv.ParseUint(utils.Base64Decode(split[1]), 10, 64)
+	timestamp, err := base64.RawURLEncoding.DecodeString(split[1])
 	if err != nil {
 		return false
 	}
 
-	// Check timestamp correction won't overflow
-	if timestamp > math.MaxUint64-tokenEpoch {
-		return false
-	}
-
-	// Correct timestamp and check if it is before 2015
-	timestamp += tokenEpoch
-	if timestamp < unixTimestamp2015 {
+	if len(timestamp) != 4 {
 		return false
 	}
 
