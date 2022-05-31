@@ -13,6 +13,7 @@ type inputCreateBody struct {
 	Style       component.TextStyleTypes `json:"style"`
 	Label       string                   `json:"label"`
 	Placeholder *string                  `json:"placeholder"`
+	Optional    bool                     `json:"optional"`
 }
 
 func CreateInput(ctx *gin.Context) {
@@ -69,11 +70,11 @@ func CreateInput(ctx *gin.Context) {
 	// 2^30 chance of collision
 	customId := utils.RandString(30)
 
-	formInputId, err := dbclient.Client.FormInput.Create(formId, customId, uint8(data.Style), data.Label, data.Placeholder)
+	formInputId, err := dbclient.Client.FormInput.Create(formId, customId, uint8(data.Style), data.Label, data.Placeholder, !data.Optional)
 	if err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	ctx.JSON(200, database.FormInput{
 		Id:          formInputId,
@@ -82,13 +83,14 @@ func CreateInput(ctx *gin.Context) {
 		Style:       uint8(data.Style),
 		Label:       data.Label,
 		Placeholder: data.Placeholder,
+		Required:    !data.Optional,
 	})
 }
 
 func (b *inputCreateBody) Validate(ctx *gin.Context) bool {
 	if b.Style != component.TextStyleShort && b.Style != component.TextStyleParagraph {
 		ctx.JSON(400, utils.ErrorStr("Invalid style"))
-        return false
+		return false
 	}
 
 	if len(b.Label) == 0 || len(b.Label) > 45 {
@@ -115,5 +117,5 @@ func getFormInputCount(formId int) (int, error) {
 		return 0, err
 	}
 
-    return len(inputs), nil
+	return len(inputs), nil
 }

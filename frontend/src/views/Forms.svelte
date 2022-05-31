@@ -146,6 +146,7 @@
 
   async function editInput(formId, inputId, data) {
     let mapped = {...data, style: parseInt(data.style)};
+    console.log(mapped);
 
     const res = await axios.patch(`${API_URL}/api/${guildId}/forms/${formId}/${inputId}`, mapped);
     if (res.status !== 200) {
@@ -183,6 +184,11 @@
     }
 
     forms = res.data || [];
+    forms.flatMap(f => f.inputs).forEach(i => i.optional = !i.required);
+
+    if (forms.length > 0) {
+      activeFormId = forms[0].form_id;
+    }
   }
 
   withLoadingScreen(async () => {

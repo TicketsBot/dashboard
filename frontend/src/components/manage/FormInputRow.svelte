@@ -19,12 +19,19 @@
     </div>
   </div>
   <div class="row settings-row">
-    <Textarea col3_4={true} label="Placeholder" bind:value={data.placeholder}
+    <Textarea col3_4={true} label="Placeholder" bind:value={data.placeholder} minHeight="120px"
            placeholder="Placeholder text for the field, just like this text" />
-    <Dropdown col4={true} label="Style" bind:value={data.style}>
-      <option value=1 selected>Short</option>
-      <option value=2>Paragraph</option>
-    </Dropdown>
+    <div class="col-4">
+      <div class="row">
+        <Dropdown col1={true} label="Style" bind:value={data.style}>
+          <option value=1 selected>Short</option>
+          <option value=2>Paragraph</option>
+        </Dropdown>
+      </div>
+      <div class="row">
+        <Checkbox label="Optional" bind:value={data.optional}/>
+      </div>
+    </div>
   </div>
 
   {#if windowWidth <= 950}
@@ -59,6 +66,7 @@
   import Dropdown from "../form/Dropdown.svelte";
   import Button from "../Button.svelte";
   import Textarea from "../form/Textarea.svelte";
+  import Checkbox from "../form/Checkbox.svelte";
 
   export let withCreateButton = false;
   export let withSaveButton = false;
