@@ -1,6 +1,6 @@
 module github.com/TicketsBot/GoPanel
 
-go 1.14
+go 1.18
 
 require (
 	github.com/BurntSushi/toml v0.3.1

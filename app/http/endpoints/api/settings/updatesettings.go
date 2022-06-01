@@ -5,6 +5,7 @@ import (
 	"fmt"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
@@ -27,7 +28,11 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	channels := cache.Instance.GetGuildChannels(guildId)
 
 	// TODO: Errors
-	err := settings.updateSettings(guildId)
+	var errStr *string = nil
+	if e := settings.updateSettings(guildId); e != nil {
+		errStr = utils.Ptr(e.Error())
+	}
+
 	validPrefix := settings.updatePrefix(guildId)
 	validWelcomeMessage := settings.updateWelcomeMessage(guildId)
 	validTicketLimit := settings.updateTicketLimit(guildId)
@@ -46,7 +51,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		"archive_channel": validArchiveChannel,
 		"category":        validCategory,
 		"naming_scheme":   validNamingScheme,
-		"error":           err,
+		"error":           errStr,
 	})
 }
 
