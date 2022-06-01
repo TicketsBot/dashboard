@@ -151,6 +151,11 @@
     function showValidations(data) {
         let success = true;
 
+        if (data.error !== null) {
+          success = false;
+          notify("Warning", data.error);
+        }
+
         if (!data.prefix) {
             success = false;
             notify("Warning", "Your prefix has not been saved.\nPrefixes must be between 1 - 8 characters in length.")
@@ -212,6 +217,10 @@
           data.overflow_category_id = "-1";
         } else if (data.overflow_enabled === true) {
           if (data.overflow_category_id === null) {
+            data.overflow_category_id = "-2";
+          }
+
+          if (!channels.some((c) => c.id === data.overflow_category_id)) {
             data.overflow_category_id = "-2";
           }
         }
