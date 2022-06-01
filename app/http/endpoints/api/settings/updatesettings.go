@@ -2,16 +2,12 @@ package api
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
-	"github.com/rxdn/gdl/objects/interaction"
-	"github.com/rxdn/gdl/rest"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -59,17 +55,7 @@ func (s *Settings) updateSettings(guildId uint64) error {
 		return err
 	}
 
-	group, _ := errgroup.WithContext(context.Background())
-
-	group.Go(func() error {
-		return dbclient.Client.Settings.Set(guildId, s.Settings)
-	})
-
-	group.Go(func() error {
-		return setOpenCommandPermissions(guildId, s.DisableOpenCommand)
-	})
-
-	return group.Wait()
+	return dbclient.Client.Settings.Set(guildId, s.Settings)
 }
 
 var validAutoArchive = []int{60, 1440, 4320, 10080}
@@ -141,46 +127,6 @@ func (s *Settings) Validate(guildId uint64) error {
 	return group.Wait()
 }
 
-func setOpenCommandPermissions(guildId uint64, disabled bool) error {
-	ctx, err := botcontext.ContextForGuild(guildId)
-	if err != nil {
-		return err
-	}
-
-	commands, err := rest.GetGlobalCommands(ctx.Token, ctx.RateLimiter, ctx.BotId)
-	if err != nil {
-		return err
-	}
-
-	var commandId uint64
-	for _, cmd := range commands {
-		if cmd.Name == "open" {
-			commandId = cmd.Id
-			break
-		}
-	}
-
-	if commandId == 0 {
-		return errors.New("open command not found")
-	}
-
-	data := rest.CommandWithPermissionsData{
-		Id:            commandId,
-		ApplicationId: ctx.BotId,
-		GuildId:       guildId,
-		Permissions: []interaction.ApplicationCommandPermissions{
-			{
-				Id:         guildId,
-				Type:       interaction.ApplicationCommandPermissionTypeRole,
-				Permission: !disabled,
-			},
-		},
-	}
-
-	_, err = rest.EditCommandPermissions(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, commandId, data)
-	return err
-}
-
 func (s *Settings) updatePrefix(guildId uint64) bool {
 	if s.Prefix == "" || len(s.Prefix) > 8 {
 		return false
@@ -191,11 +137,11 @@ func (s *Settings) updatePrefix(guildId uint64) bool {
 }
 
 func (s *Settings) updateWelcomeMessage(guildId uint64) bool {
-	if s.WelcomeMessaage == "" || len(s.WelcomeMessaage) > 4096 {
+	if s.WelcomeMessage == "" || len(s.WelcomeMessage) > 4096 {
 		return false
 	}
 
-	go dbclient.Client.WelcomeMessages.Set(guildId, s.WelcomeMessaage)
+	go dbclient.Client.WelcomeMessages.Set(guildId, s.WelcomeMessage)
 	return true
 }
 

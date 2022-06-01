@@ -11,7 +11,7 @@ import (
 type Settings struct {
 	database.Settings
 	Prefix            string                `json:"prefix"`
-	WelcomeMessaage   string                `json:"welcome_message"`
+	WelcomeMessage    string                `json:"welcome_message"`
 	TicketLimit       uint8                 `json:"ticket_limit"`
 	Category          uint64                `json:"category,string"`
 	ArchiveChannel    *uint64               `json:"archive_channel,string"`
@@ -46,9 +46,9 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// welcome message
 	group.Go(func() (err error) {
-		settings.WelcomeMessaage, err = dbclient.Client.WelcomeMessages.Get(guildId)
-		if err == nil && settings.WelcomeMessaage == "" {
-			settings.WelcomeMessaage = "Thank you for contacting support.\nPlease describe your issue and await a response."
+		settings.WelcomeMessage, err = dbclient.Client.WelcomeMessages.Get(guildId)
+		if err == nil && settings.WelcomeMessage == "" {
+			settings.WelcomeMessage = "Thank you for contacting support.\nPlease describe your issue and await a response."
 		}
 
 		return
