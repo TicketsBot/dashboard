@@ -33,13 +33,11 @@
     import NavElement from "../components/NavElement.svelte";
 
     function dropdownNav() {
-      console.log(dropdown);
-        dropdown.update(v => !v);
+      dropdown.update(v => !v);
     }
 
     function closeDropdown() {
-      console.log('cum');
-        dropdown.set(false);
+       dropdown.set(false);
     }
 </script>
 

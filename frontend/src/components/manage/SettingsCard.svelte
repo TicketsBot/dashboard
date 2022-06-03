@@ -272,7 +272,7 @@
         }
     }
 
-    :global(.col-1) {
+    :global(.col-1, .col-1-force) {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -280,7 +280,7 @@
         height: 100%;
     }
 
-    :global(.col-2) {
+    :global(.col-2, .col-2-force) {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -288,7 +288,7 @@
         height: 100%;
     }
 
-    :global(.col-3) {
+    :global(.col-3, .col-3-force) {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
@@ -296,7 +296,7 @@
         height: 100%;
     }
 
-    :global(.col-4) {
+    :global(.col-4, .col-4-force) {
         display: flex;
         flex-direction: column;
         align-items: flex-start;

@@ -202,10 +202,7 @@
         [inputs[idx+1], inputs[idx]] = [form.inputs[idx], form.inputs[idx+1]]
       }
 
-      console.log(getForm(formId).inputs)
-
       forms = forms;
-      //await loadForms();
     }
   }
 

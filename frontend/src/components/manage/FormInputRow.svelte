@@ -47,29 +47,41 @@
   </div>
 
   {#if windowWidth <= 950}
-    <div class="row">
+    <div class="col-1">
       {#if withDirectionButtons}
-        <div class="col-2">
-          <form on:submit|preventDefault={() => forwardMove("down")} class="button-form">
-            <Button icon="fas fa-chevron-down" disabled={index >= formLength - 1} />
-          </form>
+        <div class="row">
+          <div class="col-2-force">
+            <form on:submit|preventDefault={() => forwardMove("down")} class="button-form">
+              <Button fullWidth={true} disabled={index >= formLength - 1}>
+                <i class="fas fa-chevron-down"></i>
+              </Button>
+            </form>
+          </div>
+          <div class="col-2-force">
+            <form on:submit|preventDefault={() => forwardMove("up")} class="button-form">
+              <Button fullWidth={true} disabled={index === 0}>
+                <i class="fas fa-chevron-up"></i>
+              </Button>
+            </form>
+          </div>
         </div>
-        <div class="col-2">
-          <form on:submit|preventDefault={() => forwardMove("up")} class="button-form">
-            <Button icon="fas fa-chevron-up" disabled={index === 0} />
-          </form>
+      {/if}
+      <div class="row">
+        <div class="col-2-force">
+          {#if withSaveButton}
+            <form on:submit|preventDefault={forwardSave} class="button-form">
+              <Button icon="fas fa-save">Save</Button>
+            </form>
+          {/if}
         </div>
-      {/if}
-      {#if withSaveButton}
-        <form on:submit|preventDefault={forwardSave} class="button-form">
-          <Button icon="fas fa-save">Save</Button>
-        </form>
-      {/if}
-      {#if withDeleteButton}
-        <form on:submit|preventDefault={forwardDelete} class="button-form">
-          <Button icon="fas fa-trash" danger={true}>Delete</Button>
-        </form>
-      {/if}
+        <div class="col-2-force">
+          {#if withDeleteButton}
+            <form on:submit|preventDefault={forwardDelete} class="button-form">
+              <Button icon="fas fa-trash" danger={true}>Delete</Button>
+            </form>
+          {/if}
+        </div>
+      </div>
     </div>
   {/if}
 
@@ -155,12 +167,12 @@
     }
 
     @media only screen and (max-width: 950px) {
-        .row {
-            flex-direction: column;
-        }
-
         .settings-row {
             flex-direction: column-reverse !important;
+        }
+
+        .button-form {
+            width: 100%;
         }
     }
 </style>
