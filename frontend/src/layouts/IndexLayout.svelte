@@ -1,8 +1,7 @@
 <Head/>
 
 <div class="wrapper">
-  <Sidebar referralShow=true referralLink="https://www.digitalocean.com?refcode=371f56712ea4" name="{name}"
-           avatar="{avatar}"/>
+  <Sidebar name="{name}" avatar="{avatar}"/>
   <div class="super-container">
     <LoadingScreen/>
     <NotifyModal/>

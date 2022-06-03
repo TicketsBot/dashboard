@@ -1,11 +1,7 @@
 <script>
-    export let referralShow;
-    export let referralLink;
-
-    export let name;
-
     import {Navigate} from 'svelte-router-spa'
 
+    export let name;
     export let avatar;
 </script>
 
@@ -24,14 +20,6 @@
           <span class="sidebar-text">Whitelabel</span>
         </div>
       </Navigate>
-
-      {#if referralShow}
-        <div class="sidebar-element ref">
-          <a class="ref-wrapper" href="{referralLink}">
-            <img src="/assets/img/custom.png" id="custom-image" alt="Ref Logo"/>
-          </a>
-        </div>
-      {/if}
     </div>
   </div>
   <div class="sidebar-container">
