@@ -40,10 +40,15 @@
 
           <div class="manage">
             {#if activeFormId !== null}
-              {#each forms.find(form => form.form_id === activeFormId).inputs as input}
-                <FormInputRow data={input} formId={activeFormId} withSaveButton={true} withDeleteButton={true}
-                              on:save={(e) => editInput(activeFormId, input.id, e.detail)}
-                              on:delete={() => deleteInput(activeFormId, input.id)}/>
+              {#each forms.find(form => form.form_id === activeFormId).inputs as input, i (input)}
+                <div animate:flip="{{duration: 500}}">
+                  <FormInputRow data={input} formId={activeFormId}
+                                withSaveButton={true} withDeleteButton={true} withDirectionButtons={true}
+                                index={i} {formLength}
+                                on:save={(e) => editInput(activeFormId, input.id, e.detail)}
+                                on:delete={() => deleteInput(activeFormId, input.id)}
+                                on:move={(e) => changePosition(activeFormId, input.id, e.detail.direction)} />
+                </div>
               {/each}
             {/if}
 
@@ -70,6 +75,7 @@
   import Input from "../components/form/Input.svelte";
   import Dropdown from "../components/form/Dropdown.svelte";
   import FormInputRow from "../components/manage/FormInputRow.svelte";
+  import { flip } from "svelte/animate";
 
   export let currentRoute;
   let guildId = currentRoute.namedParams.id;
@@ -81,6 +87,8 @@
   let activeFormId = null;
   $: activeFormTitle = activeFormId !== null ? forms.find(f => f.form_id === activeFormId).title : 'Unknown';
   let inputCreationData = {};
+
+  $: formLength = activeFormId !== null ? forms.find(f => f.form_id === activeFormId).inputs.length : 0;
 
   $: windowWidth = 0;
 
@@ -146,7 +154,6 @@
 
   async function editInput(formId, inputId, data) {
     let mapped = {...data, style: parseInt(data.style)};
-    console.log(mapped);
 
     const res = await axios.patch(`${API_URL}/api/${guildId}/forms/${formId}/${inputId}`, mapped);
     if (res.status !== 200) {
@@ -174,6 +181,32 @@
     forms = forms;
 
     notifySuccess('Form input deleted successfully');
+  }
+
+  async function changePosition(formId, inputId, direction) {
+    const res = await axios.patch(`${API_URL}/api/${guildId}/forms/${formId}/${inputId}/${direction}`);
+    if (res.status !== 200) {
+      notifyError(res.data.error);
+      return;
+    }
+
+    if (res.data.success) {
+      //let form = getForm(formId);
+      let form = forms.find(form => form.form_id === activeFormId);
+      let idx = form.inputs.findIndex((input) => input.id === inputId);
+
+      let inputs = form.inputs;
+      if (direction === "up") {
+        [inputs[idx-1], inputs[idx]] = [inputs[idx], inputs[idx-1]]
+      } else if (direction === "down") {
+        [inputs[idx+1], inputs[idx]] = [form.inputs[idx], form.inputs[idx+1]]
+      }
+
+      console.log(getForm(formId).inputs)
+
+      forms = forms;
+      //await loadForms();
+    }
   }
 
   async function loadForms() {

@@ -110,6 +110,7 @@ func StartServer() {
 		guildAuthApiAdmin.DELETE("/forms/:form_id", api_forms.DeleteForm)
 		guildAuthApiAdmin.POST("/forms/:form_id", api_forms.CreateInput)
 		guildAuthApiAdmin.PATCH("/forms/:form_id/:input_id", api_forms.UpdateInput)
+		guildAuthApiAdmin.PATCH("/forms/:form_id/:input_id/:direction", api_forms.SwapInput)
 		guildAuthApiAdmin.DELETE("/forms/:form_id/:input_id", api_forms.DeleteInput)
 
 		// Should be a GET, but easier to take a body for development purposes

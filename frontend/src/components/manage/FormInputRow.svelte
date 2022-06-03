@@ -1,10 +1,22 @@
 <form on:submit|preventDefault={forwardCreate} class="input-form">
   <div class="row">
     <div class="sub-row" style="flex: 1">
-      <Input col4={true} label="Label" bind:value={data.label} placeholder="Name of the field" />
+      <Input col3={true} label="Label" bind:value={data.label} placeholder="Name of the field" />
     </div>
     <div class="sub-row buttons-row">
       {#if windowWidth > 950}
+        {#if withDirectionButtons}
+          <form on:submit|preventDefault={() => forwardMove("down")} class="button-form">
+            <Button disabled={index >= formLength - 1}>
+              <i class="fas fa-chevron-down"></i>
+            </Button>
+          </form>
+          <form on:submit|preventDefault={() => forwardMove("up")} class="button-form">
+            <Button disabled={index === 0}>
+              <i class="fas fa-chevron-up"></i>
+            </Button>
+          </form>
+        {/if}
         {#if withSaveButton}
           <form on:submit|preventDefault={forwardSave} class="button-form">
             <Button icon="fas fa-save">Save</Button>
@@ -36,6 +48,18 @@
 
   {#if windowWidth <= 950}
     <div class="row">
+      {#if withDirectionButtons}
+        <div class="col-2">
+          <form on:submit|preventDefault={() => forwardMove("down")} class="button-form">
+            <Button icon="fas fa-chevron-down" disabled={index >= formLength - 1} />
+          </form>
+        </div>
+        <div class="col-2">
+          <form on:submit|preventDefault={() => forwardMove("up")} class="button-form">
+            <Button icon="fas fa-chevron-up" disabled={index === 0} />
+          </form>
+        </div>
+      {/if}
       {#if withSaveButton}
         <form on:submit|preventDefault={forwardSave} class="button-form">
           <Button icon="fas fa-save">Save</Button>
@@ -71,6 +95,10 @@
   export let withCreateButton = false;
   export let withSaveButton = false;
   export let withDeleteButton = false;
+  export let withDirectionButtons = false;
+
+  export let index;
+  export let formLength;
 
   export let data = {};
 
@@ -86,6 +114,10 @@
 
   function forwardDelete() {
     dispatch('delete', {});
+  }
+
+  function forwardMove(direction) {
+    dispatch('move', {direction: direction});
   }
 </script>
 
@@ -118,7 +150,7 @@
         padding-bottom: 0.5em;
     }
 
-    .buttons-row > form:first-of-type {
+    .buttons-row > :not(:last-child) {
         margin-right: 10px;
     }
 
