@@ -3,6 +3,8 @@
 
     export let name;
     export let avatar;
+
+    export let isWhitelabel = false;
 </script>
 
 <div class="sidebar">
@@ -14,12 +16,21 @@
           <span class="sidebar-text">Servers</span>
         </div>
       </Navigate>
-      <Navigate to="/whitelabel" styles="sidebar-link">
-        <div class="sidebar-element">
-          <i class="fas fa-edit sidebar-icon"></i>
-          <span class="sidebar-text">Whitelabel</span>
-        </div>
-      </Navigate>
+      {#if isWhitelabel}
+        <Navigate to="/whitelabel" styles="sidebar-link">
+          <div class="sidebar-element">
+            <i class="fas fa-edit sidebar-icon"></i>
+            <span class="sidebar-text">Whitelabel</span>
+          </div>
+        </Navigate>
+      {:else}
+        <a href="https://ticketsbot.net/premium" class="sidebar-link">
+          <div class="sidebar-element">
+            <i class="fas fa-edit sidebar-icon"></i>
+            <span class="sidebar-text">Whitelabel</span>
+          </div>
+        </a>
+      {/if}
     </div>
   </div>
   <div class="sidebar-container">
@@ -57,6 +68,10 @@
         margin-bottom: 2%;
     }
 
+    .inner {
+        width: 100%;
+    }
+
     .sidebar-element {
         display: flex;
         align-items: center;
@@ -75,6 +90,9 @@
         max-width: 90%;
     }
 
+    /*
+     * Need global for Navigate link styling
+     */
     :global(.sidebar-link) {
         display: flex;
         align-items: center;
@@ -122,6 +140,8 @@
 
             height: unset;
             min-width: unset;
+
+            overflow: visible !important;
         }
 
         .ref {
@@ -132,21 +152,18 @@
             margin-bottom: unset;
         }
 
+        .inner {
+            display: flex;
+        }
+
         .sidebar-element {
             width: unset;
             padding: 20px 15px;
         }
 
-        .sidebar-link {
+        :global(.sidebar-link) {
             width: unset;
-            margin-left: unset;
-        }
-
-        .inner {
-            display: flex;
-            flex-direction: row;
-            width: 100%;
-            height: 100%;
+            margin-left: 0 !important;
         }
 
         .user-element {

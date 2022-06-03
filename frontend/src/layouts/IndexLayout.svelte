@@ -1,7 +1,7 @@
 <Head/>
 
 <div class="wrapper">
-  <Sidebar name="{name}" avatar="{avatar}"/>
+  <Sidebar name="{name}" avatar="{avatar}" {isWhitelabel} />
   <div class="super-container">
     <LoadingScreen/>
     <NotifyModal/>
@@ -31,6 +31,8 @@
     let name;
     let avatar;
 
+    let isWhitelabel = false;
+
     async function loadData() {
         const res = await axios.get(`${API_URL}/api/session`);
         if (res.status !== 200) {
@@ -44,6 +46,7 @@
 
         name = res.data.username;
         avatar = res.data.avatar;
+        isWhitelabel = res.data.whitelabel;
     }
 
     loadData();

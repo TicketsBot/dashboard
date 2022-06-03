@@ -14,7 +14,7 @@ func UserHandler(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
-			"error": "Invalid user ID",
+			"error":   "Invalid user ID",
 		})
 		return
 	}
@@ -23,13 +23,13 @@ func UserHandler(ctx *gin.Context) {
 	if err := cache.Instance.QueryRow(context.Background(), `SELECT "data"->>'Username' FROM users WHERE users.user_id=$1 AND EXISTS(SELECT FROM members WHERE members.guild_id=$2);`, userId, guildId).Scan(&username); err != nil {
 		ctx.JSON(404, gin.H{
 			"success": false,
-			"error": "Not found",
+			"error":   "Not found",
 		})
 		return
 	}
 
 	ctx.JSON(200, gin.H{
-		"user_id": userId,
+		"user_id":  userId,
 		"guild_id": guildId,
 		"username": username,
 	})
