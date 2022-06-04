@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/TicketsBot/GoPanel/app/http/session"
+	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
@@ -32,9 +33,17 @@ func SessionHandler(ctx *gin.Context) {
 		return
 	}
 
+	var whitelabelOverride bool
+	for _, id := range config.Conf.ForceWhitelabel {
+		if id == userId {
+			whitelabelOverride = true
+			break
+		}
+	}
+
 	ctx.JSON(200, gin.H{
 		"username":   store.Name,
 		"avatar":     store.Avatar,
-		"whitelabel": tier >= premium.Whitelabel,
+		"whitelabel": tier >= premium.Whitelabel || whitelabelOverride,
 	})
 }
