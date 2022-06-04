@@ -126,8 +126,10 @@
 
     withLoadingScreen(async () => {
         setDefaultHeaders();
-        await loadPremium();
-        await loadMessages();
+        await Promise.all([
+            loadPremium(),
+            loadMessages()
+        ]);
 
         scrollContainer();
 

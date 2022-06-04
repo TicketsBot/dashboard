@@ -338,9 +338,11 @@
 
     withLoadingScreen(async () => {
         if (await loadBot()) {
-            await loadErrors();
-            await loadInteractionUrl();
-            await loadPublicKey();
+            await Promise.all([
+                loadErrors(),
+                loadInteractionUrl(),
+                loadPublicKey()
+            ]);
         }
     });
 </script>

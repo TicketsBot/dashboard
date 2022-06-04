@@ -119,8 +119,8 @@
         }
     }
 
-    withLoadingScreen(async () => {
-        await loadPremium();
-        await loadSettings();
-    });
+    withLoadingScreen(async () => await Promise.all([
+        loadPremium(),
+        loadSettings()
+    ]));
 </script>

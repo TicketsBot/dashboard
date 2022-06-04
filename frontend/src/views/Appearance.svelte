@@ -82,9 +82,12 @@
   }
 
   withLoadingScreen(async () => {
-    setDefaultHeaders();
-    await loadPremium();
-    await loadColours();
+    setDefaultHeaders(); // TODO: Is this needed?
+
+    await Promise.all([
+        loadPremium(),
+        loadColours()
+    ]);
   });
 </script>
 

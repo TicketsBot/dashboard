@@ -227,9 +227,12 @@
     }
 
     withLoadingScreen(async () => {
-        await loadPanels();
-        await loadChannels();
-        await loadData();
+        await Promise.all([
+            loadPanels(),
+            loadChannels()
+        ]);
+
+        await loadData(); // Depends on channels
     });
 </script>
 

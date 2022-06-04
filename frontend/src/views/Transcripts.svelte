@@ -204,15 +204,7 @@
         panels = res.data;
     }
 
-    async function loadSettings() {
-      const res = await axios.get(`${API_URL}/api/${guildId}/settings`);
-      if (res.status !== 200) {
-        notifyError(res.data.error);
-        return;
-      }
-    }
-
-      async function loadData(paginationSettings) {
+    async function loadData(paginationSettings) {
         const res = await axios.post(`${API_URL}/api/${guildId}/transcripts`, paginationSettings);
         if (res.status !== 200) {
             notifyError(res.data.error);
@@ -224,9 +216,10 @@
     }
 
     withLoadingScreen(async () => {
-        await loadPanels();
-        await loadSettings();
-        await loadData({})
+        await Promise.all([
+            loadPanels(),
+            loadData({})
+        ])
     })
 </script>
 

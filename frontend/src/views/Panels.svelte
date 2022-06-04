@@ -332,14 +332,16 @@
     }
 
     withLoadingScreen(async () => {
-        await loadPremium();
-        await loadChannels();
-        await loadTeams();
-        await loadForms();
-        await loadRoles();
-        await loadPanels();
-        await loadMultiPanels();
-    })
+      await Promise.all([
+          loadPremium(),
+          loadChannels(),
+          loadTeams(),
+          loadForms(),
+          loadRoles(),
+          loadPanels(),
+          loadMultiPanels()
+      ]);
+    });
 </script>
 
 <style>

@@ -229,9 +229,13 @@
 
     withLoadingScreen(async () => {
         setDefaultHeaders();
-        await loadTeams();
-        await loadRoles();
-        await updateActiveTeam();
+
+        await Promise.all([
+            loadTeams(),
+            loadRoles()
+        ]);
+
+        await updateActiveTeam(); // Depends on teams
     });
 </script>
 
