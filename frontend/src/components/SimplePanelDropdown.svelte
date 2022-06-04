@@ -20,6 +20,14 @@
     export let allowNone = false;
     export let panels = [];
 
+    $: value, ensureStringified();
+
+    function ensureStringified() {
+      if (value === null) {
+        value = "null";
+      }
+    }
+
     export let col1 = false;
     export let col2 = false;
     export let col3 = false;

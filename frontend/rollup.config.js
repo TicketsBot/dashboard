@@ -61,7 +61,7 @@ export default {
         }),
         commonjs({ sourceMap: false }),
         json(),
-        babel({
+        production && babel({
             babelHelpers: 'bundled',
             extensions: ['.js', '.mjs', '.html', '.svelte'],
             include: ['src/**', 'node_modules/svelte/**'],
