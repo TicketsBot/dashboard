@@ -208,7 +208,11 @@
     }
 
     async function createPanel() {
-        const res = await axios.post(`${API_URL}/api/${guildId}/panels`, panelCreateData);
+        let mapped = panels = panelCreateData.map((p) => Object.assign({}, p, {
+          form_id: p.form_id === "null" ? null : parseInt(p.form_id)
+        }));
+
+        const res = await axios.post(`${API_URL}/api/${guildId}/panels`, mapped);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
