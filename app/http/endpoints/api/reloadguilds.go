@@ -42,7 +42,7 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 		if err == session.ErrNoSession {
 			ctx.JSON(401, gin.H{
 				"success": false,
-				"auth": true,
+				"auth":    true,
 			})
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -55,7 +55,7 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 		res, err := discord.RefreshToken(store.RefreshToken)
 		if err != nil { // Tell client to re-authenticate
 			ctx.JSON(200, gin.H{
-				"success": false,
+				"success":                 false,
 				"reauthenticate_required": true,
 			})
 			return
@@ -63,7 +63,7 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 
 		store.AccessToken = res.AccessToken
 		store.RefreshToken = res.RefreshToken
-		store.Expiry = (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn)
+		store.Expiry = (time.Now().UnixNano() / int64(time.Second)) + int64(res.ExpiresIn)
 
 		if err := session.Store.Set(userId, store); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -72,7 +72,12 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 	}
 
 	if err := utils.LoadGuilds(store.AccessToken, userId); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		// TODO: Log to sentry
+		// Tell client to reauth, needs a 200 or client will display error
+		ctx.JSON(200, gin.H{
+			"success":                 false,
+			"reauthenticate_required": true,
+		})
 		return
 	}
 
