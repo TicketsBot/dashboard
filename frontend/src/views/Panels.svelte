@@ -162,7 +162,6 @@
     }
 
     function openMultiEditModal(id) {
-        console.log(multiPanels)
         multiPanelEditData = multiPanels.find((mp) => mp.id === id);
         multiEditModal = true;
     }
@@ -208,8 +207,12 @@
     }
 
     async function createPanel() {
-        let mapped = panels = panelCreateData.map((p) => Object.assign({}, p, {
-          form_id: p.form_id === "null" ? null : parseInt(p.form_id)
+        let mapped = Object.fromEntries(Object.entries(panelCreateData).map(([k, v]) => {
+            if (v === "null") {
+                return [k, null];
+            } else {
+                return [k, v];
+            }
         }));
 
         const res = await axios.post(`${API_URL}/api/${guildId}/panels`, mapped);

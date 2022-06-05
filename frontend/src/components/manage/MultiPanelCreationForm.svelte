@@ -56,7 +56,6 @@
     import Button from "../Button.svelte";
 
     export let data;
-    $: data, console.log(data);
 
     export let guildId;
     export let channels = [];
