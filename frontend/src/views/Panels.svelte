@@ -108,10 +108,10 @@
 
           {#if !$loadingScreen}
             <div style="margin-top: 10px">
-              <!--<MultiPanelCreationForm {guildId} {channels} bind:panels bind:data={multiPanelCreateData}/>
+              <MultiPanelCreationForm {guildId} {channels} bind:panels bind:data={multiPanelCreateData}/>
               <div style="display: flex; justify-content: center; margin-top: 2%">
                 <Button icon="fas fa-paper-plane" fullWidth={true} on:click={createMultiPanel}>Submit</Button>
-              </div>-->
+              </div>
             </div>
           {/if}
         </div>
