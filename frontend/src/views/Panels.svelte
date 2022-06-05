@@ -108,10 +108,10 @@
 
           {#if !$loadingScreen}
             <div style="margin-top: 10px">
-              <MultiPanelCreationForm {guildId} {channels} bind:panels bind:data={multiPanelCreateData}/>
+              <!--<MultiPanelCreationForm {guildId} {channels} bind:panels bind:data={multiPanelCreateData}/>
               <div style="display: flex; justify-content: center; margin-top: 2%">
                 <Button icon="fas fa-paper-plane" fullWidth={true} on:click={createMultiPanel}>Submit</Button>
-              </div>
+              </div>-->
             </div>
           {/if}
         </div>
@@ -162,6 +162,7 @@
     }
 
     function openMultiEditModal(id) {
+        console.log(multiPanels)
         multiPanelEditData = multiPanels.find((mp) => mp.id === id);
         multiEditModal = true;
     }
@@ -287,8 +288,11 @@
             return;
         }
 
-        // convert button_style to string
-        panels = res.data.map((p) => Object.assign({}, p, {button_style: p.button_style.toString()}));
+        // convert button_style and form_id to string
+        panels = res.data.map((p) => Object.assign({}, p, {
+          button_style: p.button_style.toString(),
+          form_id: p.form_id === null ? "null" : p.form_id
+        }));
     }
 
     async function loadMultiPanels() {

@@ -142,12 +142,6 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
-	// Already validated
-	var formId *int
-	if data.FormId != 0 {
-		formId = &data.FormId
-	}
-
 	// Store in DB
 	panel := database.Panel{
 		PanelId:         panelId,
@@ -165,7 +159,7 @@ func UpdatePanel(ctx *gin.Context) {
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
 		ButtonStyle:     int(data.ButtonStyle),
-		FormId:          formId,
+		FormId:          data.FormId,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {

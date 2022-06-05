@@ -38,7 +38,7 @@ type panelBody struct {
 	ImageUrl        *string                `json:"image_url,omitempty"`
 	ThumbnailUrl    *string                `json:"thumbnail_url,omitempty"`
 	ButtonStyle     component.ButtonStyle  `json:"button_style,string"`
-	FormId          int                    `json:"form_id"`
+	FormId          *int                   `json:"form_id"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
@@ -139,11 +139,6 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
-	var formId *int
-	if data.FormId != 0 { // Already validated
-		formId = &data.FormId
-	}
-
 	// Store in DB
 	panel := database.Panel{
 		MessageId:       msgId,
@@ -160,7 +155,7 @@ func CreatePanel(ctx *gin.Context) {
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
 		ButtonStyle:     int(data.ButtonStyle),
-		FormId:          formId,
+		FormId:          data.FormId,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -405,10 +400,10 @@ func (p *panelBody) verifyButtonStyle() bool {
 }
 
 func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {
-	if p.FormId == 0 { // TODO: Use nil
+	if p.FormId == nil {
 		return true, nil
 	} else {
-		form, ok, err := dbclient.Client.Forms.Get(p.FormId)
+		form, ok, err := dbclient.Client.Forms.Get(*p.FormId)
 		if err != nil {
 			return false, err
 		}

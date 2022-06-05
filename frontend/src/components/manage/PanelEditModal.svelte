@@ -20,6 +20,8 @@
 <div class="modal-backdrop" transition:fade>
 </div>
 
+<svelte:window on:keydown={handleKeydown}/>
+
 <script>
     import {createEventDispatcher} from 'svelte';
     import {fade} from 'svelte/transition'
@@ -42,14 +44,21 @@
 
     // Dispatch with data
     function dispatchConfirm() {
-        let mapped = {...panel, form_id: parseInt(panel.form_id)};
+        let form_id = (panel.form_id === null  || panel.form_id === "null") ? null : parseInt(panel.form_id);
+        let mapped = {...panel, form_id: form_id};
         dispatch('confirm', mapped);
+    }
+
+    function handleKeydown(e) {
+      if (e.key === "Escape") {
+        dispatchClose();
+      }
     }
 </script>
 
 <style>
     .modal {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;

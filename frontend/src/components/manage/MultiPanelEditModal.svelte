@@ -4,7 +4,7 @@
       <span slot="title">Edit Multi-Panel</span>
 
       <div slot="body" class="body-wrapper">
-        <MultiPanelCreationForm {guildId} {channels} {panels} bind:data seedDefault={false}/>
+        <MultiPanelCreationForm {guildId} {channels} {panels} bind:data seedDefault={false} />
       </div>
 
       <div slot="footer">
@@ -19,6 +19,8 @@
 
 <div class="modal-backdrop" transition:fade>
 </div>
+
+<svelte:window on:keydown={handleKeydown}/>
 
 <script>
     import {createEventDispatcher} from 'svelte';
@@ -41,6 +43,12 @@
     // Dispatch with data
     function dispatchConfirm() {
         dispatch('confirm', data);
+    }
+
+    function handleKeydown(e) {
+        if (e.key === "Escape") {
+            dispatchClose();
+        }
     }
 </script>
 

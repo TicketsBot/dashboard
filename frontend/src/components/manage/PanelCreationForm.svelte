@@ -23,7 +23,7 @@
         </Dropdown>
 
         <Dropdown col4=true label="Form" bind:value={data.form_id}>
-            <option value=0>None</option>
+            <option value=null>None</option>
             {#each forms as form}
                 <option value={form.form_id}>{form.title}</option>
             {/each}
@@ -89,21 +89,7 @@
 
     let tempColour = '#2ECC71';
 
-    export let data;
-    if (seedDefault) {
-        data = {
-            //title: 'Open a ticket!',
-            //content: 'By clicking the button, a ticket will be opened for you.',
-            colour: 0x2ECC71,
-            emote: '📩',
-            welcome_message: null,
-            mentions: [],
-            default_team: true,
-            teams: [],
-            button_style: "1",
-            form_id: 0,
-        };
-    }
+    export let data = {};
 
     export let channels = [];
     export let roles = [];
@@ -196,8 +182,20 @@
         updateTeamsItems();
 
         if (seedDefault) {
-            data.channel_id = channels.find((c) => c.type === 0).id;
-            data.category_id = channels.find((c) => c.type === 4).id;
+            data = {
+              //title: 'Open a ticket!',
+              //content: 'By clicking the button, a ticket will be opened for you.',
+              colour: 0x2ECC71,
+              emote: '📩',
+              welcome_message: null,
+              mentions: [],
+              default_team: true,
+              teams: [],
+              button_style: "1",
+              form_id: "null",
+              channel_id: channels.find((c) => c.type === 0).id,
+              category_id: channels.find((c) => c.type === 4).id
+            };
         } else {
             applyOverrides();
         }

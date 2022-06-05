@@ -10,7 +10,7 @@
     import {onMount} from "svelte";
 
     export let label;
-    export let panels = [];
+    export let panels;
     export let selected;
     export let isMulti = true;
 
@@ -46,7 +46,7 @@
 
     function applyOverrides() {
         if (isMulti) {
-            selected = [];
+            //selected = [];
             selectedRaw = panels.filter((p) => selected.includes(p.panel_id));
         } else {
             if (selectedRaw) {

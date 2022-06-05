@@ -16,7 +16,7 @@
   </div>
   <div class="row">
     <div class="col-3-4">
-      <PanelDropdown label="Panels" bind:panels bind:selected={data.panels} />
+      <PanelDropdown label="Panels" {panels} bind:selected={data.panels} />
     </div>
 
     <div class="col-1-4">
@@ -55,7 +55,8 @@
     import Checkbox from "../form/Checkbox.svelte";
     import Button from "../Button.svelte";
 
-    export let data = {};
+    export let data;
+    $: data, console.log(data);
 
     export let guildId;
     export let channels = [];
@@ -63,13 +64,14 @@
 
     export let seedDefault = true;
     if (seedDefault) {
-        data = {
-            colour: 0x7289da,
-            channels: channels[0].id,
-            panels: [],
-        }
+      data = {
+        colour: 0x7289da,
+        channels: channels[0].id,
+        panels: [],
+      }
     }
 
+    let mounted = false;
     let advancedSettings = false;
     let overflowShow = false;
 
@@ -95,9 +97,9 @@
     }
 
     onMount(() => {
-        if (!seedDefault) {
-            applyOverrides();
-        }
+      if (!seedDefault) {
+        applyOverrides();
+      }
     })
 </script>
 
