@@ -2,7 +2,6 @@ package customisation
 
 import (
 	"context"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -19,9 +18,9 @@ func UpdateColours(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	// Allow votes
 	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
@@ -58,17 +57,14 @@ func UpdateColours(ctx *gin.Context) {
 		colourCode := colourCode
 		hex := hex
 
-		fmt.Printf("%d: %d\n", colourCode, hex)
-
 		group.Go(func() error {
-			fmt.Printf("%d: %d\n", colourCode, hex.Int())
 			return dbclient.Client.CustomColours.Set(guildId, colourCode.Int16(), hex.Int())
 		})
 	}
 
 	if err := group.Wait(); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
-        return
+		return
 	}
 
 	ctx.JSON(200, utils.SuccessResponse)
