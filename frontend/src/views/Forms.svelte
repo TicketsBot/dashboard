@@ -214,7 +214,10 @@
     }
 
     forms = res.data || [];
-    forms.flatMap(f => f.inputs).forEach(i => i.optional = !i.required);
+    forms.flatMap(f => f.inputs).forEach(i => {
+      i.optional = !i.required;
+      i.style = i.style.toString();
+    });
 
     if (forms.length > 0) {
       activeFormId = forms[0].form_id;
