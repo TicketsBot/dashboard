@@ -15,7 +15,7 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-3-4">
+    <div class="col-3-4" style="padding-right: 10px">
       <PanelDropdown label="Panels" {panels} bind:selected={data.panels} />
     </div>
 
@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <div class="row" style="justify-content: center">
+  <div class="row" style="justify-content: center; padding-top: 10px">
     <div class="col-1">
       <Button icon="fas fa-sliders-h" fullWidth=true type="button"
               on:click={toggleAdvancedSettings}>Toggle Advanced Settings
@@ -33,12 +33,12 @@
   </div>
   <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
        class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
-    <div class="inner" class:inner-show={advancedSettings}>
+    <div class="inner" class:inner-show={advancedSettings} class:absolute={advancedSettings && !overflowShow} >
       <div class="row">
-        <Input col1={true} label="Large Image URL" bind:value={data.image_url}/>
+        <Input col1={true} label="Large Image URL" bind:value={data.image_url} placeholder="https://example.com/image.png" />
       </div>
       <div class="row">
-        <Input col1={true} label="Small Image URL" bind:value={data.thumbnail_url}/>
+        <Input col1={true} label="Small Image URL" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
       </div>
     </div>
   </div>
@@ -144,11 +144,14 @@
       flex-direction: column;
       justify-content: flex-start;
       align-items: flex-start;
-      position: absolute;
       height: 100%;
       width: 100%;
 
       margin-top: 10px;
+    }
+
+    .absolute {
+      position: absolute;
     }
 
     .advanced-settings-show {

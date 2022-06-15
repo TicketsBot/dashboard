@@ -38,31 +38,43 @@
     </div>
     <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
          class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
-        <div class="inner" class:inner-show={advancedSettings}>
+        <div class="inner" class:inner-show={advancedSettings} class:absolute={advancedSettings && !overflowShow} >
             <div class="row">
-      <Textarea col1=true bind:value={data.welcome_message} label="Welcome Message"
-                placeholder="If blank, your server's default welcome message will be used"
-                on:input={handleWelcomeMessageUpdate}/>
+                <Textarea col1=true bind:value={data.welcome_message} label="Welcome Message"
+                          placeholder="If blank, your server's default welcome message will be used"
+                          on:input={handleWelcomeMessageUpdate}/>
             </div>
             <div class="row">
                 <div class="col-2">
                     <label class="form-label">Mention On Open</label>
                     <div class="multiselect-super">
-                        <Select items={mentionValues} bind:selectedValue={mentionsRaw} on:select={updateMentions}
-                                isMulti={true}/>
+                        <Select items={mentionItems}
+                                bind:selectedValue={selectedMentions}
+                                on:select={updateMentions}
+                                optionIdentifier="id"
+                                getSelectionLabel={mentionNameMapper}
+                                getOptionLabel={mentionNameMapper}
+                                placeholderAlwaysShow={true}
+                                isMulti={true} />
                     </div>
                 </div>
                 <div class="col-2">
                     <label class="form-label">Support Teams</label>
                     <div class="multiselect-super">
-                        <Select items={teamsItems} bind:selectedValue={teamsRaw} on:select={updateTeams}
-                                isMulti={true}/>
+                        <Select items={teamsWithDefault}
+                                bind:selectedValue={selectedTeams}
+                                on:select={updateTeams}
+                                isSearchable={false}
+                                optionIdentifier="id"
+                                getSelectionLabel={nameMapper}
+                                getOptionLabel={nameMapper}
+                                isMulti={true} />
                     </div>
                 </div>
             </div>
             <div class="row">
-                <Input col2={true} label="Large Image URL" bind:value={data.image_url}/>
-                <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url}/>
+                <Input col2={true} label="Large Image URL" bind:value={data.image_url} placeholder="https://example.com/image.png" />
+                <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
             </div>
         </div>
     </div>
@@ -99,34 +111,41 @@
     let advancedSettings = false;
     let overflowShow = false;
 
-    // Oh my
-    // TODO: Clean up
-    let mentionValues = [{value: 'user', label: 'Ticket Opener'}];
-    let mentionsRaw = [];
+    let teamsWithDefault = [];
+    let mentionItems = [];
+
+    let selectedTeams = seedDefault ? [{id: 'default', name: 'Default'}] : [];
+    let selectedMentions = [];
 
     function updateMentions() {
-        if (mentionsRaw === undefined) {
-            mentionsRaw = [];
+        if (selectedMentions === undefined) {
+            selectedMentions = [];
         }
 
-        data.mentions = mentionsRaw.map((option) => option.value);
-    }
-
-    let teamsItems = [{value: 'default', label: 'Default'}];
-    let teamsRaw = [];
-    if (seedDefault) {
-        teamsRaw = [{value: 'default', label: 'Default'}];
+        data.mentions = selectedMentions.map((option) => option.id);
     }
 
     function updateTeams() {
-        if (teamsRaw === undefined) {
+        if (selectedTeams === undefined) {
+            selectedTeams = [];
+
             data.default_team = false;
             data.teams = [];
         } else {
-            data.default_team = teamsRaw.find((option) => option.value === 'default') !== undefined;
-            data.teams = teamsRaw
-                .filter((option) => option.value !== 'default')
-                .map((option) => teams.find((team) => team.id == option.value));
+            data.default_team = selectedTeams.find((option) => option.id === 'default') !== undefined;
+            data.teams = selectedTeams
+                .filter((option) => option.id !== 'default')
+                .map((option) => parseInt(option.id));
+        }
+    }
+
+    const nameMapper = (team) => team.name;
+
+    function mentionNameMapper(role) {
+        if (role.id === "user") {
+            return role.name;
+        } else {
+            return `@${role.name}`;
         }
     }
 
@@ -152,29 +171,40 @@
     }
 
     function updateMentionValues() {
-        mentionValues = [{value: 'user', label: 'Ticket Opener'}];
-        $: roles.forEach((role) => mentionValues.push({value: role.id, label: role.name}));
+        mentionItems = [{id: 'user', name: 'Ticket Opener'}, ...roles];
     }
 
     function updateTeamsItems() {
-        teamsItems = [{value: 'default', label: 'Default'}];
-        $: teams.forEach((team) => teamsItems.push({value: team.id, label: team.name}));
+        teamsWithDefault = [{id: 'default', name: 'Default'}, ...teams];
     }
 
     function applyOverrides() {
         if (data.default_team === true) {
-            $: teamsRaw.push({value: 'default', label: 'Default'});
+            $: selectedTeams.push({id: 'default', name: 'Default'});
         }
 
         if (data.teams) {
-            $: data.teams.forEach((team) => teamsRaw.push({value: team.id.toString(), label: team.name}));
+            $: data.teams
+                .map((id) => teams.find((team) => team.id === id))
+                .forEach((team) => selectedTeams.push(team));
         }
 
         if (data.mentions) {
-            $: data.mentions.forEach((id) => mentionsRaw.push(mentionValues.find((val) => val.value === id)));
+            $: data.mentions
+                .map((id) => mentionItems.find((role) => role.id === id))
+                .forEach((mention) => selectedMentions.push(mention));
+
+            console.log(data.mentions)
+            console.log(mentionItems)
+            console.log(selectedMentions)
         }
 
         tempColour = intToColour(data.colour);
+    }
+
+    async function loadOptions() {
+        console.log(teams);
+        return teams;
     }
 
     onMount(() => {
@@ -239,7 +269,6 @@
             flex-direction: column;
             justify-content: center;
         }
-
         :global(.col-1-3, .col-2-3) {
             width: 100% !important;
         }
@@ -254,7 +283,6 @@
     :global(.advanced-settings-hide) {
         height: 0;
         visibility: hidden;
-
         margin: 0;
         flex: unset;
         min-height: 0 !important;
@@ -275,16 +303,19 @@
         flex-direction: column;
         justify-content: flex-start;
         align-items: flex-start;
-        position: absolute;
+        /*position: absolute;*/
         height: 100%;
         width: 100%;
+    }
+
+    .absolute {
+        position: absolute;
     }
 
     :global(.multiselect-super) {
         display: flex;
         width: 100%;
         height: 100%;
-
         --background: #2e3136;
         --border: #2e3136;
         --borderRadius: 4px;

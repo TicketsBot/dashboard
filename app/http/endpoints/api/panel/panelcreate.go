@@ -1,21 +1,19 @@
 package api
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/collections"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest/request"
-	"golang.org/x/sync/errgroup"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,21 +22,21 @@ import (
 const freePanelLimit = 3
 
 type panelBody struct {
-	ChannelId       uint64                 `json:"channel_id,string"`
-	MessageId       uint64                 `json:"message_id,string"`
-	Title           string                 `json:"title"`
-	Content         string                 `json:"content"`
-	Colour          uint32                 `json:"colour"`
-	CategoryId      uint64                 `json:"category_id,string"`
-	Emote           string                 `json:"emote"`
-	WelcomeMessage  *string                `json:"welcome_message"`
-	Mentions        []string               `json:"mentions"`
-	WithDefaultTeam bool                   `json:"default_team"`
-	Teams           []database.SupportTeam `json:"teams"`
-	ImageUrl        *string                `json:"image_url,omitempty"`
-	ThumbnailUrl    *string                `json:"thumbnail_url,omitempty"`
-	ButtonStyle     component.ButtonStyle  `json:"button_style,string"`
-	FormId          *int                   `json:"form_id"`
+	ChannelId       uint64                `json:"channel_id,string"`
+	MessageId       uint64                `json:"message_id,string"`
+	Title           string                `json:"title"`
+	Content         string                `json:"content"`
+	Colour          uint32                `json:"colour"`
+	CategoryId      uint64                `json:"category_id,string"`
+	Emote           string                `json:"emote"`
+	WelcomeMessage  *string               `json:"welcome_message"`
+	Mentions        []string              `json:"mentions"`
+	WithDefaultTeam bool                  `json:"default_team"`
+	Teams           []int                 `json:"teams"`
+	ImageUrl        *string               `json:"image_url,omitempty"`
+	ThumbnailUrl    *string               `json:"thumbnail_url,omitempty"`
+	ButtonStyle     component.ButtonStyle `json:"button_style,string"`
+	FormId          *int                  `json:"form_id"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
@@ -124,10 +122,7 @@ func CreatePanel(ctx *gin.Context) {
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error":   "I do not have permission to send messages in the specified channel",
-			})
+			ctx.AbortWithStatusJSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
 		} else {
 			// TODO: Most appropriate error?
 			ctx.AbortWithStatusJSON(500, gin.H{
@@ -169,40 +164,40 @@ func CreatePanel(ctx *gin.Context) {
 
 	// insert role mention data
 	// string is role ID or "user" to mention the ticket opener
+	validRoles, err := getRoleHashSet(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	var roleMentions []uint64
 	for _, mention := range data.Mentions {
 		if mention == "user" {
 			if err = dbclient.Client.PanelUserMention.Set(panelId, true); err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.JSON(400, utils.ErrorStr("Invalid role ID"))
 				return
 			}
 
-			// should we check the role is a valid role in the guild?
-			// not too much of an issue if it isnt
-
-			if err = dbclient.Client.PanelRoleMentions.Add(panelId, roleId); err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
-				return
+			if validRoles.Contains(roleId) {
+				roleMentions = append(roleMentions, roleId)
 			}
 		}
 	}
 
-	if responseCode, err := insertTeams(guildId, panelId, data.Teams); err != nil {
-		ctx.JSON(responseCode, utils.ErrorJson(err))
+	if err := dbclient.Client.PanelRoleMentions.Replace(panelId, roleMentions); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	// Already validated, we are safe to insert
+	if err := dbclient.Client.PanelTeams.Replace(panelId, data.Teams); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -210,29 +205,6 @@ func CreatePanel(ctx *gin.Context) {
 		"success":  true,
 		"panel_id": panelId,
 	})
-}
-
-// returns (response_code, error)
-func insertTeams(guildId uint64, panelId int, teams []database.SupportTeam) (int, error) {
-	// insert teams
-	group, _ := errgroup.WithContext(context.Background())
-	for _, team := range teams {
-		group.Go(func() error {
-			// ensure team exists
-			exists, err := dbclient.Client.SupportTeam.Exists(team.Id, guildId)
-			if err != nil {
-				return err
-			}
-
-			if !exists {
-				return fmt.Errorf("team with id %d not found", team.Id)
-			}
-
-			return dbclient.Client.PanelTeams.Add(panelId, team.Id)
-		})
-	}
-
-	return 500, group.Wait()
 }
 
 var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$`)
@@ -305,6 +277,19 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 			"error":   "Invalid button style",
 		})
 		return false
+	}
+
+	{
+		valid, err := p.verifyTeams(guildId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+			return false
+		}
+
+		if !valid {
+			ctx.AbortWithStatusJSON(400, utils.ErrorStr("Invalid teams provided"))
+			return false
+		}
 	}
 
 	{
@@ -418,4 +403,28 @@ func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {
 
 		return true, nil
 	}
+}
+
+func (p *panelBody) verifyTeams(guildId uint64) (bool, error) {
+	return dbclient.Client.SupportTeam.AllTeamsExistForGuild(guildId, p.Teams)
+}
+
+func getRoleHashSet(guildId uint64) (*collections.Set[uint64], error) {
+	ctx, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		return nil, err
+	}
+
+	roles, err := ctx.GetGuildRoles(guildId)
+	if err != nil {
+		return nil, err
+	}
+
+	set := collections.NewSet[uint64]()
+
+	for _, role := range roles {
+		set.Add(role.Id)
+	}
+
+	return set, nil
 }

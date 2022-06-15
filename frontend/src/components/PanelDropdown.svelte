@@ -2,7 +2,8 @@
 <div class="multiselect-super">
   <Select placeholder="Select..." items={panels} optionIdentifier="panel_id" getOptionLabel={labelMapper}
           getSelectionLabel={labelMapper} bind:selectedValue={selectedRaw}
-          on:select={update} on:clear={handleClear} {isMulti} />
+          on:select={update} on:clear={handleClear} {isMulti} {isSearchable}
+          placeholderAlwaysShow={true} />
 </div>
 
 <script>
@@ -13,6 +14,7 @@
     export let panels;
     export let selected;
     export let isMulti = true;
+    export let isSearchable = false;
 
     let selectedRaw = isMulti ? panels.filter((p) => selected.includes(p.panel_id)) : selected;
 

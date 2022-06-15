@@ -77,12 +77,6 @@ func UpdatePanel(ctx *gin.Context) {
 			return
 		}
 
-		// TODO: Optimise this
-		panelIds := make([]int, len(panels))
-		for i, panel := range panels {
-			panelIds[i] = panel.PanelId
-		}
-
 		messageData := multiPanelMessageData{
 			Title:      multiPanel.Title,
 			Content:    multiPanel.Content,
@@ -167,15 +161,16 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	// insert role mention data
-	// delete old data
-	if err = dbclient.Client.PanelRoleMentions.DeleteAll(panel.PanelId); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+	// insert mention data
+	validRoles, err := getRoleHashSet(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// string is role ID or "user" to mention the ticket opener
 	var shouldMentionUser bool
+	var roleMentions []uint64
 	for _, mention := range data.Mentions {
 		if mention == "user" {
 			shouldMentionUser = true
@@ -186,35 +181,27 @@ func UpdatePanel(ctx *gin.Context) {
 				return
 			}
 
-			// should we check the role is a valid role in the guild?
-			// not too much of an issue if it isnt
-			if err = dbclient.Client.PanelRoleMentions.Add(panel.PanelId, roleId); err != nil {
-				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-				return
+			if validRoles.Contains(roleId) {
+				roleMentions = append(roleMentions, roleId)
 			}
 		}
 	}
 
-	if err = dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
+	if err := dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	// insert support teams
-	// TODO: Stop race conditions - 1 transaction
-	// delete teams
-	if err := dbclient.Client.PanelTeams.DeleteAll(panel.PanelId); err != nil {
+	if err := dbclient.Client.PanelRoleMentions.Replace(panel.PanelId, roleMentions); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	// insert new
-	if responseCode, err := insertTeams(guildId, panel.PanelId, data.Teams); err != nil {
-		ctx.JSON(responseCode, utils.ErrorJson(err))
+	// We are safe to insert, team IDs already validated
+	if err := dbclient.Client.PanelTeams.Replace(panel.PanelId, data.Teams); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
-		"success": true,
-	})
+	ctx.JSON(200, utils.SuccessResponse)
 }

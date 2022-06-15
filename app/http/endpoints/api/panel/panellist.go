@@ -12,8 +12,9 @@ import (
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
 		database.Panel
-		Mentions []string               `json:"mentions"`
-		Teams    []database.SupportTeam `json:"teams"`
+		Mentions []string `json:"mentions"`
+		//Teams    []database.SupportTeam `json:"teams"`
+		Teams []int `json:"teams"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
@@ -39,6 +40,16 @@ func ListPanels(ctx *gin.Context) {
 		group.Go(func() error {
 			var mentions []string
 
+			// get if we should mention the ticket opener
+			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(p.PanelId)
+			if err != nil {
+				return err
+			}
+
+			if shouldMention {
+				mentions = append(mentions, "user")
+			}
+
 			// get role mentions
 			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(p.PanelId)
 			if err != nil {
@@ -50,25 +61,20 @@ func ListPanels(ctx *gin.Context) {
 				mentions = append(mentions, strconv.FormatUint(roleId, 10))
 			}
 
-			// get if we should mention the ticket opener
-			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(p.PanelId)
+			teamIds, err := dbclient.Client.PanelTeams.GetTeamIds(p.PanelId)
 			if err != nil {
 				return err
 			}
 
-			if shouldMention {
-				mentions = append(mentions, "user")
-			}
-
-			teams, err := dbclient.Client.PanelTeams.GetTeams(p.PanelId)
-			if err != nil {
-				return err
+			// Don't serve null
+			if teamIds == nil {
+				teamIds = make([]int, 0)
 			}
 
 			wrapped[i] = panelResponse{
 				Panel:    p,
 				Mentions: mentions,
-				Teams:    teams,
+				Teams:    teamIds,
 			}
 
 			return nil
