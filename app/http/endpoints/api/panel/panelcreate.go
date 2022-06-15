@@ -406,6 +406,12 @@ func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {
 }
 
 func (p *panelBody) verifyTeams(guildId uint64) (bool, error) {
+	// Query does not work nicely if there are no teams created in the guild, but if the user submits no teams,
+	// then the input is guaranteed to be valid.
+	if len(p.Teams) == 0 {
+		return true, nil
+	}
+
 	return dbclient.Client.SupportTeam.AllTeamsExistForGuild(guildId, p.Teams)
 }
 
