@@ -193,18 +193,9 @@
             $: data.mentions
                 .map((id) => mentionItems.find((role) => role.id === id))
                 .forEach((mention) => selectedMentions.push(mention));
-
-            console.log(data.mentions)
-            console.log(mentionItems)
-            console.log(selectedMentions)
         }
 
         tempColour = intToColour(data.colour);
-    }
-
-    async function loadOptions() {
-        console.log(teams);
-        return teams;
     }
 
     onMount(() => {
