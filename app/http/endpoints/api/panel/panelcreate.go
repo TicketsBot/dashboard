@@ -36,6 +36,7 @@ type panelBody struct {
 	ImageUrl        *string               `json:"image_url,omitempty"`
 	ThumbnailUrl    *string               `json:"thumbnail_url,omitempty"`
 	ButtonStyle     component.ButtonStyle `json:"button_style,string"`
+	ButtonLabel     string                `json:"button_label"`
 	FormId          *int                  `json:"form_id"`
 }
 
@@ -55,6 +56,7 @@ func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelM
 		ThumbnailUrl: p.ThumbnailUrl,
 		Emoji:        emoji,
 		ButtonStyle:  p.ButtonStyle,
+		ButtonLabel:  p.ButtonLabel,
 		IsPremium:    isPremium,
 	}
 }
@@ -100,10 +102,7 @@ func CreatePanel(ctx *gin.Context) {
 		}
 
 		if len(panels) >= freePanelLimit {
-			ctx.AbortWithStatusJSON(402, gin.H{
-				"success": false,
-				"error":   "You have exceeded your panel quota. Purchase premium to unlock more panels.",
-			})
+			ctx.AbortWithStatusJSON(402, utils.ErrorStr("You have exceeded your panel quota. Purchase premium to unlock more panels."))
 			return
 		}
 	}
@@ -150,6 +149,7 @@ func CreatePanel(ctx *gin.Context) {
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
 		ButtonStyle:     int(data.ButtonStyle),
+		ButtonLabel:     data.ButtonLabel,
 		FormId:          data.FormId,
 	}
 
@@ -279,6 +279,11 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
+	if !p.verifyButtonLabel() {
+		ctx.AbortWithStatusJSON(400, utils.ErrorStr("Button labels cannot be longer than 80 characters"))
+		return false
+	}
+
 	{
 		valid, err := p.verifyTeams(guildId)
 		if err != nil {
@@ -382,6 +387,14 @@ func (p *panelBody) verifyThumbnailUrl() bool {
 
 func (p *panelBody) verifyButtonStyle() bool {
 	return p.ButtonStyle >= component.ButtonStylePrimary && p.ButtonStyle <= component.ButtonStyleDanger
+}
+
+func (p *panelBody) verifyButtonLabel() bool {
+	if len(p.ButtonLabel) == 0 {
+		p.ButtonLabel = p.Title // Title already checked for 80 char max
+	}
+
+	return len(p.ButtonLabel) <= 80
 }
 
 func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {

@@ -16,6 +16,7 @@ type panelMessageData struct {
 	Colour                        int
 	ImageUrl, ThumbnailUrl, Emoji *string
 	ButtonStyle                   component.ButtonStyle
+	ButtonLabel                   string
 	IsPremium                     bool
 }
 
@@ -35,6 +36,7 @@ func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData
 		ThumbnailUrl: panel.ThumbnailUrl,
 		Emoji:        emoji,
 		ButtonStyle:  component.ButtonStyle(panel.ButtonStyle),
+		ButtonLabel:  panel.ButtonLabel,
 		IsPremium:    isPremium,
 	}
 }
@@ -68,7 +70,7 @@ func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
 		Embeds: []*embed.Embed{e},
 		Components: []component.Component{
 			component.BuildActionRow(component.BuildButton(component.Button{
-				Label:    p.Title,
+				Label:    p.ButtonLabel,
 				CustomId: p.CustomId,
 				Style:    p.ButtonStyle,
 				Emoji:    buttonEmoji,

@@ -4,7 +4,7 @@
             <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.title}/>
         </div>
         <div class="col-2-3">
-      <Textarea col1=true label="Panel Content" placeholder="By clicking the button, a ticket will be opened for you."
+            <Textarea col1=true label="Panel Content" placeholder="By clicking the button, a ticket will be opened for you."
                 bind:value={data.content}/>
         </div>
     </div>
@@ -15,14 +15,16 @@
         <EmojiInput label="Button Emoji" col4=true bind:value={data.emote}/>
     </div>
     <div class="row">
-        <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
+        <Dropdown col3=true label="Button Style" bind:value={data.button_style}>
             <option value="1">Blue</option>
             <option value="2">Grey</option>
             <option value="3">Green</option>
             <option value="4">Red</option>
         </Dropdown>
 
-        <Dropdown col4=true label="Form" bind:value={data.form_id}>
+        <Input col3={true} label="Button Text" placeholder="Open a ticket!" bind:value={data.button_label} />
+
+        <Dropdown col3=true label="Form" bind:value={data.form_id}>
             <option value=null>None</option>
             {#each forms as form}
                 <option value={form.form_id}>{form.title}</option>

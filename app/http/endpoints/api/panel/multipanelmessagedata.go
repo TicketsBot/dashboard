@@ -66,7 +66,7 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 			}
 
 			options[i] = component.SelectOption{
-				Label: panel.Title,
+				Label: panel.ButtonLabel,
 				Value: panel.CustomId,
 				Emoji: emote,
 			}
@@ -96,7 +96,7 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 			}
 
 			buttons[i] = component.BuildButton(component.Button{
-				Label:    panel.Title,
+				Label:    panel.ButtonLabel,
 				CustomId: panel.CustomId,
 				Style:    component.ButtonStyle(panel.ButtonStyle),
 				Emoji:    buttonEmoji,

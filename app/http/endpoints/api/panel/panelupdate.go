@@ -20,35 +20,32 @@ func UpdatePanel(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	var data panelBody
 	if err := ctx.BindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	panelId, err := strconv.Atoi(ctx.Param("panelid"))
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	// get existing
 	existing, err := dbclient.Client.Panel.GetById(panelId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// check guild ID matches
 	if existing.GuildId != guildId {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Guild ID does not match",
-		})
+		ctx.JSON(400, utils.ErrorStr("Guild ID does not match"))
 		return
 	}
 
@@ -109,7 +106,8 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.ReactionEmote != data.Emote ||
 		existing.ImageUrl != data.ImageUrl ||
 		existing.ThumbnailUrl != data.ThumbnailUrl ||
-		component.ButtonStyle(existing.ButtonStyle) != data.ButtonStyle
+		component.ButtonStyle(existing.ButtonStyle) != data.ButtonStyle ||
+		existing.ButtonLabel != data.ButtonLabel
 
 	emoji, _ := data.getEmoji() // already validated
 	newMessageId := existing.MessageId
@@ -123,13 +121,10 @@ func UpdatePanel(ctx *gin.Context) {
 		if err != nil {
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-				ctx.AbortWithStatusJSON(500, gin.H{
-					"success": false,
-					"error":   "I do not have permission to send messages in the specified channel",
-				})
+				ctx.JSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
 			} else {
 				// TODO: Most appropriate error?
-				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+				ctx.JSON(500, utils.ErrorJson(err))
 			}
 
 			return
