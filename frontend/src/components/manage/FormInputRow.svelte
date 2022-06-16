@@ -87,7 +87,7 @@
 
   {#if withCreateButton}
     <div class="row" style="justify-content: center; margin-top: 10px">
-      <Button type="submit" icon="fas fa-plus">Add Input</Button>
+      <Button type="submit" icon="fas fa-plus" {disabled}>Add Input</Button>
     </div>
   {/if}
 </form>
@@ -108,6 +108,7 @@
   export let withSaveButton = false;
   export let withDeleteButton = false;
   export let withDirectionButtons = false;
+  export let disabled = false;
 
   export let index;
   export let formLength;

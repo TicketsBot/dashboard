@@ -128,18 +128,26 @@
         filterSettings.userId = undefined;
 
         if (filterSettings.ticketId === "") {
-          filterSettings.ticketId = undefined;
+            filterSettings.ticketId = undefined;
         }
     };
 
     let handleInputUsername = () => {
         filterSettings.ticketId = undefined;
         filterSettings.userId = undefined;
+
+        if (filterSettings.username === "") {
+            filterSettings.username = undefined;
+        }
     };
 
     let handleInputUserId = () => {
         filterSettings.ticketId = undefined;
         filterSettings.username = undefined;
+
+        if (filterSettings.userId === "") {
+           filterSettings.userId = undefined;
+        }
     };
 
     let loading = false;

@@ -53,7 +53,7 @@
             {/if}
 
             {#if activeFormId !== null}
-              <FormInputRow bind:data={inputCreationData} withCreateButton={true}
+              <FormInputRow bind:data={inputCreationData} withCreateButton={true} disabled={formLength >= 5}
                             on:create={(e) => createInput(e.detail)}/>
             {/if}
           </div>
