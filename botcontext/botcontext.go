@@ -101,6 +101,19 @@ func (ctx BotContext) GetGuildRoles(guildId uint64) (roles []guild.Role, err err
 	return
 }
 
+func (ctx BotContext) GetGuildEmoji(guildId, emojiId uint64) (emoji.Emoji, error) {
+	if emoji, ok := cache.Instance.GetEmoji(guildId); ok {
+		return emoji, nil
+	}
+
+	emoji, err := rest.GetGuildEmoji(ctx.Token, ctx.RateLimiter, guildId, emojiId)
+	if err == nil {
+		go cache.Instance.StoreEmoji(emoji, guildId)
+	}
+
+	return emoji, err
+}
+
 func (ctx BotContext) GetGuildEmojis(guildId uint64) (emojis []emoji.Emoji, err error) {
 	if emojis := cache.Instance.GetGuildEmojis(guildId); len(emojis) > 0 {
 		return emojis, nil

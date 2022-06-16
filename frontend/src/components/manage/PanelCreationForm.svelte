@@ -33,7 +33,12 @@
             <label for="emoji-pick-wrapper" class="form-label">Button Emoji</label>
             <div id="emoji-pick-wrapper" class="row">
                 <div class="col-2">
-                    <Slider label="Custom Emoji" bind:value={data.use_custom_emoji} />
+                    <label class="form-label" style="margin-bottom: 0 !important;">Custom Emoji</label>
+                    <Toggle hideLabel
+                            toggledColor="#66bb6a"
+                            untoggledColor="#ccc"
+                            bind:toggled={data.use_custom_emoji}
+                            on:toggle={handleEmojiTypeChange} />
                 </div>
                 {#if data.use_custom_emoji}
                     <!--bind:selectedValue={selectedMentions}
@@ -41,10 +46,12 @@
                     <div class="multiselect-super">
                         <Select items={emojis}
                                 Item={EmojiItem}
+                                selectedValue={data.emote}
                                 optionIdentifier="id"
                                 getSelectionLabel={emojiNameMapper}
                                 getOptionLabel={emojiNameMapper}
-                                placeholderAlwaysShow={true} />
+                                placeholderAlwaysShow={true}
+                                on:select={handleCustomEmojiChange} />
                     </div>
                 {:else}
                     <EmojiInput col1=true bind:value={data.emote}/>
@@ -89,7 +96,7 @@
                                 on:select={updateTeams}
                                 isSearchable={false}
                                 optionIdentifier="id"
-                                getSelectionLabel={emojiNameMapper}
+                                getSelectionLabel={nameMapper}
                                 getOptionLabel={nameMapper}
                                 isMulti={true} />
                     </div>
@@ -118,7 +125,7 @@
     import Select from 'svelte-select';
     import Dropdown from "../form/Dropdown.svelte";
     import Checkbox from "../form/Checkbox.svelte";
-    import Slider from "../form/Slider.svelte";
+    import Toggle from "svelte-toggle";
 
     export let guildId;
     export let seedDefault = true;
@@ -194,6 +201,23 @@
         }
     }
 
+    function handleEmojiTypeChange(e) {
+        let isCustomEmoji = e.detail;
+        if (isCustomEmoji) {
+            data.emote = undefined;
+        } else {
+            data.emote = '📩';
+        }
+    }
+
+    function handleCustomEmojiChange(e) {
+        let emoji = e.detail;
+        data.emote = {
+            id: emoji.id,
+            name: emoji.name
+        };
+    }
+
     function updateColour() {
         data.colour = colourToInt(tempColour);
     }
@@ -223,6 +247,9 @@
                 .forEach((mention) => selectedMentions.push(mention));
         }
 
+        $: data.emote = data.emote;
+        console.log(data.emote)
+
         tempColour = intToColour(data.colour);
     }
 
@@ -235,6 +262,7 @@
               //title: 'Open a ticket!',
               //content: 'By clicking the button, a ticket will be opened for you.',
               colour: 0x2ECC71,
+              use_custom_emoji: false,
               emote: '📩',
               welcome_message: null,
               mentions: [],

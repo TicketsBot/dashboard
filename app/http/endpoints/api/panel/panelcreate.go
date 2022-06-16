@@ -2,17 +2,18 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/common/collections"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
+	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest/request"
 	"regexp"
@@ -29,7 +30,7 @@ type panelBody struct {
 	Content         string                `json:"content"`
 	Colour          uint32                `json:"colour"`
 	CategoryId      uint64                `json:"category_id,string"`
-	Emote           string                `json:"emote"`
+	Emoji           types.Emoji           `json:"emote"`
 	WelcomeMessage  *string               `json:"welcome_message"`
 	Mentions        []string              `json:"mentions"`
 	WithDefaultTeam bool                  `json:"default_team"`
@@ -42,11 +43,6 @@ type panelBody struct {
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
-	var emoji *string
-	if p.Emote != "" {
-		emoji = &p.Emote
-	}
-
 	return panelMessageData{
 		ChannelId:    p.ChannelId,
 		Title:        p.Title,
@@ -55,7 +51,7 @@ func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelM
 		Colour:       int(p.Colour),
 		ImageUrl:     p.ImageUrl,
 		ThumbnailUrl: p.ThumbnailUrl,
-		Emoji:        emoji,
+		Emoji:        p.getEmoji(),
 		ButtonStyle:  p.ButtonStyle,
 		ButtonLabel:  p.ButtonLabel,
 		IsPremium:    isPremium,
@@ -111,24 +107,31 @@ func CreatePanel(ctx *gin.Context) {
 
 	customId := utils.RandString(80)
 
-	emoji, _ := data.getEmoji() // already validated
-	data.Emote = emoji
-
 	messageData := data.IntoPanelMessageData(customId, premiumTier > premium.None)
 	msgId, err := messageData.send(&botContext)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-			ctx.AbortWithStatusJSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+			ctx.JSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
 		} else {
 			// TODO: Most appropriate error?
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
+			ctx.JSON(500, utils.ErrorJson(err))
 		}
 
 		return
+	}
+
+	var emojiId *uint64
+	var emojiName *string
+	{
+		emoji := data.getEmoji()
+		if emoji != nil {
+			emojiName = &emoji.Name
+
+			if emoji.Id.Value != 0 {
+				emojiId = &emoji.Id.Value
+			}
+		}
 	}
 
 	// Store in DB
@@ -140,7 +143,8 @@ func CreatePanel(ctx *gin.Context) {
 		Content:         data.Content,
 		Colour:          int32(data.Colour),
 		TargetCategory:  data.CategoryId,
-		ReactionEmote:   emoji,
+		EmojiId:         emojiId,
+		EmojiName:       emojiName,
 		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: data.WithDefaultTeam,
 		CustomId:        customId,
@@ -208,6 +212,11 @@ func CreatePanel(ctx *gin.Context) {
 var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$`)
 
 func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		return false // TODO: Log error
+	}
+
 	if !p.verifyTitle() {
 		ctx.AbortWithStatusJSON(400, gin.H{
 			"success": false,
@@ -227,34 +236,22 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	channels := cache.Instance.GetGuildChannels(guildId)
 
 	if !p.verifyChannel(channels) {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Invalid channel",
-		})
+		ctx.JSON(400, utils.ErrorStr("Invalid channel"))
 		return false
 	}
 
 	if !p.verifyCategory(channels) {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Invalid channel category",
-		})
+		ctx.JSON(400, utils.ErrorStr("Invalid channel category"))
 		return false
 	}
 
-	if p.Emote != "" { // Allow no emoji
-		_, validEmoji := p.getEmoji()
-		if !validEmoji {
-			ctx.AbortWithStatusJSON(400, gin.H{
-				"success": false,
-				"error":   "Invalid emoji. Simply use the emoji itself, or the emoji's name from Discord.",
-			})
-			return false
-		}
+	if !p.verifyEmoji(botContext, guildId) {
+		ctx.JSON(400, utils.ErrorStr("Invalid emoji"))
+		return false
 	}
 
 	if !p.verifyWelcomeMessage() {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Welcome message must be blank or between 1 - 4096 characters",
 		})
@@ -262,7 +259,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	}
 
 	if !p.verifyImageUrl() || !p.verifyThumbnailUrl() {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Image URL must be between 1 - 255 characters and a valid URL",
 		})
@@ -270,7 +267,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	}
 
 	if !p.verifyButtonStyle() {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Invalid button style",
 		})
@@ -278,20 +275,19 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	}
 
 	if !p.verifyButtonLabel() {
-		ctx.AbortWithStatusJSON(400, utils.ErrorStr("Button labels cannot be longer than 80 characters"))
+		ctx.JSON(400, utils.ErrorStr("Button labels cannot be longer than 80 characters"))
 		return false
 	}
 
-	fmt.Printf("label: %s\n", p.ButtonLabel)
 	{
 		valid, err := p.verifyTeams(guildId)
 		if err != nil {
-			ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 			return false
 		}
 
 		if !valid {
-			ctx.AbortWithStatusJSON(400, utils.ErrorStr("Invalid teams provided"))
+			ctx.JSON(400, utils.ErrorStr("Invalid teams provided"))
 			return false
 		}
 	}
@@ -299,12 +295,12 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	{
 		ok, err := p.verifyFormId(guildId)
 		if err != nil {
-			ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+			ctx.JSON(500, utils.ErrorJson(err))
 			return false
 		}
 
 		if !ok {
-			ctx.AbortWithStatusJSON(400, utils.ErrorStr("Guild ID for form does not match"))
+			ctx.JSON(400, utils.ErrorStr("Guild ID for form does not match"))
 			return false
 		}
 	}
@@ -332,12 +328,9 @@ func (p *panelBody) verifyContent() bool {
 	return true
 }
 
-func (p *panelBody) getEmoji() (emoji string, ok bool) {
-	p.Emote = strings.TrimSpace(p.Emote)
-	p.Emote = strings.Replace(p.Emote, ":", "", -1)
-
-	emoji, ok = utils.GetEmoji(p.Emote)
-	return
+// Data must be validated before calling this function
+func (p *panelBody) getEmoji() *emoji.Emoji {
+	return p.Emoji.IntoGdl()
 }
 
 func (p *panelBody) verifyChannel(channels []channel.Channel) bool {
@@ -362,6 +355,45 @@ func (p *panelBody) verifyCategory(channels []channel.Channel) bool {
 	}
 
 	return valid
+}
+
+func (p *panelBody) verifyEmoji(ctx botcontext.BotContext, guildId uint64) bool {
+	if p.Emoji.IsCustomEmoji {
+		if p.Emoji.Id == nil {
+			return false
+		}
+
+		emoji, err := ctx.GetGuildEmoji(guildId, *p.Emoji.Id)
+		if err != nil { // TODO: Log
+			return false
+		}
+
+		if emoji.Id.Value == 0 {
+			return false
+		}
+
+		if emoji.Name != p.Emoji.Name {
+			return false
+		}
+
+		return true
+	} else {
+		if len(p.Emoji.Name) == 0 {
+			return true
+		}
+
+		// Convert from :emoji: to unicode if we need to
+		name := strings.TrimSpace(p.Emoji.Name)
+		name = strings.Replace(name, ":", "", -1)
+
+		unicode, ok := utils.GetEmoji(name)
+		if !ok {
+			return false
+		}
+
+		p.Emoji.Name = unicode
+		return true
+	}
 }
 
 func (p *panelBody) verifyWelcomeMessage() bool {

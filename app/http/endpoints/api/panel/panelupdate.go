@@ -53,49 +53,23 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	// check if this will break a multi-panel;
-	// first, get any multipanels this panel belongs to
-	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.PanelId)
-	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
-
 	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	for _, multiPanel := range multiPanels {
-		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
+	var emojiId *uint64
+	var emojiName *string
+	{
+		emoji := data.getEmoji()
+		if emoji != nil {
+			emojiName = &emoji.Name
 
-		messageData := multiPanelMessageData{
-			Title:      multiPanel.Title,
-			Content:    multiPanel.Content,
-			Colour:     multiPanel.Colour,
-			ChannelId:  multiPanel.ChannelId,
-			SelectMenu: multiPanel.SelectMenu,
-			IsPremium:  premiumTier > premium.None,
+			if emoji.Id.Value != 0 {
+				emojiId = &emoji.Id.Value
+			}
 		}
-
-		messageId, err := messageData.send(&botContext, panels)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
-
-		if err := dbclient.Client.MultiPanels.UpdateMessageId(multiPanel.Id, messageId); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
-
-		// Delete old panel
-		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
 	// check if we need to update the message
@@ -103,13 +77,13 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.ChannelId != data.ChannelId ||
 		existing.Content != data.Content ||
 		existing.Title != data.Title ||
-		existing.ReactionEmote != data.Emote ||
+		(existing.EmojiId == nil && emojiId != nil || existing.EmojiId != nil && emojiId == nil || (existing.EmojiId != nil && emojiId != nil && *existing.EmojiId != *emojiId)) ||
+		(existing.EmojiName == nil && emojiName != nil || existing.EmojiName != nil && emojiName == nil || (existing.EmojiName != nil && emojiName != nil && *existing.EmojiName != *emojiName)) ||
 		existing.ImageUrl != data.ImageUrl ||
 		existing.ThumbnailUrl != data.ThumbnailUrl ||
 		component.ButtonStyle(existing.ButtonStyle) != data.ButtonStyle ||
 		existing.ButtonLabel != data.ButtonLabel
 
-	emoji, _ := data.getEmoji() // already validated
 	newMessageId := existing.MessageId
 
 	if shouldUpdateMessage {
@@ -141,7 +115,8 @@ func UpdatePanel(ctx *gin.Context) {
 		Content:         data.Content,
 		Colour:          int32(data.Colour),
 		TargetCategory:  data.CategoryId,
-		ReactionEmote:   emoji,
+		EmojiName:       emojiName,
+		EmojiId:         emojiId,
 		WelcomeMessage:  data.WelcomeMessage,
 		WithDefaultTeam: data.WithDefaultTeam,
 		CustomId:        existing.CustomId,
@@ -197,6 +172,52 @@ func UpdatePanel(ctx *gin.Context) {
 	if err := dbclient.Client.PanelTeams.Replace(panel.PanelId, data.Teams); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
+	}
+
+	// Update multi panels
+
+	// check if this will break a multi-panel;
+	// first, get any multipanels this panel belongs to
+	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.PanelId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	for i, multiPanel := range multiPanels {
+		// Only update 5 multi-panels maximum: Prevent DoS
+		if i >= 5 {
+			break
+		}
+
+		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		messageData := multiPanelMessageData{
+			Title:      multiPanel.Title,
+			Content:    multiPanel.Content,
+			Colour:     multiPanel.Colour,
+			ChannelId:  multiPanel.ChannelId,
+			SelectMenu: multiPanel.SelectMenu,
+			IsPremium:  premiumTier > premium.None,
+		}
+
+		messageId, err := messageData.send(&botContext, panels)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		if err := dbclient.Client.MultiPanels.UpdateMessageId(multiPanel.Id, messageId); err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		// Delete old panel
+		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
 	ctx.JSON(200, utils.SuccessResponse)

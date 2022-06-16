@@ -4,7 +4,7 @@
       <span slot="title">Edit Panel</span>
 
       <div slot="body" class="body-wrapper">
-        <PanelCreationForm {guildId} {channels} {roles} {teams} {forms} bind:data={panel} seedDefault={false} />
+        <PanelCreationForm {guildId} {channels} {roles} {emojis} {teams} {forms} bind:data={panel} seedDefault={false} />
       </div>
 
       <div slot="footer">
@@ -34,6 +34,7 @@
     export let channels = [];
     export let forms = [];
     export let roles = [];
+    export let emojis = [];
     export let teams = [];
 
     const dispatch = createEventDispatcher();

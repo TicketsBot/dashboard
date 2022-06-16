@@ -5,7 +5,9 @@
   <div class="wrapper">
     <input id="input" class="form-input" placeholder="{placeholder}" disabled="{disabled}" bind:value={value}>
     {#if !disabled}
-      <EmojiSelector on:emoji={onUpdate}/>
+      <div class="picker-wrapper">
+          <EmojiSelector on:emoji={onUpdate}/>
+      </div>
     {/if}
   </div>
 </div>
@@ -49,9 +51,14 @@
         border-left: none;
         color: white;
         z-index: 2;
+        height: 100%;
     }
 
     :global(.svelte-emoji-picker__trigger:active) {
         background-color: #2e3136 !important;
+    }
+
+    .picker-wrapper {
+        max-height: 40px;
     }
 </style>

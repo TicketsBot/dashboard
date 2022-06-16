@@ -10,7 +10,8 @@ var emojisByName map[string]string
 var emojis []string
 
 func LoadEmoji() {
-	bytes, err := ioutil.ReadFile("emojis.json"); if err != nil {
+	bytes, err := ioutil.ReadFile("emojis.json")
+	if err != nil {
 		log.Error("Couldn't load emoji: " + err.Error())
 		return
 	}
@@ -32,7 +33,7 @@ func GetEmoji(input string) (emoji string, ok bool) {
 	// try by name first
 	emoji, ok = emojisByName[input]
 	if !ok { // else try by the actual unicode char
-		for _, unicode := range emojis {
+		for _, unicode := range emojis { // TODO: Optimise
 			if unicode == input {
 				emoji = unicode
 				ok = true

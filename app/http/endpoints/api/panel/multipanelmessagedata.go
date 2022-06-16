@@ -2,9 +2,9 @@ package api
 
 import (
 	"github.com/TicketsBot/GoPanel/botcontext"
+	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects/channel/embed"
-	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/utils"
@@ -58,17 +58,12 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 	if d.SelectMenu {
 		options := make([]component.SelectOption, len(panels))
 		for i, panel := range panels {
-			var emote *emoji.Emoji
-			if panel.ReactionEmote != "" {
-				emote = &emoji.Emoji{
-					Name: panel.ReactionEmote,
-				}
-			}
+			emoji := types.NewEmoji(panel.EmojiName, panel.EmojiId).IntoGdl()
 
 			options[i] = component.SelectOption{
 				Label: panel.ButtonLabel,
 				Value: panel.CustomId,
-				Emoji: emote,
+				Emoji: emoji,
 			}
 		}
 
@@ -88,18 +83,13 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 	} else {
 		buttons := make([]component.Component, len(panels))
 		for i, panel := range panels {
-			var buttonEmoji *emoji.Emoji
-			if panel.ReactionEmote != "" {
-				buttonEmoji = &emoji.Emoji{
-					Name: panel.ReactionEmote,
-				}
-			}
+			emoji := types.NewEmoji(panel.EmojiName, panel.EmojiId).IntoGdl()
 
 			buttons[i] = component.BuildButton(component.Button{
 				Label:    panel.ButtonLabel,
 				CustomId: panel.CustomId,
 				Style:    component.ButtonStyle(panel.ButtonStyle),
-				Emoji:    buttonEmoji,
+				Emoji:    emoji,
 			})
 		}
 

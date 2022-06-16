@@ -1,5 +1,5 @@
 {#if editModal}
-  <PanelEditModal {guildId} {channels} {roles} {teams} {forms} bind:panel={editData}
+  <PanelEditModal {guildId} {channels} {roles} {emojis} {teams} {forms} bind:panel={editData}
                     on:close={() => editModal = false} on:confirm={submitEdit}/>
 {/if}
 
@@ -15,8 +15,6 @@
         <span slot="title">Reaction Panels</span>
         <div slot="body" class="card-body">
           <p>Your panel quota: <b>{panels.length} / {isPremium ? '∞' : '3'}</b></p>
-
-          <img src="https://cdn.discordapp.com/emojis/986995010136318022.png" />
 
           <table style="margin-top: 10px">
             <thead>

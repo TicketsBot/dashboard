@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
@@ -12,9 +13,10 @@ import (
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
 		database.Panel
-		Mentions []string `json:"mentions"`
-		//Teams    []database.SupportTeam `json:"teams"`
-		Teams []int `json:"teams"`
+		UseCustomEmoji bool        `json:"use_custom_emoji"`
+		Emoji          types.Emoji `json:"emote"`
+		Mentions       []string    `json:"mentions"`
+		Teams          []int       `json:"teams"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
@@ -72,9 +74,11 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			wrapped[i] = panelResponse{
-				Panel:    p,
-				Mentions: mentions,
-				Teams:    teamIds,
+				Panel:          p,
+				UseCustomEmoji: p.EmojiId != nil,
+				Emoji:          types.NewEmoji(p.EmojiName, p.EmojiId),
+				Mentions:       mentions,
+				Teams:          teamIds,
 			}
 
 			return nil

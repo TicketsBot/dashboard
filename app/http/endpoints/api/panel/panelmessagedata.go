@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/database"
+	"github.com/rxdn/gdl/objects"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
@@ -12,18 +13,27 @@ import (
 type panelMessageData struct {
 	ChannelId uint64
 
-	Title, Content, CustomId      string
-	Colour                        int
-	ImageUrl, ThumbnailUrl, Emoji *string
-	ButtonStyle                   component.ButtonStyle
-	ButtonLabel                   string
-	IsPremium                     bool
+	Title, Content, CustomId string
+	Colour                   int
+	ImageUrl, ThumbnailUrl   *string
+	Emoji                    *emoji.Emoji
+	ButtonStyle              component.ButtonStyle
+	ButtonLabel              string
+	IsPremium                bool
 }
 
 func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData {
-	var emoji *string
-	if panel.ReactionEmote != "" {
-		emoji = &panel.ReactionEmote
+	var emote *emoji.Emoji
+	if panel.EmojiName != nil && *panel.EmojiName == "" { // No emoji = nil
+		id := objects.NewNullSnowflake()
+		if panel.EmojiId != nil {
+			id = objects.NewNullableSnowflake(*panel.EmojiId)
+		}
+
+		emote = &emoji.Emoji{
+			Id:   id,
+			Name: *panel.EmojiName,
+		}
 	}
 
 	return panelMessageData{
@@ -34,7 +44,7 @@ func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData
 		Colour:       int(panel.Colour),
 		ImageUrl:     panel.ImageUrl,
 		ThumbnailUrl: panel.ThumbnailUrl,
-		Emoji:        emoji,
+		Emoji:        emote,
 		ButtonStyle:  component.ButtonStyle(panel.ButtonStyle),
 		ButtonLabel:  panel.ButtonLabel,
 		IsPremium:    isPremium,
@@ -59,13 +69,6 @@ func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
 		e.SetFooter("Powered by ticketsbot.net", "https://ticketsbot.net/assets/img/logo.png")
 	}
 
-	var buttonEmoji *emoji.Emoji
-	if p.Emoji != nil {
-		buttonEmoji = &emoji.Emoji{
-			Name: *p.Emoji,
-		}
-	}
-
 	data := rest.CreateMessageData{
 		Embeds: []*embed.Embed{e},
 		Components: []component.Component{
@@ -73,7 +76,7 @@ func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
 				Label:    p.ButtonLabel,
 				CustomId: p.CustomId,
 				Style:    p.ButtonStyle,
-				Emoji:    buttonEmoji,
+				Emoji:    p.Emoji,
 				Url:      nil,
 				Disabled: false,
 			})),
