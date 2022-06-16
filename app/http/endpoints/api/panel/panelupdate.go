@@ -148,6 +148,7 @@ func UpdatePanel(ctx *gin.Context) {
 		ImageUrl:        data.ImageUrl,
 		ThumbnailUrl:    data.ThumbnailUrl,
 		ButtonStyle:     int(data.ButtonStyle),
+		ButtonLabel:     data.ButtonLabel,
 		FormId:          data.FormId,
 	}
 
