@@ -12,7 +12,9 @@
         <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
         <ChannelDropdown label="Panel Channel" col4=true {channels} bind:value={data.channel_id}/>
         <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
-        <EmojiInput label="Button Emoji" col4=true bind:value={data.emote}/>
+        <div class="col-4" style="z-index: 1">
+            <EmojiInput label="Button Emoji" col1=true bind:value={data.emote}/>
+        </div>
     </div>
     <div class="row">
         <Dropdown col3=true label="Button Style" bind:value={data.button_style}>
