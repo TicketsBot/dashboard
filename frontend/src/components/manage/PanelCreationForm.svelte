@@ -12,26 +12,46 @@
         <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
         <ChannelDropdown label="Panel Channel" col4=true {channels} bind:value={data.channel_id}/>
         <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
-        <div class="col-4" style="z-index: 1">
-            <EmojiInput label="Button Emoji" col1=true bind:value={data.emote}/>
-        </div>
+        <Dropdown col4=true label="Form" bind:value={data.form_id}>
+            <option value=null>None</option>
+            {#each forms as form}
+                <option value={form.form_id}>{form.title}</option>
+            {/each}
+        </Dropdown>
     </div>
     <div class="row">
-        <Dropdown col3=true label="Button Style" bind:value={data.button_style}>
+        <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
             <option value="1">Blue</option>
             <option value="2">Grey</option>
             <option value="3">Green</option>
             <option value="4">Red</option>
         </Dropdown>
 
-        <Input col3={true} label="Button Text" placeholder="Open a ticket!" bind:value={data.button_label} />
+        <Input col4={true} label="Button Text" placeholder="Open a ticket!" bind:value={data.button_label} />
 
-        <Dropdown col3=true label="Form" bind:value={data.form_id}>
-            <option value=null>None</option>
-            {#each forms as form}
-                <option value={form.form_id}>{form.title}</option>
-            {/each}
-        </Dropdown>
+        <div class="col-2" style="z-index: 1">
+            <label for="emoji-pick-wrapper" class="form-label">Button Emoji</label>
+            <div id="emoji-pick-wrapper" class="row">
+                <div class="col-2">
+                    <label for="use-custom-emoji" class="form-label">Custom Emoji</label>
+                    <input id="use-custom-emoji" class="form-checkbox" type=checkbox bind:checked={data.use_custom_emoji} on:change={() => console.log('a')}>
+                </div>
+                {#if data.use_custom_emoji}
+                    <!--bind:selectedValue={selectedMentions}
+                    on:select={updateMentions}-->
+                    <div class="multiselect-super">
+                        <Select items={emojis}
+                                Item={EmojiItem}
+                                optionIdentifier="id"
+                                getSelectionLabel={emojiNameMapper}
+                                getOptionLabel={emojiNameMapper}
+                                placeholderAlwaysShow={true} />
+                    </div>
+                {:else}
+                    <EmojiInput col1=true bind:value={data.emote}/>
+                {/if}
+            </div>
+        </div>
     </div>
     <div class="row" style="justify-content: center">
         <div class="col-3">
@@ -70,7 +90,7 @@
                                 on:select={updateTeams}
                                 isSearchable={false}
                                 optionIdentifier="id"
-                                getSelectionLabel={nameMapper}
+                                getSelectionLabel={emojiNameMapper}
                                 getOptionLabel={nameMapper}
                                 isMulti={true} />
                     </div>
@@ -95,8 +115,10 @@
     import {colourToInt, intToColour} from "../../js/util";
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import EmojiInput from "../form/EmojiInput.svelte";
+    import EmojiItem from "../EmojiItem.svelte";
     import Select from 'svelte-select';
     import Dropdown from "../form/Dropdown.svelte";
+    import Checkbox from "../form/Checkbox.svelte";
 
     export let guildId;
     export let seedDefault = true;
@@ -109,6 +131,7 @@
 
     export let channels = [];
     export let roles = [];
+    export let emojis = [];
     export let teams = [];
     export let forms = [];
 
@@ -144,6 +167,7 @@
     }
 
     const nameMapper = (team) => team.name;
+    const emojiNameMapper = (emoji) => `:${emoji.name}:`;
 
     function mentionNameMapper(role) {
         if (role.id === "user") {

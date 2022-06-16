@@ -1,6 +1,6 @@
-{#if label !== undefined}
+`{#if label !== undefined}
   <label class="form-label">{label}</label>
-{/if}
+{/if}`
 
 <div class="multiselect-super">
   <Select placeholder="Search..." optionIdentifier="id" items={roles}

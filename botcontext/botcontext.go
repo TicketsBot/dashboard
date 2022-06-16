@@ -9,6 +9,7 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
+	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/member"
 	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
@@ -95,6 +96,19 @@ func (ctx BotContext) GetGuildRoles(guildId uint64) (roles []guild.Role, err err
 	roles, err = rest.GetGuildRoles(ctx.Token, ctx.RateLimiter, guildId)
 	if err == nil {
 		go cache.Instance.StoreRoles(roles, guildId)
+	}
+
+	return
+}
+
+func (ctx BotContext) GetGuildEmojis(guildId uint64) (emojis []emoji.Emoji, err error) {
+	if emojis := cache.Instance.GetGuildEmojis(guildId); len(emojis) > 0 {
+		return emojis, nil
+	}
+
+	emojis, err = rest.ListGuildEmojis(ctx.Token, ctx.RateLimiter, guildId)
+	if err == nil {
+		go cache.Instance.StoreEmojis(emojis, guildId)
 	}
 
 	return

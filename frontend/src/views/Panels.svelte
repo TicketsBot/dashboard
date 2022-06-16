@@ -16,6 +16,8 @@
         <div slot="body" class="card-body">
           <p>Your panel quota: <b>{panels.length} / {isPremium ? '∞' : '3'}</b></p>
 
+          <img src="https://cdn.discordapp.com/emojis/986995010136318022.png" />
+
           <table style="margin-top: 10px">
             <thead>
             <tr>
@@ -55,7 +57,7 @@
 
         <div slot="body" class="body-wrapper">
           {#if !$loadingScreen}
-            <PanelCreationForm {guildId} {channels} {roles} {teams} {forms} bind:data={panelCreateData}/>
+            <PanelCreationForm {guildId} {channels} {roles} {emojis} {teams} {forms} bind:data={panelCreateData}/>
             <div style="display: flex; justify-content: center">
               <div class="col-3">
                 <Button icon="fas fa-paper-plane" fullWidth={true} on:click={createPanel}>Submit</Button>
@@ -142,6 +144,7 @@
 
     let channels = [];
     let roles = [];
+    let emojis = [];
     let teams = [];
     let forms = [];
     let panels = [];
@@ -332,6 +335,16 @@
         roles = res.data.roles;
     }
 
+    async function loadEmojis() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/emojis`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        emojis = res.data;
+    }
+
     async function loadForms() {
         const res = await axios.get(`${API_URL}/api/${guildId}/forms`);
         if (res.status !== 200) {
@@ -349,6 +362,7 @@
           loadTeams(),
           loadForms(),
           loadRoles(),
+          loadEmojis(),
           loadPanels(),
           loadMultiPanels()
       ]);

@@ -75,6 +75,7 @@ func StartServer() {
 		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
 		guildAuthApiSupport.GET("/user/:user", api.UserHandler)
 		guildAuthApiSupport.GET("/roles", api.RolesHandler)
+		guildAuthApiSupport.GET("/emojis", rl(middleware.RateLimitTypeGuild, 5, time.Second*30), api.EmojisHandler)
 		guildAuthApiSupport.GET("/members/search",
 			rl(middleware.RateLimitTypeGuild, 5, time.Second),
 			rl(middleware.RateLimitTypeGuild, 10, time.Second*30),
