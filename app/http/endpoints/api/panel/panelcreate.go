@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -76,10 +77,7 @@ func CreatePanel(ctx *gin.Context) {
 	var data panelBody
 
 	if err := ctx.BindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
@@ -284,6 +282,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
+	fmt.Printf("label: %s\n", p.ButtonLabel)
 	{
 		valid, err := p.verifyTeams(guildId)
 		if err != nil {
@@ -394,7 +393,7 @@ func (p *panelBody) verifyButtonLabel() bool {
 		p.ButtonLabel = p.Title // Title already checked for 80 char max
 	}
 
-	return len(p.ButtonLabel) <= 80
+	return len(p.ButtonLabel) > 0 && len(p.ButtonLabel) <= 80
 }
 
 func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {

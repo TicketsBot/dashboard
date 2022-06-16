@@ -33,8 +33,7 @@
             <label for="emoji-pick-wrapper" class="form-label">Button Emoji</label>
             <div id="emoji-pick-wrapper" class="row">
                 <div class="col-2">
-                    <label for="use-custom-emoji" class="form-label">Custom Emoji</label>
-                    <input id="use-custom-emoji" class="form-checkbox" type=checkbox bind:checked={data.use_custom_emoji} on:change={() => console.log('a')}>
+                    <Slider label="Custom Emoji" bind:value={data.use_custom_emoji} />
                 </div>
                 {#if data.use_custom_emoji}
                     <!--bind:selectedValue={selectedMentions}
@@ -119,6 +118,7 @@
     import Select from 'svelte-select';
     import Dropdown from "../form/Dropdown.svelte";
     import Checkbox from "../form/Checkbox.svelte";
+    import Slider from "../form/Slider.svelte";
 
     export let guildId;
     export let seedDefault = true;
