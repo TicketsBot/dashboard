@@ -25,7 +25,7 @@ const freePanelLimit = 3
 
 var (
 	placeholderPattern = regexp.MustCompile(`%(\w+)%`)
-	channelNamePattern = regexp.MustCompile(`^[\w\d-_]+$`)
+	channelNamePattern = regexp.MustCompile(`^[\w\d-_\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff]+$`)
 )
 
 type panelBody struct {
@@ -495,7 +495,7 @@ func (p *panelBody) verifyNamingScheme() bool {
 	noPlaceholders := *p.NamingScheme
 
 	// Validate placeholders used
-	validPlaceholders := []string{"id", "username"}
+	validPlaceholders := []string{"id", "username", "nickname"}
 	for _, match := range placeholderPattern.FindAllStringSubmatch(*p.NamingScheme, -1) {
 		if len(match) < 2 { // Infallible
 			return false
