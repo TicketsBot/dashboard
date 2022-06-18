@@ -25,7 +25,7 @@ const freePanelLimit = 3
 
 var (
 	placeholderPattern = regexp.MustCompile(`%(\w+)%`)
-	channelNamePattern = regexp.MustCompile(`^[\w\d-_\u00a9\u00ae\u2000-\u3300\ud83c\ud000-\udfff\ud83d\ud000-\udfff\ud83e\ud000-\udfff]+$`)
+	channelNamePattern = regexp.MustCompile(`^[\w\d-_\x{00a9}\x{00ae}\x{2000}-\x{3300}\x{d83c}\x{d000}-\x{dfff}\x{d83d}\x{d000}-\x{dfff}\x{d83e}\x{d000}-\x{dfff}]+$`)
 )
 
 type panelBody struct {
