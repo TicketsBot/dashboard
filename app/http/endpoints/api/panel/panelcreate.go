@@ -23,6 +23,11 @@ import (
 
 const freePanelLimit = 3
 
+var (
+	placeholderPattern = regexp.MustCompile(`%(\w+)%`)
+	channelNamePattern = regexp.MustCompile(`^[\w\d-_]+$`)
+)
+
 type panelBody struct {
 	ChannelId       uint64                `json:"channel_id,string"`
 	MessageId       uint64                `json:"message_id,string"`
@@ -40,6 +45,7 @@ type panelBody struct {
 	ButtonStyle     component.ButtonStyle `json:"button_style,string"`
 	ButtonLabel     string                `json:"button_label"`
 	FormId          *int                  `json:"form_id"`
+	NamingScheme    *string               `json:"naming_scheme"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
@@ -153,6 +159,7 @@ func CreatePanel(ctx *gin.Context) {
 		ButtonStyle:     int(data.ButtonStyle),
 		ButtonLabel:     data.ButtonLabel,
 		FormId:          data.FormId,
+		NamingScheme:    data.NamingScheme,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -303,6 +310,11 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 			ctx.JSON(400, utils.ErrorStr("Guild ID for form does not match"))
 			return false
 		}
+	}
+
+	if !p.verifyNamingScheme() {
+		ctx.JSON(400, utils.ErrorStr("Invalid naming scheme: ensure that the naming scheme is less than 100 characters and	 the placeholders you have used are valid"))
+		return false
 	}
 
 	return true
@@ -457,6 +469,47 @@ func (p *panelBody) verifyTeams(guildId uint64) (bool, error) {
 	}
 
 	return dbclient.Client.SupportTeam.AllTeamsExistForGuild(guildId, p.Teams)
+}
+
+func (p *panelBody) verifyNamingScheme() bool {
+	if p.NamingScheme == nil {
+		return true
+	}
+
+	if len(*p.NamingScheme) == 0 {
+		p.NamingScheme = nil
+		return true
+	}
+
+	// Substitute out {} users may use by mistake, spaces for dashes and convert to lowercase
+	p.NamingScheme = utils.Ptr(strings.ReplaceAll(*p.NamingScheme, "{", "%"))
+	p.NamingScheme = utils.Ptr(strings.ReplaceAll(*p.NamingScheme, "}", "%"))
+	p.NamingScheme = utils.Ptr(strings.ReplaceAll(*p.NamingScheme, " ", "-"))
+	p.NamingScheme = utils.Ptr(strings.ToLower(*p.NamingScheme))
+
+	if len(*p.NamingScheme) > 100 {
+		return false
+	}
+
+	// We must remove all placeholders from the string to check whether the rest of the string is legal
+	noPlaceholders := *p.NamingScheme
+
+	// Validate placeholders used
+	validPlaceholders := []string{"id", "username"}
+	for _, match := range placeholderPattern.FindAllStringSubmatch(*p.NamingScheme, -1) {
+		if len(match) < 2 { // Infallible
+			return false
+		}
+
+		placeholder := match[1]
+		if !utils.Contains(validPlaceholders, placeholder) {
+			return false
+		}
+
+		noPlaceholders = strings.Replace(noPlaceholders, match[0], "", -1) // match[0] = "%placeholder%"
+	}
+
+	return channelNamePattern.MatchString(noPlaceholders)
 }
 
 func getRoleHashSet(guildId uint64) (*collections.Set[uint64], error) {

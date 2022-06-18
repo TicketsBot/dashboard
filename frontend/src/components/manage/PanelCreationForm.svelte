@@ -41,8 +41,6 @@
                             on:toggle={handleEmojiTypeChange} />
                 </div>
                 {#if data.use_custom_emoji}
-                    <!--bind:selectedValue={selectedMentions}
-                    on:select={updateMentions}-->
                     <div class="multiselect-super">
                         <Select items={emojis}
                                 Item={EmojiItem}
@@ -106,6 +104,29 @@
                 <Input col2={true} label="Large Image URL" bind:value={data.image_url} placeholder="https://example.com/image.png" />
                 <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
             </div>
+            <div class="row">
+                <div class="col-2">
+                    <label for="naming-scheme-wrapper" class="form-label">Naming Scheme</label>
+                    <div class="row" id="naming-scheme-wrapper">
+                        <div>
+                            <label class="form-label">Use Server Default</label>
+                            <Toggle hideLabel
+                                    toggledColor="#66bb6a"
+                                    untoggledColor="#ccc"
+                                    bind:toggled={data.use_server_default_naming_scheme} />
+                        </div>
+                        <div class="col-fill">
+                            {#if !data.use_server_default_naming_scheme}
+                                <Input label="Naming Scheme"
+                                       bind:value={data.naming_scheme}
+                                       placeholder="ticket-%id%"
+                                       tooltipText="Click here for the full placeholder list"
+                                       tooltipLink="https://docs.ticketsbot.net" />
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </form>
@@ -126,6 +147,7 @@
     import Dropdown from "../form/Dropdown.svelte";
     import Checkbox from "../form/Checkbox.svelte";
     import Toggle from "svelte-toggle";
+    import Slider from "../form/Slider.svelte";
 
     export let guildId;
     export let seedDefault = true;
@@ -247,8 +269,7 @@
                 .forEach((mention) => selectedMentions.push(mention));
         }
 
-        $: data.emote = data.emote;
-        console.log(data.emote)
+        data.emote = data.emote;
 
         tempColour = intToColour(data.colour);
     }
@@ -271,7 +292,8 @@
               button_style: "1",
               form_id: "null",
               channel_id: channels.find((c) => c.type === 0).id,
-              category_id: channels.find((c) => c.type === 4).id
+              category_id: channels.find((c) => c.type === 4).id,
+              use_server_default_naming_scheme: true,
             };
         } else {
             applyOverrides();
@@ -293,6 +315,12 @@
         flex-direction: column;
         width: 100%;
         height: 100%;
+    }
+
+    .col-fill {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
     }
 
     :global(.col-1-3) {
@@ -357,6 +385,10 @@
 
     .absolute {
         position: absolute;
+    }
+
+    #naming-scheme-wrapper {
+        gap: 10px;
     }
 
     :global(.multiselect-super) {

@@ -38,7 +38,7 @@
     export let currentRoute;
     export let params = {};
 
-    let guildId = currentRoute.namedParams.id
+    let guildId = currentRoute.namedParams.id;
 
     import Head from '../includes/Head.svelte'
     import LoadingScreen from '../includes/LoadingScreen.svelte'

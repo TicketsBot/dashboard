@@ -4,9 +4,9 @@ import (
 	"github.com/rxdn/gdl/objects/channel/message"
 )
 
-func ContainsString(slice []string, target string) bool {
+func Contains[T comparable](slice []T, value T) bool {
 	for _, elem := range slice {
-		if elem == target {
+		if elem == value {
 			return true
 		}
 	}
@@ -15,8 +15,8 @@ func ContainsString(slice []string, target string) bool {
 }
 
 func Reverse(slice []message.Message) []message.Message {
-	for i := len(slice)/2-1; i >= 0; i-- {
-		opp := len(slice)-1-i
+	for i := len(slice)/2 - 1; i >= 0; i-- {
+		opp := len(slice) - 1 - i
 		slice[i], slice[opp] = slice[opp], slice[i]
 	}
 	return slice

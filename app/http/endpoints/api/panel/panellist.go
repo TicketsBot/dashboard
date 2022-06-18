@@ -13,10 +13,11 @@ import (
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
 		database.Panel
-		UseCustomEmoji bool        `json:"use_custom_emoji"`
-		Emoji          types.Emoji `json:"emote"`
-		Mentions       []string    `json:"mentions"`
-		Teams          []int       `json:"teams"`
+		UseCustomEmoji               bool        `json:"use_custom_emoji"`
+		Emoji                        types.Emoji `json:"emote"`
+		Mentions                     []string    `json:"mentions"`
+		Teams                        []int       `json:"teams"`
+		UseServerDefaultNamingScheme bool        `json:"use_server_default_naming_scheme"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
@@ -74,11 +75,12 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			wrapped[i] = panelResponse{
-				Panel:          p,
-				UseCustomEmoji: p.EmojiId != nil,
-				Emoji:          types.NewEmoji(p.EmojiName, p.EmojiId),
-				Mentions:       mentions,
-				Teams:          teamIds,
+				Panel:                        p,
+				UseCustomEmoji:               p.EmojiId != nil,
+				Emoji:                        types.NewEmoji(p.EmojiName, p.EmojiId),
+				Mentions:                     mentions,
+				Teams:                        teamIds,
+				UseServerDefaultNamingScheme: p.NamingScheme == nil,
 			}
 
 			return nil

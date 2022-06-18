@@ -125,6 +125,7 @@ func UpdatePanel(ctx *gin.Context) {
 		ButtonStyle:     int(data.ButtonStyle),
 		ButtonLabel:     data.ButtonLabel,
 		FormId:          data.FormId,
+		NamingScheme:    data.NamingScheme,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {
