@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
 	github.com/TicketsBot/common v0.0.0-20220609182514-8d43f86e8253
-	github.com/TicketsBot/database v0.0.0-20220616215313-0f5a33c3a2a6
+	github.com/TicketsBot/database v0.0.0-20220618184239-b5ab901854fb
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
 	github.com/TicketsBot/worker v0.0.0-20220614162334-f81bf3f39aa5
 	github.com/apex/log v1.1.2
@@ -80,8 +80,4 @@ require (
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	nhooyr.io/websocket v1.8.4 // indirect
-)
-
-replace (
-	github.com/TicketsBot/database => "../database"
 )
