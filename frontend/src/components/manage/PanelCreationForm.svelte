@@ -119,6 +119,7 @@
                             {#if !data.use_server_default_naming_scheme}
                                 <Input label="Naming Scheme"
                                        bind:value={data.naming_scheme}
+                                       on:input={handleNamingSchemeChange}
                                        placeholder="ticket-%id%"
                                        tooltipText="Click here for the full placeholder list"
                                        tooltipLink="https://docs.ticketsbot.net" />
@@ -238,6 +239,10 @@
             id: emoji.id,
             name: emoji.name
         };
+    }
+
+    function handleNamingSchemeChange() {
+        data.naming_scheme = data.naming_scheme.replaceAll(' ', '-');
     }
 
     function updateColour() {
