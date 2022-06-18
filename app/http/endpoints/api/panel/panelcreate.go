@@ -23,10 +23,7 @@ import (
 
 const freePanelLimit = 3
 
-var (
-	placeholderPattern = regexp.MustCompile(`%(\w+)%`)
-	channelNamePattern = regexp.MustCompile(`^[\w\d-_\x{00a9}\x{00ae}\x{2000}-\x{3300}\x{d83c}\x{d000}-\x{dfff}\x{d83d}\x{d000}-\x{dfff}\x{d83e}\x{d000}-\x{dfff}]+$`)
-)
+var placeholderPattern = regexp.MustCompile(`%(\w+)%`)
 
 type panelBody struct {
 	ChannelId       uint64                `json:"channel_id,string"`
@@ -491,9 +488,6 @@ func (p *panelBody) verifyNamingScheme() bool {
 		return false
 	}
 
-	// We must remove all placeholders from the string to check whether the rest of the string is legal
-	noPlaceholders := *p.NamingScheme
-
 	// Validate placeholders used
 	validPlaceholders := []string{"id", "username", "nickname"}
 	for _, match := range placeholderPattern.FindAllStringSubmatch(*p.NamingScheme, -1) {
@@ -505,11 +499,10 @@ func (p *panelBody) verifyNamingScheme() bool {
 		if !utils.Contains(validPlaceholders, placeholder) {
 			return false
 		}
-
-		noPlaceholders = strings.Replace(noPlaceholders, match[0], "", -1) // match[0] = "%placeholder%"
 	}
 
-	return channelNamePattern.MatchString(noPlaceholders)
+	// Discord filters out illegal characters (such as +, $, ") when creating the channel for us
+	return true
 }
 
 func getRoleHashSet(guildId uint64) (*collections.Set[uint64], error) {
