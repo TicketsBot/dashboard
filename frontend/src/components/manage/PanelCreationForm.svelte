@@ -174,7 +174,7 @@
     let selectedMentions = [];
 
     // Replace spaces with dashes in naming scheme as the user types
-    $: if (data.naming_scheme.includes(' ')) {
+    $: if (data.naming_scheme !== undefined && data.naming_scheme !== null && data.naming_scheme.includes(' ')) {
         data.naming_scheme = data.naming_scheme.replaceAll(' ', '-');
     }
 
