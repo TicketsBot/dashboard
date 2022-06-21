@@ -53,7 +53,6 @@ var timeout = time.Second * 60
 func WebChatWs(ctx *gin.Context) {
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 
@@ -95,7 +94,6 @@ func WebChatWs(ctx *gin.Context) {
 		for {
 			err := conn.WriteMessage(websocket.PingMessage, []byte("keepalive"))
 			if err != nil {
-				fmt.Println(err.Error())
 				conn.Close()
 				conn.CloseHandler()(1000, "")
 				return
@@ -156,7 +154,6 @@ func WebChatWs(ctx *gin.Context) {
 			// Verify the user has permissions to be here
 			permLevel, err := utils.GetPermissionLevel(authData.GuildId, userId)
 			if err != nil {
-				fmt.Println(err.Error())
 				conn.Close()
 				return
 			}

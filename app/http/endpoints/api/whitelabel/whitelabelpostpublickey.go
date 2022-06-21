@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/hex"
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,10 +17,7 @@ func WhitelabelPostPublicKey(ctx *gin.Context) {
 	// Get bot
 	bot, err := database.Client.Whitelabel.GetByUserId(userId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -52,10 +50,7 @@ func WhitelabelPostPublicKey(ctx *gin.Context) {
 	}
 
 	if err := database.Client.WhitelabelKeys.Set(bot.BotId, body.PublicKey); err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

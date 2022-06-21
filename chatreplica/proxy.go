@@ -30,8 +30,6 @@ func Render(payload Payload) ([]byte, error) {
 	}
 
 	if res.StatusCode != 200 {
-		fmt.Println(string(encoded))
-
 		sentry.CaptureEvent(&sentry.Event{
 			Extra: map[string]interface{}{
 				"request_body": string(encoded),

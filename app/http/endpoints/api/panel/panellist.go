@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
@@ -88,10 +89,7 @@ func ListPanels(ctx *gin.Context) {
 	}
 
 	if err := group.Wait(); err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

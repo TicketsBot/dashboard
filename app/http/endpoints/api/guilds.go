@@ -26,10 +26,7 @@ func GetGuilds(ctx *gin.Context) {
 
 	guilds, err := database.Client.UserGuilds.Get(userId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

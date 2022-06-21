@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -42,7 +41,6 @@ func DeletePanel(ctx *gin.Context) {
 	// Get any multi panels this panel is part of to use later
 	multiPanels, err := database.Client.MultiPanelTargets.GetMultiPanels(panelId)
 	if err != nil {
-		fmt.Println(err.Error())
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

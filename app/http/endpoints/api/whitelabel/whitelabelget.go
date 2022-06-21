@@ -2,9 +2,15 @@ package api
 
 import (
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
-	"strconv"
+	"github.com/rxdn/gdl/objects/user"
 )
+
+type whitelabelResponse struct {
+	Id uint64 `json:"id,string"`
+	statusUpdateBody
+}
 
 func WhitelabelGet(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
@@ -12,33 +18,27 @@ func WhitelabelGet(ctx *gin.Context) {
 	// Check if this is a different token
 	bot, err := database.Client.Whitelabel.GetByUserId(userId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	if bot.BotId == 0 {
-		ctx.JSON(404, gin.H{
-			"success": false,
-			"error":   "No bot found",
-		})
-	} else {
-		// Get status
-		status, err := database.Client.WhitelabelStatuses.Get(bot.BotId)
-		if err != nil {
-			ctx.JSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
-			return
-		}
-
-		ctx.JSON(200, gin.H{
-			"success":              true,
-			"id":                   strconv.FormatUint(bot.BotId, 10),
-			"status":               status,
-		})
+		ctx.JSON(404, utils.ErrorStr("No bot found"))
+		return
 	}
+
+	// Get status
+	status, statusType, _, err := database.Client.WhitelabelStatuses.Get(bot.BotId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	ctx.JSON(200, whitelabelResponse{
+		Id: bot.BotId,
+		statusUpdateBody: statusUpdateBody{ // Zero values if no status is fine
+			Status:     status,
+			StatusType: user.ActivityType(statusType),
+		},
+	})
 }

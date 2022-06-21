@@ -1,99 +1,111 @@
 <div class="wrapper">
-  <div class="content">
-    <div class="content-col">
-      <Card footer="{false}" fill="{false}">
-        <h4 slot="title">Bot Token</h4>
-        <div slot="body" class="full-width">
-          <form class="full-width" onsubmit="return false;">
-            <label class="form-label">Bot Token</label>
-            <input name="token" type="text" bind:value={token} class="form-input full-width"
-                   placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx">
-            <p>Note: You will not be able to view the token after submitting it</p>
+    <div class="content">
+        <div class="content-col">
+            <Card footer="{false}" fill="{false}">
+                <h4 slot="title">Bot Token</h4>
+                <div slot="body" class="full-width">
+                    <form class="full-width" onsubmit="return false;">
+                        <label class="form-label">Bot Token</label>
+                        <input name="token" type="text" bind:value={token} class="form-input full-width"
+                               placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                        <p>Note: You will not be able to view the token after submitting it</p>
 
-            <div class="buttons">
-              <div class="col">
-                <Button icon="fas fa-paper-plane" on:click={submitToken} fullWidth="{true}">Submit</Button>
-              </div>
-              <div class="col">
-                <Button icon="fas fa-plus" on:click={invite} fullWidth="{true}" disabled="{bot.id === undefined}">
-                  Generate Invite Link
-                </Button>
-              </div>
-            </div>
-          </form>
+                        <div class="buttons">
+                            <div class="col">
+                                <Button icon="fas fa-paper-plane" on:click={submitToken} fullWidth="{true}">Submit
+                                </Button>
+                            </div>
+                            <div class="col">
+                                <Button icon="fas fa-plus" on:click={invite} fullWidth="{true}"
+                                        disabled="{bot.id === undefined}">
+                                    Generate Invite Link
+                                </Button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </Card>
         </div>
-      </Card>
-    </div>
-    <div class="content-col">
-      <Card footer="{false}" fill="{false}">
-        <h4 slot="title">Slash Commands</h4>
-        <div slot="body" class="full-width">
-          <form class="full-width" onsubmit="return false;">
-            <label class="form-label">Interactions Endpoint URL</label>
-            <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width" readonly>
+        <div class="content-col">
+            <Card footer="{false}" fill="{false}">
+                <h4 slot="title">Slash Commands</h4>
+                <div slot="body" class="full-width">
+                    <form class="full-width" onsubmit="return false;">
+                        <label class="form-label">Interactions Endpoint URL</label>
+                        <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width"
+                               readonly>
 
-            <label class="form-label">Public Key</label>
-            <input name="token" type="text" bind:value={publicKey} class="form-input full-width">
+                        <label class="form-label">Public Key</label>
+                        <input name="token" type="text" bind:value={publicKey} class="form-input full-width">
 
-            <div class="buttons">
-              <div class="col">
-                <Button icon="fas fa-paper-plane" on:click={updatePublicKey} fullWidth="{true}"
-                        disabled="{bot.id === undefined}">Submit Key
-                </Button>
-              </div>
-              <div class="col">
-                <Button icon="fas fa-paper-plane" on:click={createSlashCommands} fullWidth="{true}"
-                        disabled="{!publicKeyOk}">Create Slash Commands
-                </Button>
-              </div>
-            </div>
-          </form>
+                        <div class="buttons">
+                            <div class="col">
+                                <Button icon="fas fa-paper-plane" on:click={updatePublicKey} fullWidth="{true}"
+                                        disabled="{bot.id === undefined}">Submit Key
+                                </Button>
+                            </div>
+                            <div class="col">
+                                <Button icon="fas fa-paper-plane" on:click={createSlashCommands} fullWidth="{true}"
+                                        disabled="{!publicKeyOk}">Create Slash Commands
+                                </Button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </Card>
         </div>
-      </Card>
     </div>
-  </div>
-  <div class="content">
-    <div class="content-col">
-      <Card footer="{false}" fill="{false}">
-        <h4 slot="title">Custom Status</h4>
-        <div slot="body" class="full-width">
-          <form class="full-width" onsubmit="return false;">
-            <label class="form-label">Status</label>
-            <input name="token" type="text" bind:value={bot.status} class="form-input full-width" placeholder="/help">
+    <div class="content">
+        <div class="content-col">
+            <Card footer="{false}" fill="{false}">
+                <h4 slot="title">Custom Status</h4>
+                <div slot="body" class="full-width">
+                    <form class="form-wrapper full-width" onsubmit="return false;">
+                        <div class="row">
+                            <Dropdown col3 label="Status Type" bind:value={bot.status_type}>
+                                <option value="0">Playing</option>
+                                <option value="2">Listening</option>
+                                <option value="3">Watching</option>
+                            </Dropdown>
 
-            <div class="buttons">
-              <Button icon="fas fa-paper-plane" on:click={updateStatus} fullWidth="{true}"
-                      disabled="{bot.id === undefined}">Submit
-              </Button>
-            </div>
-          </form>
+                            <div class="col-2-3">
+                                <Input col1 label="Status Text" placeholder="/help" bind:value={bot.status} />
+                            </div>
+                        </div>
+
+                        <div class="buttons">
+                            <Button icon="fas fa-paper-plane" on:click={updateStatus} fullWidth="{true}"
+                                    disabled="{bot.id === undefined}">Submit
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </Card>
         </div>
-      </Card>
-    </div>
-    <div class="content-col">
-      <Card footer="{false}" fill="{false}">
-        <h4 slot="title">Error Log</h4>
-        <div slot="body" class="full-width">
-          <table class="error-log">
-            <thead>
-            <tr style="border-bottom: 1px solid #dee2e6;">
-              <th class="table-col">Error</th>
-              <th class="table-col">Time</th>
-            </tr>
-            </thead>
-            <tbody id="error_body">
-            {#each errors as error}
-              <tr class="table-row table-border">
-                <td class="table-col">{error.message}</td>
-                <td class="table-col">{error.time.toLocaleString()}</td>
-              </tr>
-            {/each}
-            </tbody>
-          </table>
+        <div class="content-col">
+            <Card footer="{false}" fill="{false}">
+                <h4 slot="title">Error Log</h4>
+                <div slot="body" class="full-width">
+                    <table class="error-log">
+                        <thead>
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <th class="table-col">Error</th>
+                            <th class="table-col">Time</th>
+                        </tr>
+                        </thead>
+                        <tbody id="error_body">
+                        {#each errors as error}
+                            <tr class="table-row table-border">
+                                <td class="table-col">{error.message}</td>
+                                <td class="table-col">{error.time.toLocaleString()}</td>
+                            </tr>
+                        {/each}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
         </div>
-      </Card>
     </div>
-  </div>
 </div>
 
 <style>
@@ -179,6 +191,22 @@
     .table-border {
         border-top: 1px solid #dee2e6;
     }
+
+    .form-wrapper {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        height: 100%;
+        gap: 10px;
+    }
 </style>
 
 <script>
@@ -188,6 +216,8 @@
     import Button from '../components/Button.svelte'
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
+    import Input from "../components/form/Input.svelte";
+    import Dropdown from "../components/form/Dropdown.svelte";
 
     setDefaultHeaders()
 
@@ -200,7 +230,7 @@
 
     async function invite() {
         const res = await axios.get(`${API_URL}/user/whitelabel/`);
-        if (res.status !== 200 || !res.data.success) {
+        if (res.status !== 200) {
             notifyError(res.data.error);
             return;
         }
@@ -246,6 +276,7 @@
     async function updateStatus() {
         const data = {
             status: bot.status,
+            status_type: bot.status_type,
         };
 
         const res = await axios.post(`${API_URL}/user/whitelabel/status`, data);
@@ -264,7 +295,7 @@
 
     async function loadBot() {
         const res = await axios.get(`${API_URL}/user/whitelabel/`);
-        if (res.status !== 200 || !res.data.success) {
+        if (res.status !== 200) {
             if (res.status === 402) {
                 window.location.replace("https://ticketsbot.net/premium");
                 return false;
@@ -273,6 +304,7 @@
             if (res.status !== 404) {
                 notifyError(res.data.error);
             }
+
             return true;
         }
 
@@ -314,7 +346,7 @@
             return;
         }
 
-        if (res.status !== 200 || !res.data.success) {
+        if (res.status !== 200) {
             notifyError(res.data.error);
             return;
         }

@@ -52,10 +52,7 @@ func WhitelabelPost(ctx *gin.Context) {
 	// Check if this is a different token
 	existing, err := dbclient.Client.Whitelabel.GetByUserId(userId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -64,10 +61,7 @@ func WhitelabelPost(ctx *gin.Context) {
 		BotId:  bot.Id,
 		Token:  token,
 	}); err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -78,10 +72,7 @@ func WhitelabelPost(ctx *gin.Context) {
 	}
 
 	if err := tokenchange.PublishTokenChange(redis.Client.Client, tokenChangeData); err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

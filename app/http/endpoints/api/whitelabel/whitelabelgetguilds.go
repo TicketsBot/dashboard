@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -12,10 +13,7 @@ func WhitelabelGetGuilds(ctx *gin.Context) {
 
 	bot, err := database.Client.Whitelabel.GetByUserId(userId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -24,17 +22,14 @@ func WhitelabelGetGuilds(ctx *gin.Context) {
 	if bot.BotId == 0 {
 		ctx.JSON(404, gin.H{
 			"success": false,
-			"guilds": guilds,
+			"guilds":  guilds,
 		})
 		return
 	}
 
 	ids, err := database.Client.WhitelabelGuilds.GetGuilds(bot.BotId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -47,6 +42,6 @@ func WhitelabelGetGuilds(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success": true,
-		"guilds": guilds,
+		"guilds":  guilds,
 	})
 }

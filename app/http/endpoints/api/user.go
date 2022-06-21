@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -12,19 +13,13 @@ func UserHandler(ctx *gin.Context) {
 
 	userId, err := strconv.ParseUint(ctx.Param("user"), 10, 64)
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Invalid user ID",
-		})
+		ctx.JSON(400, utils.ErrorStr("Invalid user ID"))
 		return
 	}
 
 	var username string
 	if err := cache.Instance.QueryRow(context.Background(), `SELECT "data"->>'Username' FROM users WHERE users.user_id=$1 AND EXISTS(SELECT FROM members WHERE members.guild_id=$2);`, userId, guildId).Scan(&username); err != nil {
-		ctx.JSON(404, gin.H{
-			"success": false,
-			"error":   "Not found",
-		})
+		ctx.JSON(404, utils.ErrorStr("Not found"))
 		return
 	}
 
