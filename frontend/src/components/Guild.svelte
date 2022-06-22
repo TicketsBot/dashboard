@@ -38,8 +38,8 @@
     }
 
     async function goto(guildId) {
-        const permissionLevels = await getPermissionLevel(guildId);
-        if (permissionLevels[guildId] === 2) {
+        const permissionLevel = await getPermissionLevel(guildId);
+        if (permissionLevel === 2) {
             window.location.href = `/manage/${guildId}/settings`;
         } else {
             window.location.href = `/manage/${guildId}/transcripts`;
@@ -47,13 +47,13 @@
     }
 
     async function getPermissionLevel(guildId) {
-        const res = await axios.get(`${API_URL}/user/permissionlevel?guilds=${guildId}`);
+        const res = await axios.get(`${API_URL}/user/permissionlevel?guild=${guildId}`);
         if (res.status !== 200 || !res.data.success) {
             notifyError(res.data.error);
             return;
         }
 
-        return res.data.levels;
+        return res.data.permission_level;
     }
 </script>
 

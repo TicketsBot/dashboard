@@ -2,14 +2,14 @@ package api
 
 import (
 	"context"
-	"github.com/TicketsBot/GoPanel/database"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	syncutils "github.com/TicketsBot/common/utils"
+	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4"
-	"github.com/rxdn/gdl/objects/guild"
+	"github.com/jackc/pgtype"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
 	"sort"
@@ -24,47 +24,50 @@ type wrappedGuild struct {
 func GetGuilds(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
-	guilds, err := database.Client.UserGuilds.Get(userId)
+	// Get all guilds the user is in
+	guilds, err := dbclient.Client.UserGuilds.Get(userId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	// Get the subset of guilds that the user is in that the bot is also in
+	guildIds := make([]uint64, len(guilds))
+	guildMap := make(map[uint64]database.UserGuild) // Make a map of all guilds for O(1) access
+	for i, guild := range guilds {
+		guildIds[i] = guild.GuildId
+		guildMap[guild.GuildId] = guild
+	}
+
+	botGuilds, err := getExistingGuilds(guildIds)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	wg := syncutils.NewChannelWaitGroup()
-	wg.Add(len(guilds))
+	wg.Add(len(botGuilds))
 
 	group, _ := errgroup.WithContext(context.Background())
 	ch := make(chan wrappedGuild)
-	for _, g := range guilds {
-		g := g
+	for _, guildId := range botGuilds {
+		guildId := guildId
+		g := guildMap[guildId]
 
 		group.Go(func() error {
 			defer wg.Done()
 
-			// verify bot is in guild
-			if err := cache.Instance.QueryRow(context.Background(), `SELECT 1 from guilds WHERE "guild_id" = $1`, g.GuildId).Scan(nil); err != nil {
-				if err == pgx.ErrNoRows {
-					return nil
-				} else {
-					return err
-				}
-			}
-
-			fakeGuild := guild.Guild{
-				Id:          g.GuildId,
-				Owner:       g.Owner,
-				Permissions: g.UserPermissions,
-			}
-
+			// Determine the user's permission level in this guild
+			var permLevel permission.PermissionLevel
 			if g.Owner {
-				fakeGuild.OwnerId = userId
-			}
-
-			permLevel, err := utils.GetPermissionLevel(g.GuildId, userId)
-			if err != nil {
-				// If a Discord error occurs, just skip the server
-				if _, ok := err.(request.RestError); !ok {
-					return err
+				permLevel = permission.Admin
+			} else {
+				permLevel, err = utils.GetPermissionLevel(g.GuildId, userId)
+				if err != nil {
+					// If a Discord error occurs, just skip the server
+					if _, ok := err.(request.RestError); !ok {
+						return err
+					}
 				}
 			}
 
@@ -96,7 +99,10 @@ func GetGuilds(ctx *gin.Context) {
 		return nil
 	})
 
-	_ = group.Wait() // error not possible
+	if err := group.Wait(); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	// sort
 	sort.Slice(adminGuilds, func(i, j int) bool {
@@ -106,24 +112,30 @@ func GetGuilds(ctx *gin.Context) {
 	ctx.JSON(200, adminGuilds)
 }
 
-/*func getAdminGuilds(userId uint64) ([]uint64, error) {
-	var guilds []uint64
+func getExistingGuilds(userGuilds []uint64) ([]uint64, error) {
+	query := `SELECT "guild_id" from guilds WHERE "guild_id" = ANY($1);`
 
-	// get guilds owned by user
-	query := `SELECT "guild_id" FROM guilds WHERE "data"->'owner_id' = '$1';`
-	rows, err := cache.Instance.Query(context.Background(), query, userId)
+	userGuildsArray := &pgtype.Int8Array{}
+	if err := userGuildsArray.Set(userGuilds); err != nil {
+		return nil, err
+	}
+
+	rows, err := cache.Instance.Query(context.Background(), query, userGuildsArray)
 	if err != nil {
 		return nil, err
 	}
 
+	defer rows.Close()
+
+	var existingGuilds []uint64
 	for rows.Next() {
 		var guildId uint64
 		if err := rows.Scan(&guildId); err != nil {
 			return nil, err
 		}
 
-		guilds = append(guilds, guildId)
+		existingGuilds = append(existingGuilds, guildId)
 	}
 
-	database.Client.Permissions.GetSupport()
-}*/
+	return existingGuilds, nil
+}

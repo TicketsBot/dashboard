@@ -5,14 +5,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ErrorJson(err error) map[string]interface{} {
+func ErrorJson(err error) map[string]any {
 	return ErrorStr(err.Error())
 }
 
-func ErrorStr(err string, format ...interface{}) map[string]interface{} {
-	return gin.H {
+func ErrorStr(err string, format ...any) map[string]any {
+	return gin.H{
 		"success": false,
-		"error": fmt.Sprintf(err, format...),
+		"error":   fmt.Sprintf(err, format...),
 	}
 }
 

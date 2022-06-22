@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/user"
 	"golang.org/x/sync/errgroup"
@@ -19,10 +20,7 @@ func GetTickets(ctx *gin.Context) {
 
 	tickets, err := database.Client.Tickets.GetGuildOpenTickets(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -50,10 +48,7 @@ func GetTickets(ctx *gin.Context) {
 	}
 
 	if err := group.Wait(); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
