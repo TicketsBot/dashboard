@@ -64,10 +64,10 @@
     export let params = {};
 
     function back() {
-        window.history.back()
+        window.history.go(-2);
     }
 
     function home() {
-        window.location.href = '/'
+        window.location.href = '/';
     }
 </script>
