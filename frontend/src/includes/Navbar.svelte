@@ -6,15 +6,26 @@
       </div>
       <div class="nav-section" class:dropdown={$dropdown}>
         <!-- on:click required to close dropdown again -->
-        <NavElement icon="fas fa-cogs" link="/manage/{guildId}/settings" on:click={closeDropdown}>Settings</NavElement>
+
+        {#if isAdmin}
+            <NavElement icon="fas fa-cogs" link="/manage/{guildId}/settings" on:click={closeDropdown}>Settings</NavElement>
+        {/if}
+
         <NavElement icon="fas fa-copy" link="/manage/{guildId}/transcripts" on:click={closeDropdown}>Transcripts</NavElement>
-        <NavElement icon="fas fa-mouse-pointer" link="/manage/{guildId}/panels" on:click={closeDropdown}>Reaction Panels</NavElement>
-        <NavElement icon="fas fa-poll-h" link="/manage/{guildId}/forms" on:click={closeDropdown}>Forms</NavElement>
-        <NavElement icon="fas fa-users" link="/manage/{guildId}/teams" on:click={closeDropdown}>Staff Teams</NavElement>
+
+        {#if isAdmin}
+            <NavElement icon="fas fa-mouse-pointer" link="/manage/{guildId}/panels" on:click={closeDropdown}>Reaction Panels</NavElement>
+            <NavElement icon="fas fa-poll-h" link="/manage/{guildId}/forms" on:click={closeDropdown}>Forms</NavElement>
+            <NavElement icon="fas fa-users" link="/manage/{guildId}/teams" on:click={closeDropdown}>Staff Teams</NavElement>
+        {/if}
+
         <NavElement icon="fas fa-ticket-alt" link="/manage/{guildId}/tickets" on:click={closeDropdown}>Tickets</NavElement>
         <NavElement icon="fas fa-ban" link="/manage/{guildId}/blacklist" on:click={closeDropdown}>Blacklist</NavElement>
         <NavElement icon="fas fa-tags" link="/manage/{guildId}/tags" on:click={closeDropdown}>Tags</NavElement>
-        <NavElement icon="fas fa-paint-brush" link="/manage/{guildId}/appearance" on:click={closeDropdown}>Customise Appearance</NavElement>
+
+        {#if isAdmin}
+            <NavElement icon="fas fa-paint-brush" link="/manage/{guildId}/appearance" on:click={closeDropdown}>Customise Appearance</NavElement>
+        {/if}
       </div>
     </div>
     <div>
@@ -27,10 +38,13 @@
 </div>
 
 <script>
+    import NavElement from "../components/NavElement.svelte";
+
     export let guildId;
     export let dropdown;
+    export let permissionLevel;
 
-    import NavElement from "../components/NavElement.svelte";
+    $: isAdmin = permissionLevel >= 2;
 
     function dropdownNav() {
       dropdown.update(v => !v);
