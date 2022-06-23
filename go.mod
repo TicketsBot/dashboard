@@ -19,6 +19,7 @@ require (
 	github.com/go-redis/redis_rate/v9 v9.1.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/websocket v1.5.0
+	github.com/jackc/pgtype v1.4.0
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
@@ -53,7 +54,6 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.2 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200307190119-3430c5407db8 // indirect
-	github.com/jackc/pgtype v1.4.0 // indirect
 	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jackc/puddle v1.1.1 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect

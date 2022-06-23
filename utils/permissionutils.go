@@ -64,6 +64,24 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 		return true, nil
 	}
 
+	// Check staff override
+	staffOverride, err := dbclient.Client.StaffOverride.HasActiveOverride(guildId)
+	if err != nil {
+		return false, err
+	}
+
+	// If staff override enabled and the user is bot staff, grant admin permissions
+	if staffOverride {
+		isBotStaff, err := dbclient.Client.BotStaff.IsStaff(userId)
+		if err != nil {
+			return false, err
+		}
+
+		if isBotStaff {
+			return true, nil
+		}
+	}
+
 	// Check if server owner
 	guild, err := botContext.GetGuild(guildId)
 	if err != nil {
