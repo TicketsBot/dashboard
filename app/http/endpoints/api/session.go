@@ -33,17 +33,12 @@ func SessionHandler(ctx *gin.Context) {
 		return
 	}
 
-	var whitelabelOverride bool
-	for _, id := range config.Conf.ForceWhitelabel {
-		if id == userId {
-			whitelabelOverride = true
-			break
-		}
-	}
+	whitelabelOverride := utils.Contains(config.Conf.ForceWhitelabel, userId)
 
 	ctx.JSON(200, gin.H{
 		"username":   store.Name,
 		"avatar":     store.Avatar,
 		"whitelabel": tier >= premium.Whitelabel || whitelabelOverride,
+		"admin":      utils.Contains(config.Conf.Admins, userId),
 	})
 }

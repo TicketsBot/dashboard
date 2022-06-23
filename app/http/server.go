@@ -2,12 +2,14 @@ package http
 
 import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/admin/botstaff"
 	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
 	api_customisation "github.com/TicketsBot/GoPanel/app/http/endpoints/api/customisation"
 	api_forms "github.com/TicketsBot/GoPanel/app/http/endpoints/api/forms"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
+	api_override "github.com/TicketsBot/GoPanel/app/http/endpoints/api/staffoverride"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
 	api_team "github.com/TicketsBot/GoPanel/app/http/endpoints/api/team"
 	api_ticket "github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket"
@@ -67,8 +69,8 @@ func StartServer() {
 		apiGroup.GET("/session", api.SessionHandler)
 	}
 
-	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Admin))
-	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(true, permission.Support))
+	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(permission.Admin))
+	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(permission.Support))
 	guildApiNoAuth := apiGroup.Group("/:id", middleware.ParseGuildId)
 	{
 		guildAuthApiSupport.GET("/channels", api.ChannelsHandler)
@@ -150,6 +152,10 @@ func StartServer() {
 		guildAuthApiAdmin.PUT("/team/:teamid/:snowflake", rl(middleware.RateLimitTypeGuild, 5, time.Second*10), api_team.AddMember)
 		guildAuthApiAdmin.DELETE("/team/:teamid", api_team.DeleteTeam)
 		guildAuthApiAdmin.DELETE("/team/:teamid/:snowflake", rl(middleware.RateLimitTypeGuild, 30, time.Minute), api_team.RemoveMember)
+
+		guildAuthApiAdmin.GET("/staff-override", api_override.GetOverrideHandler)
+		guildAuthApiAdmin.POST("/staff-override", api_override.CreateOverrideHandler)
+		guildAuthApiAdmin.DELETE("/staff-override", api_override.DeleteOverrideHandler)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)
@@ -171,6 +177,13 @@ func StartServer() {
 			whitelabelGroup.POST("/", rl(middleware.RateLimitTypeUser, 10, time.Minute), api_whitelabel.WhitelabelPost)
 			whitelabelGroup.POST("/status", rl(middleware.RateLimitTypeUser, 1, time.Second*5), api_whitelabel.WhitelabelStatusPost)
 		}
+	}
+
+	adminGroup := apiGroup.Group("/admin", middleware.AdminOnly)
+	{
+		adminGroup.GET("/bot-staff", botstaff.ListBotStaffHandler)
+		adminGroup.POST("/bot-staff/:userid", botstaff.AddBotStaffHandler)
+		adminGroup.DELETE("/bot-staff/:userid", botstaff.RemoveBotStaffHandler)
 	}
 
 	if err := router.Run(config.Conf.Server.Host); err != nil {

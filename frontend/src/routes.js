@@ -2,6 +2,7 @@ import IndexLayout from './layouts/IndexLayout.svelte'
 import ManageLayout from './layouts/ManageLayout.svelte'
 import ErrorLayout from './layouts/ErrorPage.svelte'
 import TranscriptViewLayout from './layouts/TranscriptViewLayout.svelte'
+import AdminLayout from './layouts/AdminLayout.svelte';
 
 import Index from './views/Index.svelte'
 import LoginCallback from './views/LoginCallback.svelte'
@@ -21,6 +22,8 @@ import Tickets from './views/Tickets.svelte'
 import TicketView from './views/TicketView.svelte'
 import Appearance from './views/Appearance.svelte';
 import Forms from './views/Forms.svelte';
+import StaffOverride from './views/StaffOverride.svelte';
+import BotStaff from './views/admin/BotStaff.svelte';
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -30,6 +33,12 @@ export const routes = [
     {name: '/logout', component: Logout},
     {name: '/error', component: Error, layout: ErrorLayout},
     {name: '/whitelabel', component: Whitelabel, layout: IndexLayout},
+    {
+        name: 'admin',
+        nestedRoutes: [
+            {name: 'bot-staff', component: BotStaff, layout: AdminLayout},
+        ]
+    },
     {
         name: 'manage/:id',
         nestedRoutes: [
@@ -67,6 +76,7 @@ export const routes = [
             {name: 'tags', component: Tags, layout: ManageLayout},
             {name: 'teams', component: Teams, layout: ManageLayout},
             {name: 'forms', component: Forms, layout: ManageLayout},
+            {name: 'staffoverride', component: StaffOverride, layout: ManageLayout},
             {
                 name: 'tickets',
                 nestedRoutes: [

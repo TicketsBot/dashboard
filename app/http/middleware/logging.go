@@ -5,6 +5,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
+	"runtime/debug"
 	"strconv"
 )
 
@@ -46,6 +47,7 @@ func Logging(minLevel sentry.Level) gin.HandlerFunc {
 				"user_id":      ctx.Keys["userid"],
 				"request_body": string(requestBody),
 				"response":     string(responseBody),
+				"stacktrace":   string(debug.Stack()),
 			},
 			Level:   level,
 			Message: fmt.Sprintf("HTTP %d on %s %s", statusCode, ctx.Request.Method, ctx.FullPath()),

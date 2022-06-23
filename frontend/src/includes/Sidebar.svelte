@@ -5,6 +5,7 @@
     export let avatar;
 
     export let isWhitelabel = false;
+    export let isAdmin = false;
 </script>
 
 <div class="sidebar">
@@ -30,6 +31,14 @@
             <span class="sidebar-text">Whitelabel</span>
           </div>
         </a>
+      {/if}
+      {#if isAdmin}
+        <Navigate to="/admin/bot-staff" styles="sidebar-link">
+          <div class="sidebar-element">
+            <i class="fa-solid fa-user-secret sidebar-icon"></i>
+            <span class="sidebar-text">Admin</span>
+          </div>
+        </Navigate>
       {/if}
     </div>
   </div>

@@ -42,10 +42,12 @@ func AuthenticateGuild(requiredPermissionLevel permission.PermissionLevel) gin.H
 			if permLevel < requiredPermissionLevel {
 				ctx.JSON(403, utils.ErrorStr("Unauthorized"))
 				ctx.Abort()
+				return
 			}
 		} else {
 			ctx.JSON(400, utils.ErrorStr("Invalid guild ID"))
 			ctx.Abort()
+			return
 		}
 	}
 }

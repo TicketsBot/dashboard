@@ -20,6 +20,24 @@ func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, err
 		return permission.Admin, nil
 	}
 
+	// Check staff override
+	staffOverride, err := dbclient.Client.StaffOverride.HasActiveOverride(guildId)
+	if err != nil {
+		return permission.Everyone, err
+	}
+
+	// If staff override enabled and the user is bot staff, grant admin permissions
+	if staffOverride {
+		isBotStaff, err := dbclient.Client.BotStaff.IsStaff(userId)
+		if err != nil {
+			return permission.Everyone, err
+		}
+
+		if isBotStaff {
+			return permission.Admin, nil
+		}
+	}
+
 	// get member
 	member, err := botContext.GetGuildMember(guildId, userId)
 	if err != nil {

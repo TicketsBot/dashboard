@@ -1,7 +1,7 @@
 <Head/>
 
 <div class="wrapper">
-  <Sidebar {name} {avatar} {isWhitelabel} {isAdmin} />
+  <AdminSidebar />
   <div class="super-container">
     <LoadingScreen/>
     <NotifyModal/>
@@ -12,7 +12,7 @@
 </div>
 
 <script>
-    import {Route} from 'svelte-router-spa'
+    import {navigateTo, Route} from 'svelte-router-spa'
     import Head from '../includes/Head.svelte'
     import Sidebar from '../includes/Sidebar.svelte'
     import LoadingScreen from '../includes/LoadingScreen.svelte'
@@ -22,6 +22,7 @@
     import {notifyError} from '../js/util'
     import {loadingScreen} from "../js/stores"
     import {redirectLogin, setDefaultHeaders} from '../includes/Auth.svelte'
+    import AdminSidebar from "../includes/AdminSidebar.svelte";
 
     export let currentRoute;
     export let params = {};
@@ -45,10 +46,11 @@
             return;
         }
 
-        name = res.data.username;
-        avatar = res.data.avatar;
-        isWhitelabel = res.data.whitelabel;
         isAdmin = res.data.admin;
+
+        if (!isAdmin) {
+            navigateTo(`/`);
+        }
     }
 
     loadData();
