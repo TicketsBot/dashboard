@@ -1,3 +1,9 @@
+{#if welcomeMessageBuilder}
+    <EmbedBuilder data={data.welcome_message}
+                  on:close={closeWelcomeMessageBuilder}
+                  on:confirm={handleWelcomeMessageUpdate}/>
+{/if}
+
 <form class="settings-form" on:submit|preventDefault>
     <div class="row">
         <div class="col-1-3">
@@ -68,9 +74,35 @@
          class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
         <div class="inner" class:inner-show={advancedSettings} class:absolute={advancedSettings && !overflowShow} >
             <div class="row">
-                <Textarea col1=true bind:value={data.welcome_message} label="Welcome Message"
-                          placeholder="If blank, your server's default welcome message will be used"
-                          on:input={handleWelcomeMessageUpdate}/>
+                <div class="col-2">
+                    <label class="form-label">Welcome Message</label>
+                    <div class="row" style="justify-content: flex-start; gap: 10px">
+                        <Button icon="fas fa-brush" on:click={openWelcomeMessageBuilder}>Open Editor</Button>
+                        <Button icon="fas fa-trash-can" danger
+                                on:click={() => data.welcome_message = null}>Clear</Button>
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label for="naming-scheme-wrapper" class="form-label">Naming Scheme</label>
+                    <div class="row" id="naming-scheme-wrapper">
+                        <div>
+                            <label class="form-label">Use Server Default</label>
+                            <Toggle hideLabel
+                                    toggledColor="#66bb6a"
+                                    untoggledColor="#ccc"
+                                    bind:toggled={data.use_server_default_naming_scheme} />
+                        </div>
+                        <div class="col-fill">
+                            {#if !data.use_server_default_naming_scheme}
+                                <Input label="Naming Scheme"
+                                       bind:value={data.naming_scheme}
+                                       placeholder="ticket-%id%"
+                                       tooltipText="Click here for the full placeholder list"
+                                       tooltipLink="https://docs.ticketsbot.net" />
+                            {/if}
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-2">
@@ -104,29 +136,6 @@
                 <Input col2={true} label="Large Image URL" bind:value={data.image_url} placeholder="https://example.com/image.png" />
                 <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
             </div>
-            <div class="row">
-                <div class="col-2">
-                    <label for="naming-scheme-wrapper" class="form-label">Naming Scheme</label>
-                    <div class="row" id="naming-scheme-wrapper">
-                        <div>
-                            <label class="form-label">Use Server Default</label>
-                            <Toggle hideLabel
-                                    toggledColor="#66bb6a"
-                                    untoggledColor="#ccc"
-                                    bind:toggled={data.use_server_default_naming_scheme} />
-                        </div>
-                        <div class="col-fill">
-                            {#if !data.use_server_default_naming_scheme}
-                                <Input label="Naming Scheme"
-                                       bind:value={data.naming_scheme}
-                                       placeholder="ticket-%id%"
-                                       tooltipText="Click here for the full placeholder list"
-                                       tooltipLink="https://docs.ticketsbot.net" />
-                            {/if}
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </form>
@@ -137,6 +146,7 @@
     import Colour from "../form/Colour.svelte";
     import Button from "../Button.svelte";
     import ChannelDropdown from "../ChannelDropdown.svelte";
+    import EmbedBuilder from "../EmbedBuilder.svelte";
 
     import {createEventDispatcher, onMount} from 'svelte';
     import {colourToInt, intToColour} from "../../js/util";
@@ -145,9 +155,7 @@
     import EmojiItem from "../EmojiItem.svelte";
     import Select from 'svelte-select';
     import Dropdown from "../form/Dropdown.svelte";
-    import Checkbox from "../form/Checkbox.svelte";
     import Toggle from "svelte-toggle";
-    import Slider from "../form/Slider.svelte";
 
     export let guildId;
     export let seedDefault = true;
@@ -172,6 +180,17 @@
 
     let selectedTeams = seedDefault ? [{id: 'default', name: 'Default'}] : [];
     let selectedMentions = [];
+
+    let welcomeMessageBuilder = false;
+
+    function openWelcomeMessageBuilder() {
+        welcomeMessageBuilder = true;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeWelcomeMessageBuilder() {
+        welcomeMessageBuilder = false;
+    }
 
     // Replace spaces with dashes in naming scheme as the user types
     $: if (data.naming_scheme !== undefined && data.naming_scheme !== null && data.naming_scheme.includes(' ')) {
@@ -222,10 +241,9 @@
         }
     }
 
-    function handleWelcomeMessageUpdate() {
-        if (data.welcome_message === "") {
-            data.welcome_message = null;
-        }
+    function handleWelcomeMessageUpdate(e) {
+        data.welcome_message = e.detail;
+        closeWelcomeMessageBuilder();
     }
 
     function handleEmojiTypeChange(e) {

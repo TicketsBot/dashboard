@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -12,6 +13,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
@@ -33,7 +35,7 @@ type panelBody struct {
 	Colour          uint32                `json:"colour"`
 	CategoryId      uint64                `json:"category_id,string"`
 	Emoji           types.Emoji           `json:"emote"`
-	WelcomeMessage  *string               `json:"welcome_message"`
+	WelcomeMessage  *types.CustomEmbed    `json:"welcome_message" validate:"omitempty,dive"`
 	Mentions        []string              `json:"mentions"`
 	WithDefaultTeam bool                  `json:"default_team"`
 	Teams           []int                 `json:"teams"`
@@ -66,10 +68,7 @@ func CreatePanel(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -137,26 +136,41 @@ func CreatePanel(ctx *gin.Context) {
 		}
 	}
 
+	// Store welcome message embed first
+	var welcomeMessageEmbed *int
+	if data.WelcomeMessage != nil {
+		embed, fields := data.WelcomeMessage.IntoDatabaseStruct()
+		embed.GuildId = guildId
+
+		id, err := dbclient.Client.Embeds.CreateWithFields(embed, fields)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		welcomeMessageEmbed = &id
+	}
+
 	// Store in DB
 	panel := database.Panel{
-		MessageId:       msgId,
-		ChannelId:       data.ChannelId,
-		GuildId:         guildId,
-		Title:           data.Title,
-		Content:         data.Content,
-		Colour:          int32(data.Colour),
-		TargetCategory:  data.CategoryId,
-		EmojiId:         emojiId,
-		EmojiName:       emojiName,
-		WelcomeMessage:  data.WelcomeMessage,
-		WithDefaultTeam: data.WithDefaultTeam,
-		CustomId:        customId,
-		ImageUrl:        data.ImageUrl,
-		ThumbnailUrl:    data.ThumbnailUrl,
-		ButtonStyle:     int(data.ButtonStyle),
-		ButtonLabel:     data.ButtonLabel,
-		FormId:          data.FormId,
-		NamingScheme:    data.NamingScheme,
+		MessageId:           msgId,
+		ChannelId:           data.ChannelId,
+		GuildId:             guildId,
+		Title:               data.Title,
+		Content:             data.Content,
+		Colour:              int32(data.Colour),
+		TargetCategory:      data.CategoryId,
+		EmojiId:             emojiId,
+		EmojiName:           emojiName,
+		WelcomeMessageEmbed: welcomeMessageEmbed,
+		WithDefaultTeam:     data.WithDefaultTeam,
+		CustomId:            customId,
+		ImageUrl:            data.ImageUrl,
+		ThumbnailUrl:        data.ThumbnailUrl,
+		ButtonStyle:         int(data.ButtonStyle),
+		ButtonLabel:         data.ButtonLabel,
+		FormId:              data.FormId,
+		NamingScheme:        data.NamingScheme,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -214,8 +228,27 @@ func CreatePanel(ctx *gin.Context) {
 }
 
 var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$`)
+var validate = validator.New()
 
 func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
+	err := validate.Struct(p)
+	if err != nil {
+		validationErrors, ok := err.(validator.ValidationErrors)
+		if !ok {
+			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+			return false
+		}
+
+		formatted := "Your input contained the following errors:"
+		for _, validationError := range validationErrors {
+			formatted += fmt.Sprintf("\n%s", validationError.Error())
+		}
+
+		formatted = strings.TrimSuffix(formatted, "\n")
+		ctx.JSON(400, utils.ErrorStr(formatted))
+		return false
+	}
+
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
 		return false // TODO: Log error
@@ -251,14 +284,6 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 
 	if !p.verifyEmoji(botContext, guildId) {
 		ctx.JSON(400, utils.ErrorStr("Invalid emoji"))
-		return false
-	}
-
-	if !p.verifyWelcomeMessage() {
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error":   "Welcome message must be blank or between 1 - 4096 characters",
-		})
 		return false
 	}
 
@@ -403,10 +428,6 @@ func (p *panelBody) verifyEmoji(ctx botcontext.BotContext, guildId uint64) bool 
 		p.Emoji.Name = unicode
 		return true
 	}
-}
-
-func (p *panelBody) verifyWelcomeMessage() bool {
-	return p.WelcomeMessage == nil || (len(*p.WelcomeMessage) > 0 && len(*p.WelcomeMessage) <= 4096)
 }
 
 func (p *panelBody) verifyImageUrl() bool {

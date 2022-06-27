@@ -45,6 +45,14 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
+	// Delete welcome message embed
+	if panel.WelcomeMessageEmbed != nil {
+		if err := database.Client.Embeds.Delete(*panel.WelcomeMessageEmbed); err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+	}
+
 	if err := database.Client.Panel.Delete(panelId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

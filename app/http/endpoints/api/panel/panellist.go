@@ -14,21 +14,25 @@ import (
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
 		database.Panel
-		UseCustomEmoji               bool        `json:"use_custom_emoji"`
-		Emoji                        types.Emoji `json:"emote"`
-		Mentions                     []string    `json:"mentions"`
-		Teams                        []int       `json:"teams"`
-		UseServerDefaultNamingScheme bool        `json:"use_server_default_naming_scheme"`
+		WelcomeMessage               *types.CustomEmbed `json:"welcome_message"`
+		UseCustomEmoji               bool               `json:"use_custom_emoji"`
+		Emoji                        types.Emoji        `json:"emote"`
+		Mentions                     []string           `json:"mentions"`
+		Teams                        []int              `json:"teams"`
+		UseServerDefaultNamingScheme bool               `json:"use_server_default_naming_scheme"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	panels, err := dbclient.Client.Panel.GetByGuild(guildId)
+	panels, err := dbclient.Client.Panel.GetByGuildWithWelcomeMessage(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	allFields, err := dbclient.Client.EmbedFields.GetAllFieldsForPanels(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -75,8 +79,15 @@ func ListPanels(ctx *gin.Context) {
 				teamIds = make([]int, 0)
 			}
 
+			var welcomeMessage *types.CustomEmbed
+			if p.WelcomeMessage != nil {
+				fields := allFields[p.WelcomeMessage.Id]
+				welcomeMessage = types.NewCustomEmbed(p.WelcomeMessage, fields)
+			}
+
 			wrapped[i] = panelResponse{
-				Panel:                        p,
+				Panel:                        p.Panel,
+				WelcomeMessage:               welcomeMessage,
 				UseCustomEmoji:               p.EmojiId != nil,
 				Emoji:                        types.NewEmoji(p.EmojiName, p.EmojiId),
 				Mentions:                     mentions,

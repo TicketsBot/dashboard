@@ -74,6 +74,7 @@
     .modal-wrapper {
         display: flex;
         width: 75%;
+        margin: 10% auto auto auto;
     }
 
     @media only screen and (max-width: 1280px) {

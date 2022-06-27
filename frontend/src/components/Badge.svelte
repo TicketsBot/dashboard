@@ -12,5 +12,6 @@
         font-size: 14px;
         padding: 0 4px;
         margin-left: 4px;
+        margin-bottom: 5px;
     }
 </style>

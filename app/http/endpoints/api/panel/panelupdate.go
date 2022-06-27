@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -105,31 +106,67 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
+	// Update welcome message
+	var welcomeMessageEmbed *int
+	if data.WelcomeMessage == nil {
+		if existing.WelcomeMessageEmbed != nil { // If welcome message wasn't null, but now is, delete the embed
+			if err := dbclient.Client.Embeds.Delete(*existing.WelcomeMessageEmbed); err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+		} // else, welcomeMessageEmbed will be nil
+	} else {
+		// TODO: Upsert? Don't think we can, as no unique key in the table, panel_id is in panels table
+		if existing.WelcomeMessageEmbed == nil { // Create
+			embed, fields := data.WelcomeMessage.IntoDatabaseStruct()
+			embed.GuildId = guildId
+
+			id, err := dbclient.Client.Embeds.CreateWithFields(embed, fields)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+
+			welcomeMessageEmbed = &id
+		} else { // Update
+			welcomeMessageEmbed = existing.WelcomeMessageEmbed
+
+			embed, fields := data.WelcomeMessage.IntoDatabaseStruct()
+			embed.Id = *existing.WelcomeMessageEmbed
+			embed.GuildId = guildId
+
+			if err := dbclient.Client.Embeds.UpdateWithFields(embed, fields); err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+		}
+	}
+
 	// Store in DB
 	panel := database.Panel{
-		PanelId:         panelId,
-		MessageId:       newMessageId,
-		ChannelId:       data.ChannelId,
-		GuildId:         guildId,
-		Title:           data.Title,
-		Content:         data.Content,
-		Colour:          int32(data.Colour),
-		TargetCategory:  data.CategoryId,
-		EmojiName:       emojiName,
-		EmojiId:         emojiId,
-		WelcomeMessage:  data.WelcomeMessage,
-		WithDefaultTeam: data.WithDefaultTeam,
-		CustomId:        existing.CustomId,
-		ImageUrl:        data.ImageUrl,
-		ThumbnailUrl:    data.ThumbnailUrl,
-		ButtonStyle:     int(data.ButtonStyle),
-		ButtonLabel:     data.ButtonLabel,
-		FormId:          data.FormId,
-		NamingScheme:    data.NamingScheme,
+		PanelId:             panelId,
+		MessageId:           newMessageId,
+		ChannelId:           data.ChannelId,
+		GuildId:             guildId,
+		Title:               data.Title,
+		Content:             data.Content,
+		Colour:              int32(data.Colour),
+		TargetCategory:      data.CategoryId,
+		EmojiName:           emojiName,
+		EmojiId:             emojiId,
+		WelcomeMessageEmbed: welcomeMessageEmbed,
+		WithDefaultTeam:     data.WithDefaultTeam,
+		CustomId:            existing.CustomId,
+		ImageUrl:            data.ImageUrl,
+		ThumbnailUrl:        data.ThumbnailUrl,
+		ButtonStyle:         int(data.ButtonStyle),
+		ButtonLabel:         data.ButtonLabel,
+		FormId:              data.FormId,
+		NamingScheme:        data.NamingScheme,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -149,7 +186,7 @@ func UpdatePanel(ctx *gin.Context) {
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
-				ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
 
@@ -159,6 +196,7 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
+	fmt.Println(panel.PanelId)
 	if err := dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
