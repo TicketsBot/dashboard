@@ -11,7 +11,6 @@ github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c h1:OqGjFH6m
 github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c/go.mod h1:jgi2OXQKsd5nUnTIRkwvPmeuD/i7OhN68LKMssuQY1c=
 github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 h1:NHD5GB6cjlkpZFjC76Yli2S63/J2nhr8MuE6KlYJpQM=
 github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261/go.mod h1:2zPxDAN2TAPpxUPjxszjs3QFKreKrQh5al/R3cMXmYk=
-github.com/TicketsBot/worker v0.0.0-20220621165800-203b0004b733/go.mod h1:fhEqdxVhgXds/xB3ql05XSDqPLF4XWjkfyHr+JQFe0g=
 github.com/TicketsBot/worker v0.0.0-20220627203254-f37bdb40b39a h1:cx2YtngcJ7KpOBm/QotWKHb2XZbvUDJwD9azBl31e/k=
 github.com/TicketsBot/worker v0.0.0-20220627203254-f37bdb40b39a/go.mod h1:R70+F86Z+UlretKMxOX1jRqCwvVlvuem9UAyAL4EiG8=
 github.com/apex/log v1.1.2 h1:bnDuVoi+o98wOdVqfEzNDlY0tcmBia7r4YkjS9EqGYk=
