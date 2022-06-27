@@ -136,7 +136,7 @@
             Object.keys(obj).forEach(key => {
                 if (typeof obj[key] === 'string' && obj[key] === '') {
                     obj[key] = null;
-                } else if (typeof obj[key] === 'object') {
+                } else if (typeof obj[key] === 'object' && obj[key] !== null && obj[key] !== undefined) {
                     mapper(obj[key]);
                 }
             });
