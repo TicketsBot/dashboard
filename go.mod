@@ -5,10 +5,10 @@ go 1.18
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
-	github.com/TicketsBot/common v0.0.0-20220615205931-a6a31e73b52a
-	github.com/TicketsBot/database v0.0.0-20220627203133-dd19fe34f094
+	github.com/TicketsBot/common v0.0.0-20220703211704-f792aa9f0c42
+	github.com/TicketsBot/database v0.0.0-20220710120946-a97157c1ca8c
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20220627203254-f37bdb40b39a
+	github.com/TicketsBot/worker v0.0.0-20220710121124-cd5ec72739f9
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.13.0
 	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
@@ -19,12 +19,13 @@ require (
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/go-redis/redis_rate/v9 v9.1.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/jackc/pgtype v1.4.0
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20220621165443-28e214d254c1
+	github.com/rxdn/gdl v0.0.0-20220702190021-560b2ab99d25
 	github.com/sirupsen/logrus v1.5.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 )

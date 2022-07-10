@@ -7,6 +7,7 @@ import (
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
 	api_customisation "github.com/TicketsBot/GoPanel/app/http/endpoints/api/customisation"
 	api_forms "github.com/TicketsBot/GoPanel/app/http/endpoints/api/forms"
+	api_integrations "github.com/TicketsBot/GoPanel/app/http/endpoints/api/integrations"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_override "github.com/TicketsBot/GoPanel/app/http/endpoints/api/staffoverride"
@@ -67,6 +68,16 @@ func StartServer() {
 	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
 	{
 		apiGroup.GET("/session", api.SessionHandler)
+
+		integrationGroup := apiGroup.Group("/integrations")
+
+		integrationGroup.GET("/self", api_integrations.GetOwnedIntegrationsHandler)
+		integrationGroup.GET("/view/:integrationid", api_integrations.GetIntegrationHandler)
+		integrationGroup.GET("/view/:integrationid/detail", api_integrations.GetIntegrationDetailedHandler)
+		integrationGroup.POST("/:integrationid/public", api_integrations.SetIntegrationPublicHandler)
+		integrationGroup.PATCH("/:integrationid", api_integrations.UpdateIntegrationHandler)
+		integrationGroup.DELETE("/:integrationid", api_integrations.DeleteIntegrationHandler)
+		apiGroup.POST("/integrations", api_integrations.CreateIntegrationHandler)
 	}
 
 	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(permission.Admin))
@@ -156,6 +167,12 @@ func StartServer() {
 		guildAuthApiAdmin.GET("/staff-override", api_override.GetOverrideHandler)
 		guildAuthApiAdmin.POST("/staff-override", api_override.CreateOverrideHandler)
 		guildAuthApiAdmin.DELETE("/staff-override", api_override.DeleteOverrideHandler)
+
+		guildAuthApiAdmin.GET("/integrations/available", api_integrations.ListIntegrationsHandler)
+		guildAuthApiAdmin.GET("/integrations/:integrationid", api_integrations.IsIntegrationActiveHandler)
+		guildAuthApiAdmin.POST("/integrations/:integrationid", api_integrations.ActivateIntegrationHandler)
+		guildAuthApiAdmin.PATCH("/integrations/:integrationid", api_integrations.UpdateIntegrationSecretsHandler)
+		guildAuthApiAdmin.DELETE("/integrations/:integrationid", api_integrations.RemoveIntegrationHandler)
 	}
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken)

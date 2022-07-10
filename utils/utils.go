@@ -11,3 +11,7 @@ func ValueOrZero[T any](v *T) T {
 		return *v
 	}
 }
+
+func Slice[T any](v ...T) []T {
+	return v
+}

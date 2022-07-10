@@ -13,7 +13,8 @@ import (
 var Client *database.Database
 
 func ConnectToDatabase() {
-	config, err := pgxpool.ParseConfig(config.Conf.Database.Uri); if err != nil {
+	config, err := pgxpool.ParseConfig(config.Conf.Database.Uri)
+	if err != nil {
 		panic(err)
 	}
 

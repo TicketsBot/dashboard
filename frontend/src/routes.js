@@ -24,6 +24,12 @@ import Appearance from './views/Appearance.svelte';
 import Forms from './views/Forms.svelte';
 import StaffOverride from './views/StaffOverride.svelte';
 import BotStaff from './views/admin/BotStaff.svelte';
+import Integrations from "./views/integrations/Integrations.svelte";
+import IntegrationView from "./views/integrations/View.svelte";
+import IntegrationCreate from "./views/integrations/Create.svelte";
+import IntegrationConfigure from "./views/integrations/Configure.svelte";
+import IntegrationActivate from "./views/integrations/Activate.svelte";
+import IntegrationManage from "./views/integrations/Manage.svelte";
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -92,6 +98,41 @@ export const routes = [
                     }
                 ]
             },
+            {
+                name: 'integrations',
+                nestedRoutes: [
+                    {
+                        name: 'index',
+                        component: Integrations,
+                        layout: ManageLayout,
+                    },
+                    {
+                        name: 'create',
+                        component: IntegrationCreate,
+                        layout: ManageLayout,
+                    },
+                    {
+                        name: '/view/:integration',
+                        component: IntegrationView,
+                        layout: ManageLayout,
+                    },
+                    {
+                        name: '/configure/:integration',
+                        component: IntegrationConfigure,
+                        layout: ManageLayout,
+                    },
+                    {
+                        name: '/activate/:integration',
+                        component: IntegrationActivate,
+                        layout: ManageLayout,
+                    },
+                    {
+                        name: '/manage/:integration',
+                        component: IntegrationManage,
+                        layout: ManageLayout,
+                    },
+                ]
+            }
         ],
     }
 ]

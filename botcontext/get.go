@@ -14,25 +14,28 @@ func ContextForGuild(guildId uint64) (ctx BotContext, err error) {
 		return
 	}
 
-	var keyPrefix string
-
 	if isWhitelabel {
 		res, err := dbclient.Client.Whitelabel.GetByBotId(whitelabelBotId)
 		if err != nil {
 			return ctx, err
 		}
 
-		ctx.BotId = res.BotId
-		ctx.Token = res.Token
-		keyPrefix = fmt.Sprintf("ratelimiter:%d", whitelabelBotId)
+		rateLimiter := ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, fmt.Sprintf("ratelimiter:%d", whitelabelBotId)), 1)
+
+		return BotContext{
+			BotId:       res.BotId,
+			Token:       res.Token,
+			RateLimiter: rateLimiter,
+		}, nil
 	} else {
-		ctx.BotId = config.Conf.Bot.Id
-		ctx.Token = config.Conf.Bot.Token
-		keyPrefix = "ratelimiter:public"
+		return PublicContext(), nil
 	}
+}
 
-	// TODO: Large sharding buckets
-	ctx.RateLimiter = ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, keyPrefix), 1)
-
-	return
+func PublicContext() BotContext {
+	return BotContext{
+		BotId:       config.Conf.Bot.Id,
+		Token:       config.Conf.Bot.Token,
+		RateLimiter: ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, "ratelimiter:public"), 1),
+	}
 }

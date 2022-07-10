@@ -8,15 +8,23 @@
         <!-- on:click required to close dropdown again -->
 
         {#if isAdmin}
-            <NavElement icon="fas fa-cogs" link="/manage/{guildId}/settings" on:click={closeDropdown}>Settings</NavElement>
+          <NavElement icon="fas fa-cogs" link="/manage/{guildId}/settings" on:click={closeDropdown}>Settings
+          </NavElement>
         {/if}
 
-        <NavElement icon="fas fa-copy" link="/manage/{guildId}/transcripts" on:click={closeDropdown}>Transcripts</NavElement>
+        <NavElement icon="fas fa-copy" link="/manage/{guildId}/transcripts" on:click={closeDropdown}>Transcripts
+        </NavElement>
 
         {#if isAdmin}
-            <NavElement icon="fas fa-mouse-pointer" link="/manage/{guildId}/panels" on:click={closeDropdown}>Reaction Panels</NavElement>
-            <NavElement icon="fas fa-poll-h" link="/manage/{guildId}/forms" on:click={closeDropdown}>Forms</NavElement>
-            <NavElement icon="fas fa-users" link="/manage/{guildId}/teams" on:click={closeDropdown}>Staff Teams</NavElement>
+          <NavElement icon="fas fa-mouse-pointer" link="/manage/{guildId}/panels" on:click={closeDropdown}>Reaction Panels</NavElement>
+          <NavElement icon="fas fa-poll-h" link="/manage/{guildId}/forms" on:click={closeDropdown}>Forms</NavElement>
+          <NavElement icon="fas fa-users" link="/manage/{guildId}/teams" on:click={closeDropdown}>Staff Teams</NavElement>
+          <NavElement icon="fas fa-robot" link="/manage/{guildId}/integrations" on:click={closeDropdown}>
+            <div style="display: flex; gap:4px">
+              Integrations
+              <Badge>New!</Badge>
+            </div>
+          </NavElement>
         {/if}
 
         <NavElement icon="fas fa-ticket-alt" link="/manage/{guildId}/tickets" on:click={closeDropdown}>Tickets</NavElement>
@@ -24,7 +32,7 @@
         <NavElement icon="fas fa-tags" link="/manage/{guildId}/tags" on:click={closeDropdown}>Tags</NavElement>
 
         {#if isAdmin}
-            <NavElement icon="fas fa-paint-brush" link="/manage/{guildId}/appearance" on:click={closeDropdown}>Customise Appearance</NavElement>
+          <NavElement icon="fas fa-paint-brush" link="/manage/{guildId}/appearance" on:click={closeDropdown}>Appearance</NavElement>
         {/if}
       </div>
     </div>
@@ -39,6 +47,7 @@
 
 <script>
     import NavElement from "../components/NavElement.svelte";
+    import Badge from "../components/Badge.svelte";
 
     export let guildId;
     export let dropdown;
@@ -47,11 +56,11 @@
     $: isAdmin = permissionLevel >= 2;
 
     function dropdownNav() {
-      dropdown.update(v => !v);
+        dropdown.update(v => !v);
     }
 
     function closeDropdown() {
-       dropdown.set(false);
+        dropdown.set(false);
     }
 </script>
 

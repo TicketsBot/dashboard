@@ -1,10 +1,12 @@
-<button on:click isTrigger="1" class:fullWidth class:danger {disabled} {type}>
+<button on:click isTrigger="1" class:fullWidth class:danger class:iconOnly {disabled} {type}>
   {#if icon !== undefined}
     <i class="{icon}"></i>
   {/if}
-  <span class="content">
-    <slot/>
-  </span>
+  {#if !iconOnly}
+    <span class="content">
+      <slot/>
+    </span>
+  {/if}
 </button>
 
 <script>
@@ -13,6 +15,7 @@
     export let disabled = false;
     export let type = "submit";
     export let danger = false;
+    export let iconOnly = false;
 </script>
 
 <style>
@@ -64,5 +67,10 @@
     .danger:hover:enabled, .danger:active {
         background-color: #c32232 !important;
         border-color: #c32232 !important;
+    }
+
+    .iconOnly {
+        width: 40px;
+        height: 40px;
     }
 </style>

@@ -54,14 +54,17 @@ type (
 	}
 
 	Bot struct {
-		Id                    uint64
-		Token                 string
-		PremiumLookupProxyUrl string `toml:"premium-lookup-proxy-url"`
-		PremiumLookupProxyKey string `toml:"premium-lookup-proxy-key"`
-		ObjectStore           string
-		AesKey                string `toml:"aes-key"`
-		ProxyUrl              string `toml:"discord-proxy-url"`
-		RenderServiceUrl      string `toml:"render-service-url"`
+		Id                                   uint64
+		Token                                string
+		PremiumLookupProxyUrl                string `toml:"premium-lookup-proxy-url"`
+		PremiumLookupProxyKey                string `toml:"premium-lookup-proxy-key"`
+		ObjectStore                          string
+		AesKey                               string `toml:"aes-key"`
+		ProxyUrl                             string `toml:"discord-proxy-url"`
+		RenderServiceUrl                     string `toml:"render-service-url"`
+		ImageProxySecret                     string `toml:"image-proxy-secret"`
+		PublicIntegrationRequestWebhookId    uint64 `toml:"public-integration-request-webhook-id"`
+		PublicIntegrationRequestWebhookToken string `toml:"public-integration-request-webhook-token"`
 	}
 
 	Redis struct {
@@ -73,11 +76,6 @@ type (
 
 	Cache struct {
 		Uri string
-	}
-
-	Referral struct {
-		Show bool
-		Link string
 	}
 )
 
@@ -126,6 +124,7 @@ func fromEnvvar() {
 	botId, _ := strconv.ParseUint(os.Getenv("BOT_ID"), 10, 64)
 	redisPort, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	redisThreads, _ := strconv.Atoi(os.Getenv("REDIS_THREADS"))
+	publicIntegrationRequestWebhookId, _ := strconv.ParseUint(os.Getenv("PUBLIC_INTEGRATION_REQUEST_WEBHOOK_ID"), 10, 64)
 
 	Conf = Config{
 		Admins:          admins,
@@ -157,14 +156,17 @@ func fromEnvvar() {
 			Uri: os.Getenv("DATABASE_URI"),
 		},
 		Bot: Bot{
-			Id:                    botId,
-			Token:                 os.Getenv("BOT_TOKEN"),
-			PremiumLookupProxyUrl: os.Getenv("PREMIUM_PROXY_URL"),
-			PremiumLookupProxyKey: os.Getenv("PREMIUM_PROXY_KEY"),
-			ObjectStore:           os.Getenv("LOG_ARCHIVER_URL"),
-			AesKey:                os.Getenv("LOG_AES_KEY"),
-			ProxyUrl:              os.Getenv("DISCORD_PROXY_URL"),
-			RenderServiceUrl:      os.Getenv("RENDER_SERVICE_URL"),
+			Id:                                   botId,
+			Token:                                os.Getenv("BOT_TOKEN"),
+			PremiumLookupProxyUrl:                os.Getenv("PREMIUM_PROXY_URL"),
+			PremiumLookupProxyKey:                os.Getenv("PREMIUM_PROXY_KEY"),
+			ObjectStore:                          os.Getenv("LOG_ARCHIVER_URL"),
+			AesKey:                               os.Getenv("LOG_AES_KEY"),
+			ProxyUrl:                             os.Getenv("DISCORD_PROXY_URL"),
+			RenderServiceUrl:                     os.Getenv("RENDER_SERVICE_URL"),
+			ImageProxySecret:                     os.Getenv("IMAGE_PROXY_SECRET"),
+			PublicIntegrationRequestWebhookId:    publicIntegrationRequestWebhookId,
+			PublicIntegrationRequestWebhookToken: os.Getenv("PUBLIC_INTEGRATION_REQUEST_WEBHOOK_TOKEN"),
 		},
 		Redis: Redis{
 			Host:     os.Getenv("REDIS_HOST"),
