@@ -63,6 +63,7 @@
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
     let integrationId = currentRoute.namedParams.integration;
+    let freshlyCreated = currentRoute.queryParams.created === "true";
 
     let integration = {};
     let isActive = false;
@@ -112,6 +113,10 @@
             loadIntegration(),
             loadIsActive()
         ]);
+
+        if (freshlyCreated) {
+            notifySuccess("Your integration has been created successfully!");
+        }
     });
 </script>
 

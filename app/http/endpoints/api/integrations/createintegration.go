@@ -17,7 +17,7 @@ type integrationCreateBody struct {
 	PrivacyPolicyUrl *string `json:"privacy_policy_url" validate:"omitempty,url,max=255,startswith=https://"`
 
 	Method     string `json:"http_method" validate:"required,oneof=GET POST"`
-	WebhookUrl string `json:"webhook_url" validate:"required,url,max=255,startswith=https://"`
+	WebhookUrl string `json:"webhook_url" validate:"required,url,max=255,startswith=http"`
 
 	Secrets []struct {
 		Name string `json:"name" validate:"required,min=1,max=32,excludesall=% "`

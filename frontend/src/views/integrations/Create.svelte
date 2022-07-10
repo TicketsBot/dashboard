@@ -18,7 +18,7 @@
             return;
         }
 
-        navigateTo(`/manage/${guildId}/integrations/configure/${res.data.id}?created=true`);
+        navigateTo(`/manage/${guildId}/integrations/view/${res.data.id}?created=true`);
     }
 
     withLoadingScreen(async () => {
