@@ -53,6 +53,21 @@ func (ctx BotContext) GetGuild(guildId uint64) (g guild.Guild, err error) {
 	return
 }
 
+func (ctx BotContext) GetGuildOwner(guildId uint64) (uint64, error) {
+	cachedOwner, exists := cache.Instance.GetGuildOwner(guildId)
+	if exists {
+		return cachedOwner, nil
+	}
+
+	guild, err := ctx.GetGuild(guildId)
+	if err != nil {
+		return 0, err
+	}
+
+	go cache.Instance.StoreGuild(guild)
+	return guild.OwnerId, nil
+}
+
 func (ctx BotContext) GetChannel(channelId uint64) (ch channel.Channel, err error) {
 	if channel, found := cache.Instance.GetChannel(channelId); found {
 		return channel, nil
