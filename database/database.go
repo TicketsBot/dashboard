@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/database"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgconn/stmtcache"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/logrusadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -21,6 +23,13 @@ func ConnectToDatabase() {
 	// TODO: Sentry
 	config.ConnConfig.LogLevel = pgx.LogLevelWarn
 	config.ConnConfig.Logger = logrusadapter.NewLogger(logrus.New())
+
+	config.MinConns = 1
+	config.MaxConns = 5
+
+	config.ConnConfig.BuildStatementCache = func(conn *pgconn.PgConn) stmtcache.Cache {
+		return stmtcache.New(conn, stmtcache.ModeDescribe, 512)
+	}
 
 	pool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
