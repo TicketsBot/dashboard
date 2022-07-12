@@ -21,11 +21,11 @@ func ConnectToDatabase() {
 	}
 
 	// TODO: Sentry
-	config.ConnConfig.LogLevel = pgx.LogLevelDebug
+	config.ConnConfig.LogLevel = pgx.LogLevelWarn
 	config.ConnConfig.Logger = logrusadapter.NewLogger(logrus.New())
 
 	config.MinConns = 1
-	config.MaxConns = 2
+	config.MaxConns = 3
 
 	config.ConnConfig.BuildStatementCache = func(conn *pgconn.PgConn) stmtcache.Cache {
 		return stmtcache.New(conn, stmtcache.ModeDescribe, 512)
