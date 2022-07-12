@@ -22,7 +22,7 @@ func AuthenticateGuild(requiredPermissionLevel permission.PermissionLevel) gin.H
 			ctx.Keys["guildid"] = parsed
 
 			// TODO: Do we need this? Only really serves as a check whether the bot is in the server
-			guild, found := cache.Instance.GetGuild(parsed, false)
+			_, found := cache.Instance.GetGuildOwner(parsed)
 			if !found {
 				ctx.JSON(404, utils.ErrorStr("Guild not found"))
 				ctx.Abort()
@@ -32,7 +32,7 @@ func AuthenticateGuild(requiredPermissionLevel permission.PermissionLevel) gin.H
 			// Verify the user has permissions to be here
 			userId := ctx.Keys["userid"].(uint64)
 
-			permLevel, err := utils.GetPermissionLevel(guild.Id, userId)
+			permLevel, err := utils.GetPermissionLevel(parsed, userId)
 			if err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				ctx.Abort()
