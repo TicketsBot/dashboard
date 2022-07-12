@@ -4,7 +4,7 @@ import (
 	crypto_rand "crypto/rand"
 	"encoding/binary"
 	"fmt"
-	"github.com/TicketsBot/GoPanel/app/http"
+	app "github.com/TicketsBot/GoPanel/app/http"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
@@ -20,6 +20,8 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/rxdn/gdl/rest/request"
 	"math/rand"
+	"net/http"
+	"net/http/pprof"
 	"time"
 )
 
@@ -32,6 +34,8 @@ func main() {
 		log.Error(err.Error())
 		rand.Seed(time.Now().UnixNano())
 	}
+
+	startPprof()
 
 	config.LoadConfig()
 
@@ -74,7 +78,7 @@ func main() {
 		rpc.PremiumClient = &c
 	}
 
-	http.StartServer()
+	app.StartServer()
 }
 
 func ListenChat(client redis.RedisClient) {
@@ -92,4 +96,15 @@ func ListenChat(client redis.RedisClient) {
 		}
 		root.SocketsLock.RUnlock()
 	}
+}
+
+func startPprof() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/{action}", pprof.Index)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+
+	go func() {
+		http.ListenAndServe(":6060", mux)
+	}()
 }

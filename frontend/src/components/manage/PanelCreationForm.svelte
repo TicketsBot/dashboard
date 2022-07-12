@@ -314,8 +314,8 @@
               teams: [],
               button_style: "1",
               form_id: "null",
-              channel_id: channels.find((c) => c.type === 0).id,
-              category_id: channels.find((c) => c.type === 4).id,
+              channel_id: channels.find((c) => c.type === 0)?.id,
+              category_id: channels.find((c) => c.type === 4)?.id,
               use_server_default_naming_scheme: true,
             };
         } else {
