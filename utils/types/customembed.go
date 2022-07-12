@@ -9,11 +9,11 @@ import (
 type CustomEmbed struct {
 	Title        *string        `json:"title" validate:"omitempty,min=1,max=255"`
 	Description  *string        `json:"description" validate:"omitempty,min=1,max=4096"`
-	Url          *string        `json:"url" validate:"omitempty,url"`
+	Url          *string        `json:"url" validate:"omitempty,url,max=255"`
 	Colour       Colour         `json:"colour" validate:"required,gte=0,lte=16777215"`
 	Author       Author         `json:"author" validate:"dive"`
-	ImageUrl     *string        `json:"image_url" validate:"omitempty,url"`
-	ThumbnailUrl *string        `json:"thumbnail_url" validate:"omitempty,url"`
+	ImageUrl     *string        `json:"image_url" validate:"omitempty,url,max=255"`
+	ThumbnailUrl *string        `json:"thumbnail_url" validate:"omitempty,url,max=255"`
 	Footer       Footer         `json:"footer" validate:"dive"`
 	Timestamp    *DateTimeLocal `json:"timestamp" validate:"omitempty"`
 	Fields       []Field        `json:"fields" validate:"dive,max=25"`
@@ -21,13 +21,13 @@ type CustomEmbed struct {
 
 type Author struct {
 	Name    *string `json:"name" validate:"omitempty,min=1,max=255"`
-	IconUrl *string `json:"icon_url" validate:"omitempty,url"`
-	Url     *string `json:"url" validate:"omitempty,url"`
+	IconUrl *string `json:"icon_url" validate:"omitempty,url,max=255"`
+	Url     *string `json:"url" validate:"omitempty,url,max=255"`
 }
 
 type Footer struct {
 	Text    *string `json:"text" validate:"omitempty,min=1,max=2048"`
-	IconUrl *string `json:"icon_url" validate:"omitempty,url"`
+	IconUrl *string `json:"icon_url" validate:"omitempty,url,max=255"`
 }
 
 type Field struct {
