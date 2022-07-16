@@ -1,6 +1,8 @@
 package utils
 
-import "net/url"
+import (
+	"net/url"
+)
 
 func GetUrlHost(rawUrl string) string {
 	parsed, err := url.Parse(rawUrl)

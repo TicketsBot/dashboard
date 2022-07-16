@@ -21,6 +21,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.5.0
+	github.com/jackc/pgconn v1.6.1
 	github.com/jackc/pgtype v1.4.0
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
@@ -51,7 +52,6 @@ require (
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.6.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.2 // indirect

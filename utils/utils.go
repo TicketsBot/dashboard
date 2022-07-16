@@ -15,3 +15,9 @@ func ValueOrZero[T any](v *T) T {
 func Slice[T any](v ...T) []T {
 	return v
 }
+
+func Must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"strings"
 )
 
 const pageLimit = 20
@@ -55,7 +56,7 @@ func ListIntegrationsHandler(ctx *gin.Context) {
 			integrationResponse: integrationResponse{
 				Id:               integration.Id,
 				OwnerId:          integration.OwnerId,
-				WebhookHost:      utils.GetUrlHost(integration.WebhookUrl),
+				WebhookHost:      utils.GetUrlHost(strings.ReplaceAll(integration.WebhookUrl, "%", "")),
 				Name:             integration.Name,
 				Description:      integration.Description,
 				ImageUrl:         integration.ImageUrl,

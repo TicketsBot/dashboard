@@ -7,6 +7,7 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
+	"strings"
 )
 
 type integrationWithCount struct {
@@ -56,7 +57,7 @@ func GetOwnedIntegrationsHandler(ctx *gin.Context) {
 			integrationResponse: integrationResponse{
 				Id:               integration.Id,
 				OwnerId:          integration.OwnerId,
-				WebhookHost:      utils.GetUrlHost(integration.WebhookUrl),
+				WebhookHost:      utils.GetUrlHost(strings.ReplaceAll(integration.WebhookUrl, "%", "")),
 				Name:             integration.Name,
 				Description:      integration.Description,
 				ImageUrl:         integration.ImageUrl,
