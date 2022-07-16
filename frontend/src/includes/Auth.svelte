@@ -19,8 +19,8 @@
     }
 
     export function redirectLogin() {
-        // TODO: State
-        window.location.href = `https://discordapp.com/oauth2/authorize?response_type=code&redirect_uri=${OAUTH.redirectUri}&scope=identify%20guilds&client_id=${OAUTH.clientId}&state=`
+        let state = btoa(new URL(window.location.href).pathname);
+        window.location.href = `https://discordapp.com/oauth2/authorize?response_type=code&redirect_uri=${OAUTH.redirectUri}&scope=identify%20guilds&client_id=${OAUTH.clientId}&state=${state}`;
     }
 
     export function clearLocalStorage() {

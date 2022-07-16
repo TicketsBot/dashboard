@@ -3,6 +3,10 @@
     import {redirectLogin, setToken} from '../includes/Auth.svelte'
     import {API_URL} from "../js/constants";
     import {errorPage} from '../js/util'
+    import {navigateTo} from "svelte-router-spa";
+
+    export let currentRoute;
+    let state = currentRoute.queryParams.state;
 
     async function process() {
         const code = new URLSearchParams(window.location.search).get('code')
@@ -18,15 +22,30 @@
             return
         }
 
-        setToken(res.data.token)
-        window.location.href = '/'
+        setToken(res.data.token);
+
+        let path = '/';
+
+        try {
+            if (state !== undefined && state.length > 0) {
+                path = atob(state);
+
+                if (path === '/callback') {
+                    path = '/';
+                }
+            }
+        } catch (e) {
+            console.log(`Error parsing state: ${e}`)
+        } finally {
+            navigateTo(path);
+        }
     }
 
     process()
 </script>
 
 <style>
-  body {
-      background-color: #121212;
-  }
+    body {
+        background-color: #121212;
+    }
 </style>
