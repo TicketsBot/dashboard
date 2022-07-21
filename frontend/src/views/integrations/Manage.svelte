@@ -159,7 +159,7 @@
     }
 
     .secret-input {
-        flex: 0 0 49%;
+        flex: 0 0 100%;
     }
 
     @media only screen and (max-width: 950px) {
