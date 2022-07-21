@@ -20,7 +20,8 @@ type integrationCreateBody struct {
 	WebhookUrl string `json:"webhook_url" validate:"required,webhook,max=255"`
 
 	Secrets []struct {
-		Name string `json:"name" validate:"required,min=1,max=32,excludesall=% "`
+		Name        string  `json:"name" validate:"required,min=1,max=32,excludesall=% "`
+		Description *string `json:"description" validate:"omitempty,max=255"`
 	} `json:"secrets" validate:"dive,omitempty,min=0,max=5"`
 
 	Headers []struct {
@@ -84,7 +85,8 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 		secrets := make([]database.CustomIntegrationSecret, len(data.Secrets))
 		for i, secret := range data.Secrets {
 			secrets[i] = database.CustomIntegrationSecret{
-				Name: secret.Name,
+				Name:        secret.Name,
+				Description: secret.Description,
 			}
 		}
 

@@ -105,17 +105,26 @@
 
                   <div class="col">
                     {#each data.secrets as secret, i}
-                      <div class="row">
-                        {#if i === 0}
-                          <Input col1 label="Secret Name" placeholder="api_key" bind:value={secret.name}/>
+                      <div class="col">
+                        <div class="row">
+                          {#if i === 0}
+                            <Input col1 label="Secret Name" placeholder="api_key" bind:value={secret.name}/>
+                          {:else}
+                            <Input col1 placeholder="api_key" bind:value={secret.name}/>
+                          {/if}
+
                           <div class="button-anchor">
                             <Button danger iconOnly icon="fas fa-trash-can" on:click={() => deleteSecret(i)}/>
                           </div>
-                        {:else}
-                          <Input col1 placeholder="api_key" bind:value={secret.name}/>
-                          <div class="button-anchor">
-                            <Button danger iconOnly icon="fas fa-trash-can" on:click={() => deleteSecret(i)}/>
-                          </div>
+                        </div>
+
+                        <div class="row">
+                          <Textarea col1 minHeight="60px" label="Description" bind:value={secret.description}
+                                    placeholder="Tell users what value to enter for this secret, in up to 255 characters"/>
+                        </div>
+
+                        {#if i !== data.secrets.length - 1}
+                          <hr/>
                         {/if}
                       </div>
                     {/each}
@@ -486,6 +495,14 @@
         display: flex;
         flex-direction: column;
         row-gap: 1vh;
+    }
+
+    hr {
+        border-top: 1px solid #777;
+        border-bottom: 0;
+        border-left: 0;
+        border-right: 0;
+        width: 100%;
     }
 
     @media only screen and (max-width: 950px) {

@@ -21,8 +21,9 @@ type integrationUpdateBody struct {
 	WebhookUrl string `json:"webhook_url" validate:"required,webhook,max=255"`
 
 	Secrets []struct {
-		Id   int    `json:"id" validate:"omitempty,min=1"`
-		Name string `json:"name" validate:"required,min=1,max=32,excludesall=% "`
+		Id          int     `json:"id" validate:"omitempty,min=1"`
+		Name        string  `json:"name" validate:"required,min=1,max=32,excludesall=% "`
+		Description *string `json:"description" validate:"omitempty,max=255"`
 	} `json:"secrets" validate:"dive,omitempty,min=0,max=5"`
 
 	Headers []struct {
@@ -254,8 +255,9 @@ func (b *integrationUpdateBody) updateSecrets(ctx *gin.Context, integrationId in
 	secrets := make([]database.CustomIntegrationSecret, len(b.Secrets))
 	for i, secret := range b.Secrets {
 		secrets[i] = database.CustomIntegrationSecret{
-			Id:   secret.Id,
-			Name: secret.Name,
+			Id:          secret.Id,
+			Name:        secret.Name,
+			Description: secret.Description,
 		}
 	}
 

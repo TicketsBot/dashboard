@@ -16,7 +16,8 @@
               <div class="secret-container">
                 {#each integration.secrets as secret}
                   <div class="secret-input">
-                    <Input col1 label="{secret.name}" placeholder="{secret.name}" bind:value={secretValues[secret.name]}/>
+                    <Input label="{secret.name}" placeholder="{secret.name}" bind:value={secretValues[secret.name]}/>
+                    <p>{secret.description}</p>
                   </div>
                 {/each}
               </div>

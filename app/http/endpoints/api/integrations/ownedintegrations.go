@@ -57,7 +57,7 @@ func GetOwnedIntegrationsHandler(ctx *gin.Context) {
 			integrationResponse: integrationResponse{
 				Id:               integration.Id,
 				OwnerId:          integration.OwnerId,
-				WebhookHost:      utils.GetUrlHost(strings.ReplaceAll(integration.WebhookUrl, "%", "")),
+				WebhookHost:      utils.SecondLevelDomain(utils.GetUrlHost(strings.ReplaceAll(integration.WebhookUrl, "%", ""))),
 				Name:             integration.Name,
 				Description:      integration.Description,
 				ImageUrl:         integration.ImageUrl,

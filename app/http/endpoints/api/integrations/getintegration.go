@@ -88,7 +88,7 @@ func GetIntegrationHandler(ctx *gin.Context) {
 	ctx.JSON(200, integrationResponse{
 		Id:               integration.Id,
 		OwnerId:          integration.OwnerId,
-		WebhookHost:      utils.GetUrlHost(strings.ReplaceAll(integration.WebhookUrl, "%", "")),
+		WebhookHost:      utils.SecondLevelDomain(utils.GetUrlHost(strings.ReplaceAll(integration.WebhookUrl, "%", ""))),
 		Name:             integration.Name,
 		Description:      integration.Description,
 		ImageUrl:         integration.ImageUrl,
