@@ -44,6 +44,11 @@ func WhitelabelPost(ctx *gin.Context) {
 		return
 	}
 
+	if bot.Id == 0 {
+		ctx.JSON(400, utils.ErrorStr("Invalid token"))
+		return
+	}
+
 	if !bot.Bot {
 		ctx.JSON(400, utils.ErrorStr("Token is not of a bot user"))
 		return
