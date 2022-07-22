@@ -83,12 +83,12 @@ func WhitelabelPost(ctx *gin.Context) {
 }
 
 func validateToken(token string) bool {
+	split := strings.Split(token, ".")
+
 	// Check for 2 dots
-	if strings.Count(token, ".") != 2 {
+	if len(split) != 3 {
 		return false
 	}
-
-	split := strings.Split(token, ".")
 
 	// Validate bot ID
 	// TODO: We could check the date on the snowflake
@@ -97,12 +97,7 @@ func validateToken(token string) bool {
 	}
 
 	// Validate time
-	timestamp, err := base64.RawURLEncoding.DecodeString(split[1])
-	if err != nil {
-		return false
-	}
-
-	if len(timestamp) != 4 {
+	if _, err := base64.RawURLEncoding.DecodeString(split[1]); err != nil {
 		return false
 	}
 
