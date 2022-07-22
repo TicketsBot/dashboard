@@ -97,7 +97,12 @@ func validateToken(token string) bool {
 
 	// Validate bot ID
 	// TODO: We could check the date on the snowflake
-	if _, err := strconv.ParseUint(utils.Base64Decode(split[0]), 10, 64); err != nil {
+	idRaw, err := base64.RawStdEncoding.DecodeString(split[0])
+	if err != nil {
+		return false
+	}
+
+	if _, err := strconv.ParseUint(string(idRaw), 10, 64); err != nil {
 		return false
 	}
 
