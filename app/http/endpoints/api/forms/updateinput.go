@@ -72,7 +72,7 @@ func UpdateInput(ctx *gin.Context) {
 		Style:       uint8(data.Style),
 		Label:       data.Label,
 		Placeholder: data.Placeholder,
-		Required:    !data.Optional,
+		Required:    data.Required,
 	}
 
 	if err := dbclient.Client.FormInput.Update(newInput); err != nil {

@@ -16,7 +16,7 @@ func UpdateForm(ctx *gin.Context) {
 		return
 	}
 
-	if len(data.Title) > 255 {
+	if len(data.Title) > 45 {
 		ctx.JSON(400, utils.ErrorStr("Title is too long"))
 		return
 	}
@@ -29,9 +29,9 @@ func UpdateForm(ctx *gin.Context) {
 
 	form, ok, err := dbclient.Client.Forms.Get(formId)
 	if err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	if !ok {
 		ctx.JSON(404, utils.ErrorStr("Form not found"))
@@ -40,13 +40,13 @@ func UpdateForm(ctx *gin.Context) {
 
 	if form.GuildId != guildId {
 		ctx.JSON(403, utils.ErrorStr("Form does not belong to this guild"))
-        return
+		return
 	}
 
 	if err := dbclient.Client.Forms.UpdateTitle(formId, data.Title); err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	ctx.JSON(200, utils.SuccessResponse)
 }

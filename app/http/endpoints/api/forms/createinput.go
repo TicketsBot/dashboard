@@ -9,13 +9,6 @@ import (
 	"strconv"
 )
 
-type inputCreateBody struct {
-	Style       component.TextStyleTypes `json:"style"`
-	Label       string                   `json:"label"`
-	Placeholder *string                  `json:"placeholder"`
-	Optional    bool                     `json:"optional"`
-}
-
 func CreateInput(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
@@ -70,7 +63,7 @@ func CreateInput(ctx *gin.Context) {
 	// 2^30 chance of collision
 	customId := utils.RandString(30)
 
-	formInputId, err := dbclient.Client.FormInput.Create(formId, customId, uint8(data.Style), data.Label, data.Placeholder, !data.Optional)
+	formInputId, err := dbclient.Client.FormInput.Create(formId, customId, uint8(data.Style), data.Label, data.Placeholder, data.Required)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -83,7 +76,7 @@ func CreateInput(ctx *gin.Context) {
 		Style:       uint8(data.Style),
 		Label:       data.Label,
 		Placeholder: data.Placeholder,
-		Required:    !data.Optional,
+		Required:    data.Required,
 	})
 }
 

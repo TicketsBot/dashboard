@@ -17,11 +17,6 @@
             </Button>
           </form>
         {/if}
-        {#if withSaveButton}
-          <form on:submit|preventDefault={forwardSave} class="button-form">
-            <Button icon="fas fa-save">Save</Button>
-          </form>
-        {/if}
         {#if withDeleteButton}
           <form on:submit|preventDefault={forwardDelete} class="button-form">
             <Button icon="fas fa-trash" danger={true}>Delete</Button>
@@ -41,7 +36,7 @@
         </Dropdown>
       </div>
       <div class="row">
-        <Checkbox label="Optional" bind:value={data.optional}/>
+        <Checkbox label="Required" bind:value={data.required}/>
       </div>
     </div>
   </div>
@@ -68,13 +63,6 @@
       {/if}
       <div class="row">
         <div class="col-2-force">
-          {#if withSaveButton}
-            <form on:submit|preventDefault={forwardSave} class="button-form">
-              <Button icon="fas fa-save">Save</Button>
-            </form>
-          {/if}
-        </div>
-        <div class="col-2-force">
           {#if withDeleteButton}
             <form on:submit|preventDefault={forwardDelete} class="button-form">
               <Button icon="fas fa-trash" danger={true}>Delete</Button>
@@ -85,7 +73,7 @@
     </div>
   {/if}
 
-  {#if withCreateButton}
+  {#if withCreateButton && false}
     <div class="row" style="justify-content: center; margin-top: 10px">
       <Button type="submit" icon="fas fa-plus" {disabled}>Add Input</Button>
     </div>
@@ -105,7 +93,6 @@
   import Checkbox from "../form/Checkbox.svelte";
 
   export let withCreateButton = false;
-  export let withSaveButton = false;
   export let withDeleteButton = false;
   export let withDirectionButtons = false;
   export let disabled = false;
@@ -119,10 +106,6 @@
 
   function forwardCreate() {
     dispatch('create', data);
-  }
-
-  function forwardSave() {
-    dispatch('save', data);
   }
 
   function forwardDelete() {

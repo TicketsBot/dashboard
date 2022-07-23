@@ -123,6 +123,7 @@ func StartServer() {
 		guildAuthApiAdmin.PATCH("/forms/:form_id", rl(middleware.RateLimitTypeGuild, 30, time.Hour), api_forms.UpdateForm)
 		guildAuthApiAdmin.DELETE("/forms/:form_id", api_forms.DeleteForm)
 		guildAuthApiAdmin.POST("/forms/:form_id", api_forms.CreateInput)
+		guildAuthApiAdmin.PATCH("/forms/:form_id/inputs", api_forms.UpdateInputs)
 		guildAuthApiAdmin.PATCH("/forms/:form_id/:input_id", api_forms.UpdateInput)
 		guildAuthApiAdmin.PATCH("/forms/:form_id/:input_id/:direction", api_forms.SwapInput)
 		guildAuthApiAdmin.DELETE("/forms/:form_id/:input_id", api_forms.DeleteInput)

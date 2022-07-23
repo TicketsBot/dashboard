@@ -40,3 +40,7 @@ export function colourToInt(colour) {
 export function intToColour(i) {
     return `#${i.toString(16)}`
 }
+
+export function nullIfBlank(s) {
+    return s === '' ? null : s;
+}
