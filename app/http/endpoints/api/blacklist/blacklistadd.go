@@ -17,6 +17,18 @@ func AddBlacklistHandler(ctx *gin.Context) {
 		return
 	}
 
+	// Max of 250 blacklisted users
+	count, err := database.Client.Blacklist.GetBlacklistedCount(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if count >= 250 {
+		ctx.JSON(400, utils.ErrorStr("Blacklist limit (250) reached: consider using a role instead"))
+		return
+	}
+
 	permLevel, err := utils.GetPermissionLevel(guildId, id)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))

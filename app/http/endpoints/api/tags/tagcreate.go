@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,41 +13,39 @@ type tag struct {
 
 func CreateTag(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
-	var data tag
 
+	// Max of 200 tags
+	count, err := database.Client.Tag.GetTagCount(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if count >= 200 {
+		ctx.JSON(400, utils.ErrorStr("Tag limit (200) reached"))
+		return
+	}
+
+	var data tag
 	if err := ctx.BindJSON(&data); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	if !data.verifyIdLength() {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Tag ID must be 1 - 16 characters in length",
-		})
+		ctx.JSON(400, utils.ErrorStr("Tag ID must be 1 - 16 characters in length"))
 		return
 	}
 
 	if !data.verifyContentLength() {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Tag content must be 1 - 2000 characters in length",
-		})
+		ctx.JSON(400, utils.ErrorStr("Tag content must be 1 - 2000 characters in length"))
 		return
 	}
 
 	if err := database.Client.Tag.Set(guildId, data.Id, data.Content); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error": err.Error(),
-		})
+		ctx.JSON(500, utils.ErrorJson(err))
 	} else {
-		ctx.JSON(200, gin.H{
-			"success": true,
-		})
+		ctx.JSON(200, utils.SuccessResponse)
 	}
 }
 
