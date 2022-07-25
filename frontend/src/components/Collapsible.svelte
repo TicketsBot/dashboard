@@ -16,16 +16,23 @@
   </div>
 </div>
 
+<svelte:window bind:innerWidth />
+
 <script>
     import {onMount} from "svelte";
 
     export let retractIcon = "fas fa-minus";
     export let expandIcon = "fas fa-plus";
 
+    export let defaultOpen = false;
+
     let expanded = false;
     let showOverflow = true;
 
     let content;
+
+    let innerWidth;
+    $: innerWidth, updateIfExpanded();
 
     export function toggle() {
         if (expanded) {
@@ -41,15 +48,17 @@
         content.style.maxHeight = `${content.scrollHeight}px`;
     }
 
-    onMount(() => {
-        const fn = (e) => {
-            if (expanded) {
-                updateSize();
-            }
+    function updateIfExpanded() {
+        if (expanded) {
+            updateSize();
         }
+    }
 
-        content.addEventListener('DOMNodeInserted', fn);
-        content.addEventListener('DOMNodeRemoved', fn);
+    onMount(() => {
+        content.addEventListener('DOMNodeInserted', updateIfExpanded);
+        content.addEventListener('DOMNodeRemoved', updateIfExpanded);
+
+        if (defaultOpen) toggle();
     });
 </script>
 
@@ -76,5 +85,6 @@
         border-left: 0;
         border-right: 0;
         width: 100%;
+        flex: 1;
     }
 </style>

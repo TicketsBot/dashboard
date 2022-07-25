@@ -2,14 +2,21 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
+	"github.com/TicketsBot/worker/bot/customisation"
+	"github.com/TicketsBot/worker/i18n"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/channel"
 	"golang.org/x/sync/errgroup"
+	"time"
 )
 
 func UpdateSettingsHandler(ctx *gin.Context) {
@@ -17,20 +24,52 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 
 	var settings Settings
 	if err := ctx.BindJSON(&settings); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	// Get a list of all channel IDs
 	channels := cache.Instance.GetGuildChannels(guildId)
 
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	// Includes voting
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if err := settings.Validate(guildId, premiumTier); err != nil {
+		ctx.JSON(400, utils.ErrorJson(err))
+		return
+	}
+
+	group, _ := errgroup.WithContext(context.Background())
+
+	group.Go(func() error {
+		return settings.updateSettings(guildId)
+	})
+
+	group.Go(func() error {
+		return settings.updateClaimSettings(guildId)
+	})
+
+	addToWaitGroup(group, guildId, settings.updateLanguage)
+	addToWaitGroup(group, guildId, settings.updateAutoClose)
+
+	if premiumTier > premium.None {
+		addToWaitGroup(group, guildId, settings.updateColours)
+	}
+
 	// TODO: Errors
 	var errStr *string = nil
-	if e := settings.updateSettings(guildId); e != nil {
-		errStr = utils.Ptr(e.Error())
+	if err := group.Wait(); err != nil {
+		errStr = utils.Ptr(err.Error())
 	}
 
 	validPrefix := settings.updatePrefix(guildId)
@@ -56,16 +95,77 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 }
 
 func (s *Settings) updateSettings(guildId uint64) error {
-	if err := s.Validate(guildId); err != nil {
-		return err
-	}
-
 	return dbclient.Client.Settings.Set(guildId, s.Settings)
 }
 
-var validAutoArchive = []int{60, 1440, 4320, 10080}
+func (s *Settings) updateClaimSettings(guildId uint64) error {
+	return dbclient.Client.ClaimSettings.Set(guildId, s.ClaimSettings)
+}
 
-func (s *Settings) Validate(guildId uint64) error {
+var (
+	validAutoArchive = []int{60, 1440, 4320, 10080}
+	activeColours    = []customisation.Colour{customisation.Green, customisation.Red}
+)
+
+func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) error {
+	// Sync checks
+	if s.ClaimSettings.SupportCanType && !s.ClaimSettings.SupportCanView {
+		return errors.New("Must be able to view channel to type")
+	}
+
+	if s.Settings.UseThreads {
+		return fmt.Errorf("threads are disabled")
+	}
+
+	if s.Language != nil {
+		if _, ok := i18n.FullNames[*s.Language]; !ok {
+			return fmt.Errorf("invalid language")
+		}
+	}
+
+	// Validate colours
+	if len(s.Colours) > len(activeColours) {
+		return errors.New("Invalid colour")
+	}
+
+	for colour, _ := range s.Colours {
+		if !utils.Exists(activeColours, colour) {
+			return errors.New("Invalid colour")
+		}
+	}
+
+	for _, colourCode := range activeColours {
+		if _, ok := s.Colours[colourCode]; !ok {
+			s.Colours[colourCode] = utils.HexColour(customisation.DefaultColours[colourCode])
+		}
+	}
+
+	// Validate autoclose
+	if premiumTier < premium.Premium {
+		s.AutoCloseSettings.SinceOpenWithNoResponse = 0
+		s.AutoCloseSettings.SinceLastMessage = 0
+	}
+
+	if !s.AutoCloseSettings.Enabled {
+		s.AutoCloseSettings.SinceOpenWithNoResponse = 0
+		s.AutoCloseSettings.SinceLastMessage = 0
+		s.AutoCloseSettings.OnUserLeave = false
+	}
+
+	if s.AutoCloseSettings.SinceOpenWithNoResponse < 0 {
+		s.AutoCloseSettings.SinceOpenWithNoResponse = 0
+	}
+
+	if s.AutoCloseSettings.SinceLastMessage < 0 {
+		s.AutoCloseSettings.SinceLastMessage = 0
+	}
+
+	if s.AutoCloseSettings.SinceLastMessage > int64((time.Hour*24*60).Seconds()) ||
+		s.AutoCloseSettings.SinceOpenWithNoResponse > int64((time.Hour*24*60).Seconds()) {
+		return errors.New("Autoclose time period cannot be longer than 60 days")
+	}
+
+	// Async checks
 	group, _ := errgroup.WithContext(context.Background())
 
 	// Validate panel from same guild
@@ -103,14 +203,6 @@ func (s *Settings) Validate(guildId uint64) error {
 	})
 
 	group.Go(func() error {
-		if s.Settings.UseThreads {
-			return fmt.Errorf("threads are disabled")
-		} else {
-			return nil
-		}
-	})
-
-	group.Go(func() error {
 		if s.Settings.OverflowCategoryId != nil {
 			ch, ok := cache.Instance.GetChannel(*s.Settings.OverflowCategoryId)
 			if !ok {
@@ -130,6 +222,12 @@ func (s *Settings) Validate(guildId uint64) error {
 	})
 
 	return group.Wait()
+}
+
+func addToWaitGroup(group *errgroup.Group, guildId uint64, f func(uint64) error) {
+	group.Go(func() error {
+		return f(guildId)
+	})
 }
 
 func (s *Settings) updatePrefix(guildId uint64) bool {
@@ -231,4 +329,44 @@ func (s *Settings) updateCloseConfirmation(guildId uint64) {
 
 func (s *Settings) updateFeedbackEnabled(guildId uint64) {
 	go dbclient.Client.FeedbackEnabled.Set(guildId, s.FeedbackEnabled)
+}
+
+func (s *Settings) updateLanguage(guildId uint64) error {
+	if s.Language == nil {
+		return dbclient.Client.ActiveLanguage.Delete(guildId)
+	} else {
+		return dbclient.Client.ActiveLanguage.Set(guildId, string(*s.Language))
+	}
+}
+
+func (s *Settings) updateColours(guildId uint64) error {
+	// Convert ColourMap to primitives
+	converted := make(map[int16]int)
+	for colour, hex := range s.Colours {
+		converted[int16(colour)] = int(hex)
+	}
+
+	return dbclient.Client.CustomColours.BatchSet(guildId, converted)
+}
+
+func (s *Settings) updateAutoClose(guildId uint64) error {
+	data := s.AutoCloseSettings.ConvertToDatabase() // Already validated
+	return dbclient.Client.AutoClose.Set(guildId, data)
+}
+
+func (d AutoCloseData) ConvertToDatabase() (settings database.AutoCloseSettings) {
+	settings.Enabled = d.Enabled
+
+	if d.SinceOpenWithNoResponse > 0 {
+		duration := time.Second * time.Duration(d.SinceOpenWithNoResponse)
+		settings.SinceOpenWithNoResponse = &duration
+	}
+
+	if d.SinceLastMessage > 0 {
+		duration := time.Second * time.Duration(d.SinceLastMessage)
+		settings.SinceLastMessage = &duration
+	}
+
+	settings.OnUserLeave = &d.OnUserLeave
+	return
 }

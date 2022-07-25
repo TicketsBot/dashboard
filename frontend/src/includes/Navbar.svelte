@@ -30,14 +30,11 @@
         <NavElement icon="fas fa-ticket-alt" link="/manage/{guildId}/tickets" on:click={closeDropdown}>Tickets</NavElement>
         <NavElement icon="fas fa-ban" link="/manage/{guildId}/blacklist" on:click={closeDropdown}>Blacklist</NavElement>
         <NavElement icon="fas fa-tags" link="/manage/{guildId}/tags" on:click={closeDropdown}>Tags</NavElement>
-
-        {#if isAdmin}
-          <NavElement icon="fas fa-paint-brush" link="/manage/{guildId}/appearance" on:click={closeDropdown}>Appearance</NavElement>
-        {/if}
       </div>
     </div>
     <div>
       <div class="nav-section" class:dropdown={$dropdown}>
+        <NavElement icon="fas fa-book" link="https://docs.ticketsbot.net">Documentation</NavElement>
         <NavElement icon="fas fa-server" link="/#">Servers</NavElement>
         <NavElement icon="fas fa-sign-out-alt" link="/logout">Logout</NavElement>
       </div>

@@ -1,11 +1,6 @@
 <div class="col">
   <div class="row label">
-    <div class="parent">
-      <label class="form-label">{label}</label>
-      {#if badge !== undefined}
-        <Badge>{badge}</Badge>
-      {/if}
-    </div>
+    <slot name="header"></slot>
   </div>
 
   <div class="row fields">
@@ -27,10 +22,6 @@
 </div>
 
 <script>
-    import Badge from "../Badge.svelte";
-
-    export let label;
-    export let badge;
     export let disabled = false; // note: bind:disabled isn't valid
 
     export let days = 0;
@@ -86,6 +77,12 @@
 
     .label {
         margin-bottom: 4px;
+    }
+
+    .header-wrapper {
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
     }
 
     .parent {

@@ -1,66 +1,165 @@
-<Card footer="{false}" fill="{false}">
+{#if data}
+  <Card footer="{false}" fill="{false}">
   <span slot="title">
     Settings
   </span>
 
-  <div slot="body" class="body-wrapper">
-    <form class="settings-form" on:submit|preventDefault={updateSettings}>
-      <div class="row">
-        <Input label="prefix (max len. 8)" placeholder="t!" col4=true bind:value={data.prefix}/>
-        <Number label="per user simultaneous ticket limit" col4=true min=1 max=10 bind:value={data.ticket_limit}/>
-        <Checkbox label="allow users to close tickets" col4=true bind:value={data.users_can_close}/>
-        <Checkbox label="ticket close confirmation" col4=true bind:value={data.close_confirmation}/>
-      </div>
-      <div class="row">
-        <Textarea label="welcome message" placeholder="Thanks for opening a ticket!" col1=true
-                  bind:value={data.welcome_message}/>
-      </div>
-      <div class="row">
-        <ChannelDropdown label="Archive Channel" col3=true channels={channels} withNull={true} bind:value={data.archive_channel}/>
-        <CategoryDropdown label="Channel Category" col3=true channels={channels} bind:value={data.category}/>
-        <Dropdown label="Overflow Category" col3=true bind:value={data.overflow_category_id}>
-          <option value=-1>Disabled</option>
-          <option value=-2>Uncategorised (Appears at top of channel list)</option>
-          {#each channels as channel}
-            {#if channel.type === 4}
-              <option value={channel.id}>
-                {channel.name}
-              </option>
-            {/if}
-          {/each}
-        </Dropdown>
-      </div>
-      <div class="row">
-        <NamingScheme col4=true bind:value={data.naming_scheme}/>
-        <Checkbox label="Enable User Feedback" col4=true bind:value={data.feedback_enabled}/>
-        <Checkbox label="Hide Claim Button" col4=true bind:value={data.hide_claim_button}/>
-        <Checkbox label="Disable /open Command" col4=true bind:value={data.disable_open_command}/>
-      </div>
-      <div class="row">
-        <Checkbox label="Store Ticket Transcripts" col4=true bind:value={data.store_transcripts}/>
-      </div>
-      <div class="from-message-settings">
-        <h3>Start Ticket From Message Settings</h3>
-        <div class="row">
-          <Dropdown col3={true} label="Required Permission Level" bind:value={data.context_menu_permission_level}>
-            <option value="0">Everyone</option>
-            <option value="1">Support Representative</option>
-            <option value="2">Administrator</option>
-          </Dropdown>
+    <div slot="body" class="body-wrapper">
+      <form class="settings-form" on:submit|preventDefault={updateSettings}>
+        <Collapsible defaultOpen>
+          <span slot="header">General</span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Input label="prefix (max len. 8)" placeholder="t!" col4 bind:value={data.prefix}/>
+              <Number label="per user simultaneous ticket limit" min=1 max=10 bind:value={data.ticket_limit}/>
+              <Dropdown label="Language" bind:value={data.language}>
+                <option value=null selected="selected">Server Default</option>
+                {#if data.languages}
+                  {#each data.languages as language}
+                    <option value={language}>{data.language_names[language]}</option>
+                  {/each}
+                {/if}
+              </Dropdown>
+              <Checkbox label="allow users to close tickets" bind:value={data.users_can_close}/>
+              <Checkbox label="ticket close confirmation" bind:value={data.close_confirmation}/>
+              <Checkbox label="Enable User Feedback" bind:value={data.feedback_enabled}/>
+            </div>
+          </div>
+        </Collapsible>
 
-          <Checkbox label="Add Message Sender To Ticket" col3={true} bind:value={data.context_menu_add_sender}/>
-          <SimplePanelDropdown label="Use Settings From Panel" col3={true} allowNone={true} bind:panels
-                               bind:value={data.context_menu_panel}/>
+        <Collapsible defaultOpen>
+          <span slot="header">Tickets</span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <ChannelDropdown label="Archive Channel" col3=true channels={channels} withNull={true}
+                               bind:value={data.archive_channel}/>
+              <Dropdown label="Overflow Category" col3=true bind:value={data.overflow_category_id}>
+                <option value=-1>Disabled</option>
+                <option value=-2>Uncategorised (Appears at top of channel list)</option>
+                {#each channels as channel}
+                  {#if channel.type === 4}
+                    <option value={channel.id}>
+                      {channel.name}
+                    </option>
+                  {/if}
+                {/each}
+              </Dropdown>
+              <Checkbox label="Store Ticket Transcripts" bind:value={data.store_transcripts}/>
+              <Checkbox label="Hide Claim Button" bind:value={data.hide_claim_button}/>
+            </div>
+
+            <div class="row">
+            </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible>
+          <span slot="header">/Open Command</span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Checkbox label="Disable /open Command" bind:value={data.disable_open_command}/>
+              <CategoryDropdown label="Channel Category" col3 channels={channels} bind:value={data.category}/>
+              <NamingScheme bind:value={data.naming_scheme}/>
+            </div>
+            <div class="row">
+              <div class="col-1-flex">
+              <Textarea label="welcome message" placeholder="Thanks for opening a ticket!" col1
+                        bind:value={data.welcome_message}/>
+              </div>
+            </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible>
+          <span slot="header">Context Menu (Start Ticket Dropdown)</span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Dropdown col3 label="Required Permission Level" bind:value={data.context_menu_permission_level}>
+                <option value="0">Everyone</option>
+                <option value="1">Support Representative</option>
+                <option value="2">Administrator</option>
+              </Dropdown>
+
+              <Checkbox label="Add Message Sender To Ticket" bind:value={data.context_menu_add_sender}/>
+              <SimplePanelDropdown label="Use Settings From Panel" col3 allowNone={true} bind:panels
+                                   bind:value={data.context_menu_panel}/>
+            </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible>
+          <span slot="header">Claiming</span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Checkbox label="SUPPORT REPS CAN VIEW CLAIMED TICKETS" bind:value={data.claim_settings.support_can_view}
+                        on:change={validateView}/>
+              <Checkbox label="SUPPORT REPS CAN TYPE IN CLAIMED TICKETS" bind:value={data.claim_settings.support_can_type}
+                        on:change={validateType}/>
+            </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible>
+          <span slot="header">Auto Close</span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Checkbox label="Enabled" bind:value={data.auto_close.enabled}/>
+              <Checkbox label="Close On User Leave" disabled={!data.auto_close.enabled} bind:value={data.auto_close.on_user_leave}/>
+            </div>
+
+            <div class="row" style="justify-content: space-between">
+              <div class="col-2" style="flex-direction: row">
+                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceOpenDays} bind:hours={sinceOpenHours}
+                          bind:minutes={sinceOpenMinutes}>
+                  <div slot="header" class="header">
+                    <label class="form-label" style="margin-bottom: unset">Since Open With No Response</label>
+                    <PremiumBadge/>
+                  </div>
+                </Duration>
+              </div>
+              <div class="col-2" style="flex-direction: row">
+                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceLastDays} bind:hours={sinceLastHours}
+                          bind:minutes={sinceLastMinutes}>
+                  <div slot="header" class="header">
+                    <label class="form-label" style="margin-bottom: unset">Since Last Message</label>
+                    <PremiumBadge/>
+                  </div>
+                </Duration>
+              </div>
+            </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible>
+          <div slot="header" class="header">
+            <span>Colour Scheme</span>
+            <PremiumBadge/>
+          </div>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Colour col4 label="Success" bind:value={data.colours["0"]} disabled={!isPremium}/>
+              <Colour col4 label="Failure" bind:value={data.colours["1"]} disabled={!isPremium}/>
+            </div>
+          </div>
+        </Collapsible>
+
+        <div class="row">
+          <div class="col-1">
+            <Button icon="fas fa-paper-plane" fullWidth=true>Submit</Button>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col-1">
-          <Button icon="fas fa-paper-plane" fullWidth=true>Submit</Button>
-        </div>
-      </div>
-    </form>
-  </div>
-</Card>
+      </form>
+    </div>
+  </Card>
+{/if}
+
+<svelte:head>
+  <style>
+      body {
+          overflow-y: scroll;
+      }
+  </style>
+</svelte:head>
 
 <script>
     import ChannelDropdown from "../ChannelDropdown.svelte";
@@ -79,6 +178,11 @@
     import NamingScheme from "../NamingScheme.svelte";
     import Dropdown from "../form/Dropdown.svelte";
     import SimplePanelDropdown from "../SimplePanelDropdown.svelte";
+    import Collapsible from "../Collapsible.svelte";
+    import Duration from "../form/Duration.svelte";
+    import Colour from "../form/Colour.svelte";
+    import PremiumBadge from "../PremiumBadge.svelte";
+    import {toDays, toHours, toMinutes} from "../../js/timeutil";
 
     export let guildId;
 
@@ -86,6 +190,24 @@
 
     let channels = [];
     let panels = [];
+    let isPremium = false;
+
+    let data;
+
+    let sinceOpenDays = 0, sinceOpenHours = 0, sinceOpenMinutes = 0;
+    let sinceLastDays = 0, sinceLastHours = 0, sinceLastMinutes = 0;
+
+    function validateView() {
+        if (!data.support_can_view && data.support_can_type) {
+            data.support_can_type = false;
+        }
+    }
+
+    function validateType() {
+        if (!data.support_can_view && data.support_can_type) {
+            data.support_can_view = true;
+        }
+    }
 
     async function loadPanels() {
         const res = await axios.get(`${API_URL}/api/${guildId}/panels`);
@@ -107,11 +229,15 @@
         channels = res.data;
     }
 
-    let data = {
-        ticket_limit: 5,
-        users_can_close: true,
-        close_confirmation: true,
-    };
+    async function loadPremium() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/premium`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        isPremium = res.data.premium;
+    }
 
     async function updateSettings() {
         // Svelte hack - I can't even remember what this does
@@ -135,6 +261,10 @@
             mapped.overflow_enabled = true;
         }
 
+        // Normalise autoclose
+        data.auto_close.since_open_with_no_response = sinceOpenDays * 86400 + sinceOpenHours * 3600 + sinceOpenMinutes * 60;
+        data.auto_close.since_last_message = sinceLastDays * 86400 + sinceLastHours * 3600 + sinceLastMinutes * 60;
+
         const res = await axios.post(`${API_URL}/api/${guildId}/settings`, mapped);
         if (res.status === 200) {
             if (showValidations(res.data)) {
@@ -152,8 +282,8 @@
         let success = true;
 
         if (data.error !== null) {
-          success = false;
-          notify("Warning", data.error);
+            success = false;
+            notify("Warning", data.error);
         }
 
         if (!data.prefix) {
@@ -214,22 +344,40 @@
         }
 
         if (data.overflow_enabled === false) {
-          data.overflow_category_id = "-1";
+            data.overflow_category_id = "-1";
         } else if (data.overflow_enabled === true) {
-          if (data.overflow_category_id === null) {
-            data.overflow_category_id = "-2";
-          }
+            if (data.overflow_category_id === null) {
+                data.overflow_category_id = "-2";
+            }
 
-          if (!channels.some((c) => c.id === data.overflow_category_id)) {
-            data.overflow_category_id = "-2";
-          }
+            if (!channels.some((c) => c.id === data.overflow_category_id)) {
+                data.overflow_category_id = "-2";
+            }
+        }
+
+        if (data.language === null) {
+            data.language = "null";
+        }
+
+        // Auto close overrides
+        if (data.auto_close.since_open_with_no_response) {
+            sinceOpenDays = toDays(data.auto_close.since_open_with_no_response);
+            sinceOpenHours = toHours(data.auto_close.since_open_with_no_response);
+            sinceOpenMinutes = toMinutes(data.auto_close.since_open_with_no_response);
+        }
+
+        if (data.auto_close.since_last_message) {
+            sinceLastDays = toDays(data.auto_close.since_last_message);
+            sinceLastHours = toHours(data.auto_close.since_last_message);
+            sinceLastMinutes = toMinutes(data.auto_close.since_last_message);
         }
     }
 
     withLoadingScreen(async () => {
         await Promise.all([
             loadPanels(),
-            loadChannels()
+            loadChannels(),
+            loadPremium()
         ]);
 
         await loadData(); // Depends on channels
@@ -245,7 +393,9 @@
 
     .row {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 2%;
         width: 100%;
         height: 100%;
         margin-top: 10px;
@@ -258,10 +408,11 @@
         height: 100%;
     }
 
-    .from-message-settings {
-        border-top: 1px solid rgba(0, 0, 0, .25);
-        margin-top: 25px;
-        padding-top: 10px;
+    .col-1-flex {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        flex: 0 0 100%;
     }
 
     @media only screen and (max-width: 950px) {
@@ -305,5 +456,12 @@
         align-items: flex-start;
         width: 23%;
         height: 100%;
+    }
+
+    .header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
     }
 </style>

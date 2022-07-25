@@ -3,9 +3,7 @@ package http
 import (
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/admin/botstaff"
-	api_autoclose "github.com/TicketsBot/GoPanel/app/http/endpoints/api/autoclose"
 	api_blacklist "github.com/TicketsBot/GoPanel/app/http/endpoints/api/blacklist"
-	api_customisation "github.com/TicketsBot/GoPanel/app/http/endpoints/api/customisation"
 	api_forms "github.com/TicketsBot/GoPanel/app/http/endpoints/api/forms"
 	api_integrations "github.com/TicketsBot/GoPanel/app/http/endpoints/api/integrations"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
@@ -148,15 +146,6 @@ func StartServer() {
 		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler)
 		guildAuthApiSupport.PUT("/tags", api_tags.CreateTag)
 		guildAuthApiSupport.DELETE("/tags", api_tags.DeleteTag)
-
-		guildAuthApiAdmin.GET("/claimsettings", api_settings.GetClaimSettings)
-		guildAuthApiAdmin.POST("/claimsettings", api_settings.PostClaimSettings)
-
-		guildAuthApiAdmin.GET("/autoclose", api_autoclose.GetAutoClose)
-		guildAuthApiAdmin.POST("/autoclose", api_autoclose.PostAutoClose)
-
-		guildAuthApiAdmin.GET("/customisation/colours", api_customisation.GetColours)
-		guildAuthApiAdmin.POST("/customisation/colours", api_customisation.UpdateColours)
 
 		guildAuthApiAdmin.GET("/team", api_team.GetTeams)
 		guildAuthApiAdmin.GET("/team/:teamid", rl(middleware.RateLimitTypeUser, 10, time.Second*30), api_team.GetMembers)

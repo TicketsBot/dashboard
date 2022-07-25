@@ -3,23 +3,11 @@
     <div class="card">
       <SettingsCard {guildId}/>
     </div>
-    <div class="card">
-      <AutoCloseCard {guildId}/>
-    </div>
-  </div>
-  <div class="right-col">
-    <div class="card">
-      <ClaimsCard {guildId}/>
-    </div>
   </div>
 </div>
 
 <script>
     import SettingsCard from "../components/manage/SettingsCard.svelte";
-    import AutoCloseCard from "../components/manage/AutoCloseCard.svelte";
-    import ClaimsCard from "../components/manage/ClaimsCard.svelte";
-    import {onMount} from "svelte";
-    import {dropdown} from "../js/stores";
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id
@@ -39,7 +27,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        width: 66.6%;
+        width: 100%;
         margin-top: 30px;
     }
 
