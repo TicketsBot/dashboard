@@ -80,6 +80,8 @@
     .nav-section {
         display: flex;
         flex-direction: row;
+        gap: 15px;
+        margin: 20px 0;
     }
 
     .burger-menu {
@@ -124,10 +126,6 @@
 
         .wrapper.dropdown {
             position: absolute;
-        }
-
-        :global(.nav-element) {
-            padding: 15px 0 10px 15px !important;
         }
 
         :global(.super-container.dropdown) {

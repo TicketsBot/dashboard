@@ -22,10 +22,6 @@
 </script>
 
 <style>
-    .nav-element {
-        padding: 20px 0 20px 15px;
-    }
-
     .row {
         display: flex;
         flex-direction: row;
@@ -48,5 +44,11 @@
 
     .icon {
         width: 24px;
+    }
+
+    @media only screen and (max-width: 1154px) {
+        .nav-element {
+            padding: 15px 0 10px 15px !important;
+        }
     }
 </style>
