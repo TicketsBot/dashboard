@@ -7,6 +7,7 @@
           <thead>
           <tr>
             <th>ID</th>
+            <th>Panel</th>
             <th>User</th>
             <th>View</th>
           </tr>
@@ -15,6 +16,7 @@
           {#each tickets as ticket}
             <tr>
               <td>{ticket.id}</td>
+              <td>{ticket.panel_title}</td>
               {#if ticket.user !== undefined}
                 <td>{ticket.user.username}#{ticket.user.discriminator}</td>
               {:else}
@@ -81,40 +83,10 @@
         margin-top: 30px;
     }
 
-    .main-col {
-        display: flex;
-        flex-direction: column;
-        width: 64%;
-        height: 100%;
-    }
-
-    .right-col {
-        display: flex;
-        flex-direction: column;
-        width: 34%;
-        height: 100%;
-    }
-
     .body-wrapper {
         display: flex;
         flex-direction: column;
         width: 100%;
         height: 100%;
-    }
-
-    .row {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        height: 100%;
-        margin-bottom: 2%;
-    }
-
-    .col {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        margin-bottom: 2%;
     }
 </style>

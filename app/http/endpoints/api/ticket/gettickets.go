@@ -1,21 +1,20 @@
 package api
 
 import (
-	"context"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/user"
-	"golang.org/x/sync/errgroup"
 )
 
-func GetTickets(ctx *gin.Context) {
-	type WithUser struct {
-		TicketId int        `json:"id"`
-		User     *user.User `json:"user,omitempty"`
-	}
+type ticketResponse struct {
+	TicketId   int        `json:"id"`
+	PanelTitle string     `json:"panel_title"`
+	User       *user.User `json:"user,omitempty"`
+}
 
+func GetTickets(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	tickets, err := database.Client.Tickets.GetGuildOpenTickets(guildId)
@@ -24,32 +23,48 @@ func GetTickets(ctx *gin.Context) {
 		return
 	}
 
-	data := make([]WithUser, len(tickets))
-
-	group, _ := errgroup.WithContext(context.Background())
-
-	for i, ticket := range tickets {
-		i := i
-		ticket := ticket
-
-		group.Go(func() error {
-			user, ok := cache.Instance.GetUser(ticket.UserId)
-
-			data[i] = WithUser{
-				TicketId: ticket.Id,
-			}
-
-			if ok {
-				data[i].User = &user
-			}
-
-			return nil
-		})
-	}
-
-	if err := group.Wait(); err != nil {
+	panels, err := database.Client.Panel.GetByGuild(guildId)
+	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
+	}
+
+	panelTitles := make(map[int]string)
+	for _, panel := range panels {
+		panelTitles[panel.PanelId] = panel.Title
+	}
+
+	// Get user objects
+	userIds := make([]uint64, len(tickets))
+	for i, ticket := range tickets {
+		userIds[i] = ticket.UserId
+	}
+
+	users, err := cache.Instance.GetUsers(userIds)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	data := make([]ticketResponse, len(tickets))
+	for i, ticket := range tickets {
+		var user *user.User
+		if tmp, ok := users[ticket.UserId]; ok {
+			user = &tmp
+		}
+
+		panelTitle := "Unknown"
+		if ticket.PanelId != nil {
+			if tmp, ok := panelTitles[*ticket.PanelId]; ok {
+				panelTitle = tmp
+			}
+		}
+
+		data[i] = ticketResponse{
+			TicketId:   ticket.Id,
+			PanelTitle: panelTitle,
+			User:       user,
+		}
 	}
 
 	ctx.JSON(200, data)
