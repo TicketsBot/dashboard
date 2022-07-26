@@ -309,6 +309,7 @@
         width: 60%;
         height: 100%;
         margin-top: 30px;
+        padding-bottom: 4%;
     }
 
     .main-col {
