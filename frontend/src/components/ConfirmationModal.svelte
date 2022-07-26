@@ -34,7 +34,6 @@
 </script>
 
 <style>
-
     .modal {
         position: absolute;
         top: 0;

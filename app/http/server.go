@@ -100,8 +100,9 @@ func StartServer() {
 		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)
 
 		guildAuthApiSupport.GET("/blacklist", api_blacklist.GetBlacklistHandler)
-		guildAuthApiSupport.POST("/blacklist/:user", api_blacklist.AddBlacklistHandler)
-		guildAuthApiSupport.DELETE("/blacklist/:user", api_blacklist.RemoveBlacklistHandler)
+		guildAuthApiSupport.POST("/blacklist", api_blacklist.AddBlacklistHandler)
+		guildAuthApiSupport.DELETE("/blacklist/user/:user", api_blacklist.RemoveUserBlacklistHandler)
+		guildAuthApiSupport.DELETE("/blacklist/role/:role", api_blacklist.RemoveRoleBlacklistHandler)
 
 		// Must be readable to load transcripts page
 		guildAuthApiSupport.GET("/panels", api_panels.ListPanels)
