@@ -8,6 +8,22 @@
                   on:close={() => multiEditModal = false} on:confirm={submitMultiPanelEdit}/>
 {/if}
 
+{#if panelToDelete !== null}
+  <ConfirmationModal icon="fas fa-trash-can" isDangerous on:cancel={() => panelToDelete = null}
+                     on:confirm={() => deletePanel(panelToDelete.panel_id)}>
+    <span slot="body">Are you sure you want to delete the panel {panelToDelete.title}?</span>
+    <span slot="confirm">Delete</span>
+  </ConfirmationModal>
+{/if}
+
+{#if multiPanelToDelete !== null}
+  <ConfirmationModal icon="fas fa-trash-can" isDangerous on:cancel={() => multiPanelToDelete = null}
+                     on:confirm={() => deleteMultiPanel(multiPanelToDelete.id)}>
+    <span slot="body">Are you sure you want to delete the multi-panel {multiPanelToDelete.title}?</span>
+    <span slot="confirm">Delete</span>
+  </ConfirmationModal>
+{/if}
+
 <div class="wrapper">
   <div class="col-main">
     <div class="row">
@@ -40,7 +56,7 @@
                   <Button on:click={() => openEditModal(panel.panel_id)}>Edit</Button>
                 </td>
                 <td>
-                  <Button on:click={() => deletePanel(panel.panel_id)}>Delete</Button>
+                  <Button on:click={() => panelToDelete = panel}>Delete</Button>
                 </td>
               </tr>
             {/each}
@@ -91,7 +107,7 @@
                   <Button on:click={() => openMultiEditModal(panel.id)}>Edit</Button>
                 </td>
                 <td>
-                  <Button on:click={() => deleteMultiPanel(panel.id)}>Delete</Button>
+                  <Button on:click={() => multiPanelToDelete = panel}>Delete</Button>
                 </td>
               </tr>
             {/each}
@@ -132,6 +148,7 @@
     import PanelCreationForm from "../components/manage/PanelCreationForm.svelte";
     import MultiPanelCreationForm from '../components/manage/MultiPanelCreationForm.svelte';
     import MultiPanelEditModal from "../components/manage/MultiPanelEditModal.svelte";
+    import ConfirmationModal from "../components/ConfirmationModal.svelte";
 
     export let currentRoute;
     export let params = {};
@@ -151,6 +168,8 @@
 
     let editModal = false;
     let multiEditModal = false;
+    let panelToDelete = null;
+    let multiPanelToDelete = null;
 
     let panelCreateData;
     let editData;
@@ -185,6 +204,7 @@
         }
 
         panels = panels.filter((p) => p.panel_id !== panelId);
+        panelToDelete = null;
     }
 
     async function resendMultiPanel(id) {
@@ -205,6 +225,7 @@
         }
 
         multiPanels = multiPanels.filter((p) => p.id !== id);
+        multiPanelToDelete = null;
     }
 
     async function createPanel() {

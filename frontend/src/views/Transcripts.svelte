@@ -7,7 +7,7 @@
       </span>
 
       <div slot="body" class="body-wrapper">
-        <form class="form-wrapper" on:submit|preventDefault={filter}>
+        <div class="form-wrapper">
           <div class="row">
             <Input col4=true label="Ticket ID" placeholder="Ticket ID"
                    on:input={handleInputTicketId} bind:value={filterSettings.ticketId}/>
@@ -32,10 +32,10 @@
               <option value=5>5 ⭐</option>
             </Dropdown>
           </div>
-        </form>
+        </div>
       </div>
       <div slot="footer">
-        <Button icon="fas fa-search">Filter</Button>
+        <Button icon="fas fa-search" on:click={filter}>Filter</Button>
       </div>
     </Card>
 
