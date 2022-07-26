@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
 	github.com/TicketsBot/common v0.0.0-20220703211704-f792aa9f0c42
-	github.com/TicketsBot/database v0.0.0-20220725214217-fe953c05126d
+	github.com/TicketsBot/database v0.0.0-20220726141552-4560095e37f7
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
 	github.com/TicketsBot/worker v0.0.0-20220710121124-cd5ec72739f9
 	github.com/apex/log v1.1.2
@@ -26,7 +26,7 @@ require (
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20220702190021-560b2ab99d25
+	github.com/rxdn/gdl v0.0.0-20220726141522-788c9ce67ad0
 	github.com/sirupsen/logrus v1.5.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 )
@@ -82,9 +82,4 @@ require (
 	gopkg.in/alexcesaro/statsd.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	nhooyr.io/websocket v1.8.4 // indirect
-)
-
-replace (
-	github.com/rxdn/gdl => "../../rxdn/gdl"
-	github.com/TicketsBot/database => "../database"
 )
