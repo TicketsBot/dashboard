@@ -1,6 +1,6 @@
 <div class="content">
   <div class="col">
-    <Card footer={false} ref="filter-card">
+    <Card footer footerRight ref="filter-card">
       <span slot="title">
         <i class="fas fa-filter"></i>
         Filter Logs
@@ -23,7 +23,7 @@
               <PanelDropdown label="Panel" isMulti={false} bind:panels bind:selected={selectedPanel} />
             </div>
 
-            <Dropdown col4={true} label="Rating" bind:value={filterSettings.rating}>
+            <Dropdown label="Rating" bind:value={filterSettings.rating}>
               <option value=0>Any</option>
               <option value=1>1 ⭐</option>
               <option value=2>2 ⭐</option>
@@ -32,10 +32,10 @@
               <option value=5>5 ⭐</option>
             </Dropdown>
           </div>
-          <div class="row centre">
-            <Button icon="fas fa-search">Filter</Button>
-          </div>
         </form>
+      </div>
+      <div slot="footer">
+        <Button icon="fas fa-search">Filter</Button>
       </div>
     </Card>
 
@@ -257,7 +257,8 @@
     .row {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 2%;
         width: 100%;
         height: 100%;
     }
