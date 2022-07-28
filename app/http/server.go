@@ -21,7 +21,6 @@ import (
 	"github.com/TicketsBot/common/permission"
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
-	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"log"
 	"time"
@@ -40,9 +39,6 @@ func StartServer() {
 	// Sessions
 	session.Store = session.NewRedisStore()
 
-	// Handle static asset requests
-	router.Use(static.Serve("/assets/", static.LocalFile("./public/static", false)))
-
 	router.Use(gin.Recovery())
 	router.Use(middleware.MultiReadBody, middleware.ReadResponse)
 	router.Use(middleware.Logging(sentry.LevelError))
@@ -57,6 +53,9 @@ func StartServer() {
 
 	// util endpoints
 	router.GET("/ip", root.IpHandler)
+	router.GET("/robots.txt", func(ctx *gin.Context) {
+		ctx.String(200, "Disallow: /")
+	})
 
 	router.GET("/webchat", root.WebChatWs)
 
