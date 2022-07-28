@@ -177,11 +177,12 @@
     }
 
     function addInput() {
-        if (formLength >= 5) return;
+        const form = getForm(activeFormId);
+        if (form.inputs.length >= 5) return;
 
         const input = {
             form_id: activeFormId,
-            position: formLength + 1,
+            position: form.inputs.length + 1,
             style: "1",
             label: "",
             placeholder: "",
@@ -189,7 +190,6 @@
             is_new: true,
         };
 
-        const form = getForm(activeFormId);
         form.inputs = [...form.inputs, input];
         forms = forms;
     }
