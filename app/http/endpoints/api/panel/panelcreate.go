@@ -370,7 +370,7 @@ func (p *panelBody) getEmoji() *emoji.Emoji {
 func (p *panelBody) verifyChannel(channels []channel.Channel) bool {
 	var valid bool
 	for _, ch := range channels {
-		if ch.Id == p.ChannelId && ch.Type == channel.ChannelTypeGuildText {
+		if ch.Id == p.ChannelId && (ch.Type == channel.ChannelTypeGuildText || ch.Type == channel.ChannelTypeGuildNews) {
 			valid = true
 			break
 		}

@@ -5,7 +5,7 @@
     </option>
   {/if}
   {#each channels as channel}
-    {#if channel.type === 0}
+    {#if channel.type === 0 || (allowAnnouncementChannel && channel.type === 5)}
       <option value="{channel.id}">
         #{channel.name}
       </option>
@@ -21,6 +21,7 @@
     export let channels = [];
     export let withNull = false;
     export let nullLabel = "Disabled";
+    export let allowAnnouncementChannel = false;
 
     $: value, ensureStringified();
 

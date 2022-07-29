@@ -16,8 +16,8 @@
     </div>
     <div class="row">
         <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
-        <ChannelDropdown label="Panel Channel" col4=true {channels} bind:value={data.channel_id}/>
-        <CategoryDropdown label="Ticket Category" col4=true {channels} bind:value={data.category_id}/>
+        <ChannelDropdown label="Panel Channel" allowAnnouncementChannel col4 {channels} bind:value={data.channel_id}/>
+        <CategoryDropdown label="Ticket Category" col4 {channels} bind:value={data.category_id}/>
         <Dropdown col4=true label="Form" bind:value={data.form_id}>
             <option value=null>None</option>
             {#each forms as form}
@@ -314,7 +314,7 @@
               teams: [],
               button_style: "1",
               form_id: "null",
-              channel_id: channels.find((c) => c.type === 0)?.id,
+              channel_id: channels.find((c) => c.type === 0 || c.type === 5)?.id,
               category_id: channels.find((c) => c.type === 4)?.id,
               use_server_default_naming_scheme: true,
             };

@@ -163,7 +163,7 @@ func (d *multiPanelCreateData) validateChannel(guildId uint64) func() error {
 
 		var valid bool
 		for _, ch := range channels {
-			if ch.Id == d.ChannelId && ch.Type == channel.ChannelTypeGuildText {
+			if ch.Id == d.ChannelId && (ch.Type == channel.ChannelTypeGuildText || ch.Type == channel.ChannelTypeGuildNews) {
 				valid = true
 				break
 			}
