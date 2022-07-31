@@ -12,7 +12,7 @@
   <div class="input-container">
     <form on:submit|preventDefault={sendMessage}>
       <input type="text" class="message-input" bind:value={sendContent} disabled={!isPremium}
-             placeholder="{isPremium ? `Message #ticket-${ticketId}` : 'Premium users can receive messages in real-time and response to tickets through the dashboard'}">
+             placeholder="{isPremium ? `Message #ticket-${ticketId}` : 'Premium users can receive messages in real-time and respond to tickets through the dashboard'}">
     </form>
   </div>
 </div>
