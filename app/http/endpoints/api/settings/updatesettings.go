@@ -59,6 +59,7 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		return settings.updateClaimSettings(guildId)
 	})
 
+	addToWaitGroup(group, guildId, settings.updateTicketPermissions)
 	addToWaitGroup(group, guildId, settings.updateLanguage)
 	addToWaitGroup(group, guildId, settings.updateAutoClose)
 
@@ -337,6 +338,10 @@ func (s *Settings) updateLanguage(guildId uint64) error {
 	} else {
 		return dbclient.Client.ActiveLanguage.Set(guildId, string(*s.Language))
 	}
+}
+
+func (s *Settings) updateTicketPermissions(guildId uint64) error {
+	return dbclient.Client.TicketPermissions.Set(guildId, s.TicketPermissions) // No validation required
 }
 
 func (s *Settings) updateColours(guildId uint64) error {

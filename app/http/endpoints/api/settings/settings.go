@@ -15,9 +15,10 @@ import (
 type (
 	Settings struct {
 		database.Settings
-		ClaimSettings     database.ClaimSettings `json:"claim_settings"`
-		AutoCloseSettings AutoCloseData          `json:"auto_close"`
-		Colours           ColourMap              `json:"colours"`
+		ClaimSettings     database.ClaimSettings     `json:"claim_settings"`
+		AutoCloseSettings AutoCloseData              `json:"auto_close"`
+		TicketPermissions database.TicketPermissions `json:"ticket_permissions"`
+		Colours           ColourMap                  `json:"colours"`
 
 		Prefix            string                `json:"prefix"`
 		WelcomeMessage    string                `json:"welcome_message"`
@@ -70,6 +71,12 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 		settings.AutoCloseSettings = convertToAutoCloseData(tmp)
 		return nil
+	})
+
+	// ticket permissions
+	group.Go(func() (err error) {
+		settings.TicketPermissions, err = dbclient.Client.TicketPermissions.Get(guildId)
+		return
 	})
 
 	// colour map

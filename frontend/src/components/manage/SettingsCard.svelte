@@ -93,7 +93,8 @@
             <div class="row">
               <Checkbox label="SUPPORT REPS CAN VIEW CLAIMED TICKETS" bind:value={data.claim_settings.support_can_view}
                         on:change={validateView}/>
-              <Checkbox label="SUPPORT REPS CAN TYPE IN CLAIMED TICKETS" bind:value={data.claim_settings.support_can_type}
+              <Checkbox label="SUPPORT REPS CAN TYPE IN CLAIMED TICKETS"
+                        bind:value={data.claim_settings.support_can_type}
                         on:change={validateType}/>
             </div>
           </div>
@@ -104,12 +105,14 @@
           <div slot="content" class="col-1">
             <div class="row">
               <Checkbox label="Enabled" bind:value={data.auto_close.enabled}/>
-              <Checkbox label="Close On User Leave" disabled={!data.auto_close.enabled} bind:value={data.auto_close.on_user_leave}/>
+              <Checkbox label="Close On User Leave" disabled={!data.auto_close.enabled}
+                        bind:value={data.auto_close.on_user_leave}/>
             </div>
 
             <div class="row" style="justify-content: space-between">
               <div class="col-2" style="flex-direction: row">
-                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceOpenDays} bind:hours={sinceOpenHours}
+                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceOpenDays}
+                          bind:hours={sinceOpenHours}
                           bind:minutes={sinceOpenMinutes}>
                   <div slot="header" class="header">
                     <label class="form-label" style="margin-bottom: unset">Since Open With No Response</label>
@@ -118,7 +121,8 @@
                 </Duration>
               </div>
               <div class="col-2" style="flex-direction: row">
-                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceLastDays} bind:hours={sinceLastHours}
+                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceLastDays}
+                          bind:hours={sinceLastHours}
                           bind:minutes={sinceLastMinutes}>
                   <div slot="header" class="header">
                     <label class="form-label" style="margin-bottom: unset">Since Last Message</label>
@@ -127,6 +131,15 @@
                 </Duration>
               </div>
             </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible tooltip="Define which permissions are given to users in ticket channels">
+          <span slot="header">Ticket Permissions</span>
+          <div slot="content" class="row">
+            <Toggle label="Attach Files" bind:value={data.ticket_permissions.attach_files}/>
+            <Toggle label="Embed Links" bind:value={data.ticket_permissions.embed_links}/>
+            <Toggle label="Add Reactions" bind:value={data.ticket_permissions.add_reactions}/>
           </div>
         </Collapsible>
 
@@ -183,6 +196,7 @@
     import Colour from "../form/Colour.svelte";
     import PremiumBadge from "../PremiumBadge.svelte";
     import {toDays, toHours, toMinutes} from "../../js/timeutil";
+    import Toggle from "../form/Toggle.svelte";
 
     export let guildId;
 
