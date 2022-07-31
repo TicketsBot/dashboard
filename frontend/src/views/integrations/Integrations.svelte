@@ -41,8 +41,10 @@
 
         {#each availableIntegrations as integration}
           <div class="integration">
-            <Integration name={integration.name} {guildId} integrationId={integration.id} imageUrl={generateProxyUrl(integration)}
-                         added={integration.added} guildCount={integration.guild_count} on:remove={() => removeIntegration(integration.id)}>
+            <Integration name={integration.name} {guildId} integrationId={integration.id}
+                         imageUrl={generateProxyUrl(integration)} ownerId={integration.owner_id}
+                         added={integration.added} guildCount={integration.guild_count} showAuthor
+                         author={integration.author} on:remove={() => removeIntegration(integration.id)}>
               <span slot="description">
                 {integration.description}
               </span>

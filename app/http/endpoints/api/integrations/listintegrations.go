@@ -2,8 +2,10 @@ package api
 
 import (
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/objects/user"
 	"strconv"
 	"strings"
 )
@@ -11,11 +13,21 @@ import (
 const pageLimit = 20
 const builtInCount = 1
 
-type integrationWithMetadata struct {
-	integrationResponse
-	GuildCount int  `json:"guild_count"`
-	Added      bool `json:"added"`
-}
+type (
+	integrationWithMetadata struct {
+		integrationResponse
+		Author     *integrationAuthor `json:"author"`
+		GuildCount int                `json:"guild_count"`
+		Added      bool               `json:"added"`
+	}
+
+	integrationAuthor struct {
+		Id            uint64             `json:"id,string"`
+		Username      string             `json:"username"`
+		Discriminator user.Discriminator `json:"discriminator"`
+		Avatar        user.Avatar        `json:"avatar"`
+	}
+)
 
 func ListIntegrationsHandler(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
@@ -39,6 +51,7 @@ func ListIntegrationsHandler(ctx *gin.Context) {
 		return
 	}
 
+	var authorIds []uint64
 	integrations := make([]integrationWithMetadata, len(availableIntegrations))
 	for i, integration := range availableIntegrations {
 		var proxyToken *string
@@ -67,6 +80,27 @@ func ListIntegrationsHandler(ctx *gin.Context) {
 			},
 			GuildCount: integration.GuildCount,
 			Added:      integration.Active,
+		}
+
+		authorIds = append(authorIds, integration.OwnerId)
+	}
+
+	// Get author data for the integrations
+	authors, err := cache.Instance.GetUsers(authorIds)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	for i, integration := range integrations {
+		author, ok := authors[integration.OwnerId]
+		if ok {
+			integrations[i].Author = &integrationAuthor{
+				Id:            author.Id,
+				Username:      author.Username,
+				Discriminator: author.Discriminator,
+				Avatar:        author.Avatar,
+			}
 		}
 	}
 

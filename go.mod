@@ -11,7 +11,6 @@ require (
 	github.com/TicketsBot/worker v0.0.0-20220726162721-eb8978799cd0
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.13.0
-	github.com/gin-contrib/static v0.0.0-20191128031702-f81c604d8ac2
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.11.0
