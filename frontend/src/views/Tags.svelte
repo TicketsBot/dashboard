@@ -31,7 +31,7 @@
           </table>
         </div>
         <div slot="footer">
-          <Button icon="fas fa-plus" on:click={() => tagCreateModal = true}>Create Tag</Button>
+          <Button icon="fas fa-plus" on:click={openCreateModal}>Create Tag</Button>
         </div>
       </Card>
     </div>
@@ -58,10 +58,17 @@
     let tagCreateModal = false;
     let tagEditModal = false;
 
+    function openCreateModal(id) {
+        tagCreateModal = true;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function openEditModal(id) {
         editId = id;
         editData = tags[id];
         tagEditModal = true;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function cancelEdit() {
@@ -186,6 +193,7 @@
         flex-direction: column;
         width: 64%;
         height: 100%;
+        padding-bottom: 4%;
     }
 
     .body-wrapper {
