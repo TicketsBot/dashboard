@@ -288,6 +288,7 @@
         font-weight: normal;
         border-bottom: 1px solid #dee2e6;
         padding-left: 10px;
+        padding-right: 10px;
     }
 
     :global(table.nice > thead > tr, table.nice > tbody > tr) {

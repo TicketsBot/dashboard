@@ -1,7 +1,9 @@
 <div class="modal" transition:fade>
   <div class="modal-wrapper">
     <Card footer="{true}" footerRight="{true}" fill="{false}">
-      <span slot="title">Embed Builder</span>
+      <span slot="title">
+        <slot name="title">Embed Builder</slot>
+      </span>
 
       <div slot="body" class="body-wrapper">
         <slot name="body"></slot>
@@ -51,6 +53,7 @@
         display: flex;
         width: 60%;
         margin: 10% auto auto auto;
+        padding-bottom: 5%;
     }
 
     @media only screen and (max-width: 1280px) {

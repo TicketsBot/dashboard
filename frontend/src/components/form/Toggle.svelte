@@ -1,4 +1,4 @@
-<div>
+<div class:inline>
   {#if label !== undefined}
     <label class="form-label" style="margin-bottom: 0 !important;">{label}</label>
   {/if}
@@ -16,4 +16,17 @@
 
     export let toggledColour = "#66bb6a";
     export let untoggledColour = "#ccc";
+    export let inline = false;
 </script>
+
+<style>
+  div {
+      display: flex;
+      flex-direction: column;
+  }
+
+  .inline {
+      flex-direction: row !important;
+      gap: 4px;
+  }
+</style>

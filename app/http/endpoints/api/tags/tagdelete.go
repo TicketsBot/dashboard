@@ -6,14 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type deleteBody struct {
+	TagId string `json:"tag_id"`
+}
+
 func DeleteTag(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	type Body struct {
-		TagId string `json:"tag_id"`
-	}
-
-	var body Body
+	var body deleteBody
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.JSON(400, utils.ErrorJson(err))
 		return
@@ -26,7 +26,8 @@ func DeleteTag(ctx *gin.Context) {
 
 	if err := database.Client.Tag.Delete(guildId, body.TagId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
-	} else {
-		ctx.JSON(200, utils.SuccessResponse)
+		return
 	}
+
+	ctx.Status(204)
 }

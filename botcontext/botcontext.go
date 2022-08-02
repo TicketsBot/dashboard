@@ -10,6 +10,7 @@ import (
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/guild/emoji"
+	"github.com/rxdn/gdl/objects/interaction"
 	"github.com/rxdn/gdl/objects/member"
 	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
@@ -167,4 +168,12 @@ func (ctx BotContext) ListMembers(guildId uint64) (members []member.Member, err 
 	}
 
 	return
+}
+
+func (ctx BotContext) CreateGuildCommand(guildId uint64, data rest.CreateCommandData) (interaction.ApplicationCommand, error) {
+	return rest.CreateGuildCommand(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, data)
+}
+
+func (ctx BotContext) DeleteGuildCommand(guildId, commandId uint64) error {
+	return rest.DeleteGuildCommand(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, commandId)
 }

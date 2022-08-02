@@ -18,5 +18,6 @@
     .form-checkbox {
         height: 40px;
         width: 40px;
+        margin: 0 !important;
     }
 </style>

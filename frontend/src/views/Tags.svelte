@@ -1,25 +1,28 @@
+{#if tagCreateModal}
+  <TagEditor on:cancel={() => tagCreateModal = false} on:confirm={createTag}/>
+{:else if tagEditModal}
+  <TagEditor bind:data={editData} on:cancel={cancelEdit} on:confirm={editTag}/>
+{/if}
+
 <div class="parent">
   <div class="content">
     <div class="main-col">
-      <Card footer={false}>
+      <Card footer footerRight>
         <span slot="title">Tags</span>
         <div slot="body" class="body-wrapper">
           <table class="nice">
             <thead>
             <tr>
               <th>Tag</th>
-              <th>Edit</th>
-              <th>Delete</th>
+              <th style="text-align: right">Actions</th>
             </tr>
             </thead>
             <tbody>
-            {#each Object.entries(tags) as [id, content]}
+            {#each Object.entries(tags) as [id, tag]}
               <tr>
                 <td>{id}</td>
-                <td>
-                  <Button type="button" on:click={() => editTag(id)}>Edit</Button>
-                </td>
-                <td>
+                <td class="actions">
+                  <Button type="button" on:click={() => openEditModal(id)}>Edit</Button>
                   <Button type="button" danger={true} on:click={() => deleteTag(id)}>Delete</Button>
                 </td>
               </tr>
@@ -27,27 +30,8 @@
             </tbody>
           </table>
         </div>
-      </Card>
-    </div>
-    <div class="right-col">
-      <Card footer={false}>
-        <span slot="title">Create A Tag</span>
-        <div slot="body" class="body-wrapper">
-          <form class="body-wrapper" on:submit|preventDefault={createTag}>
-            <div class="col" style="flex-direction: column">
-              <Input label="Tag ID" placeholder="mytag" bind:value={createData.id}/>
-            </div>
-            <div class="col" style="flex-direction: column">
-              <Textarea label="Tag Content" placeholder="Enter the text that the bot should respond with"
-                        bind:value={createData.content}/>
-            </div>
-
-            <div class="row" style="justify-content: center">
-              <div class="col-2">
-                <Button fullWidth={true} icon="fas fa-plus">Submit</Button>
-              </div>
-            </div>
-          </form>
+        <div slot="footer">
+          <Button icon="fas fa-plus" on:click={() => tagCreateModal = true}>Create Tag</Button>
         </div>
       </Card>
     </div>
@@ -61,30 +45,89 @@
     import axios from "axios";
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
-    import Input from "../components/form/Input.svelte";
-    import Textarea from "../components/form/Textarea.svelte";
+    import {fade} from "svelte/transition";
+    import TagEditor from "../components/manage/TagEditor.svelte";
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
 
-    let createData = {};
     let tags = {};
+    let editData;
+    let editId;
 
-    function editTag(id) {
-        createData.id = id;
-        createData.content = tags[id];
+    let tagCreateModal = false;
+    let tagEditModal = false;
+
+    function openEditModal(id) {
+        editId = id;
+        editData = tags[id];
+        tagEditModal = true;
     }
 
-    async function createTag() {
-        const res = await axios.put(`${API_URL}/api/${guildId}/tags`, createData);
-        if (res.status !== 200) {
+    function cancelEdit() {
+        editId = undefined;
+        editData = undefined;
+        tagEditModal = false;
+    }
+
+    async function createTag(e) {
+        const data = e.detail;
+        if (!data.id || data.id.length === 0) {
+            notifyError("Tag ID is required");
+            return;
+        }
+
+        if (data.content !== null && data.content.length === 0) {
+            data.content = null;
+        }
+
+        const res = await axios.put(`${API_URL}/api/${guildId}/tags`, data);
+        if (res.status !== 204) {
             notifyError(res.data.error);
             return;
         }
 
-        notifySuccess(`Tag ${createData.id} has been created`);
-        tags[createData.id] = createData.content;
-        createData = {};
+        notifySuccess(`Tag ${data.id} has been created`);
+        tagCreateModal = false;
+        tags[data.id] = data;
+    }
+
+    async function editTag(e) {
+        const data = e.detail;
+
+        if (editId !== data.id) {
+            // Delete old tag
+            const res = await axios.delete(`${API_URL}/api/${guildId}/tags`, {data: {tag_id: editId}});
+            if (res.status !== 204) {
+                notifyError(res.data.error);
+                return;
+            }
+
+            delete tags[editId];
+        }
+
+        if (!data.id || data.id.length === 0) {
+            notifyError("Tag ID is required");
+            return;
+        }
+
+        if (data.content !== null && data.content.length === 0) {
+            data.content = null;
+        }
+
+        const res = await axios.put(`${API_URL}/api/${guildId}/tags`, data);
+        if (res.status !== 204) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        tags[data.id] = data;
+
+        tagEditModal = false;
+        editData = undefined;
+        editId = undefined;
+
+        notifySuccess("Tag edited successfully");
     }
 
     async function deleteTag(id) {
@@ -93,14 +136,14 @@
         };
 
         const res = await axios.delete(`${API_URL}/api/${guildId}/tags`, {data: data});
-        if (res.status !== 200) {
+        if (res.status !== 204) {
             notifyError(res.data.error);
             return;
         }
 
         notifySuccess(`Tag deleted successfully`);
         delete tags[id];
-        tags = tags; // svelte terrible
+        tags = tags;
     }
 
     async function loadTags() {
@@ -111,6 +154,9 @@
         }
 
         tags = res.data;
+        for (const id in tags) {
+            tags[id].use_embed = tags[id].embed !== null;
+        }
     }
 
     withLoadingScreen(async () => {
@@ -142,34 +188,23 @@
         height: 100%;
     }
 
-    .right-col {
-        display: flex;
-        flex-direction: column;
-        width: 34%;
-        height: 100%;
-    }
-
     .body-wrapper {
         display: flex;
         flex-direction: column;
+        row-gap: 2vh;
         width: 100%;
         height: 100%;
     }
 
-    .row {
+    table {
+        width: 100%;
+    }
+
+    .actions {
         display: flex;
         flex-direction: row;
-        width: 100%;
-        height: 100%;
-        margin-bottom: 2%;
-    }
-
-    .col {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        margin-bottom: 2%;
+        gap: 10px;
+        justify-content: flex-end;
     }
 
     @media only screen and (max-width: 950px) {
@@ -180,10 +215,6 @@
         .main-col {
             width: 100%;
             margin-top: 4%;
-        }
-
-        .right-col {
-            width: 100%;
         }
     }
 </style>

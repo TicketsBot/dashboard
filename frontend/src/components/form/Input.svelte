@@ -1,12 +1,12 @@
 <div class:col-1={col1} class:col-2={col2} class:col-3={col3} class:col-4={col4}>
   {#if label !== undefined}
-    <div class="label-wrapper">
-      <label for="input" class="form-label">{label}</label>
+    <div class="label-wrapper" class:no-margin={tooltipText !== undefined}>
+      <label for="input" class="form-label" style="margin-bottom: 0">{label}</label>
       {#if badge !== undefined}
         <Badge>{badge}</Badge>
       {/if}
       {#if tooltipText !== undefined}
-        <div style="margin-bottom: 5px">
+        <div>
           <Tooltip tip={tooltipText} top color="#121212">
             {#if tooltipLink !== undefined}
               <a href={tooltipLink} target="_blank">
@@ -53,6 +53,11 @@
         flex-direction: row;
         align-items: center;
         gap: 5px;
+        margin-bottom: 5px;
+    }
+
+    .no-margin {
+        margin-bottom: 0 !important;
     }
 
     .tooltip-icon {
