@@ -84,7 +84,7 @@
             return;
         }
 
-        if (data.content !== null && data.content.length === 0) {
+        if (data.content !== null && data.content !== undefined && data.content.length === 0) {
             data.content = null;
         }
 
@@ -118,7 +118,7 @@
             return;
         }
 
-        if (data.content !== null && data.content.length === 0) {
+        if (data.content !== null && data.content !== undefined && data.content.length === 0) {
             data.content = null;
         }
 
