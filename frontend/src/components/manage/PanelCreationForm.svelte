@@ -26,7 +26,7 @@
         </Dropdown>
     </div>
     <div class="row">
-        <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
+        <Dropdown col4=true label="Button Colour" bind:value={data.button_style}>
             <option value="1">Blue</option>
             <option value="2">Grey</option>
             <option value="3">Green</option>
