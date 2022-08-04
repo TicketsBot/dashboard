@@ -27,6 +27,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rxdn/gdl v0.0.0-20220726141522-788c9ce67ad0
 	github.com/sirupsen/logrus v1.6.0
+	github.com/weppos/publicsuffix-go v0.20.0
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 )
 
@@ -79,6 +80,7 @@ require (
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
+	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/text v0.3.7 // indirect
