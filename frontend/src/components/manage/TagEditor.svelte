@@ -21,7 +21,7 @@
         </div>
 
         {#if data.use_embed}
-          <EmbedForm bind:data={data.embed}/>
+          <EmbedForm footerPremiumOnly={false} bind:data={data.embed}/>
         {/if}
       </div>
     </div>

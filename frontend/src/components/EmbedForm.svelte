@@ -35,9 +35,15 @@
   <Collapsible>
     <span slot="header">Footer</span>
     <div slot="content" class="row">
-      <Input col3 label="Footer Text" placeholder="Footer Text" badge="Premium" bind:value={data.footer.text}/>
-      <Input col3 label="Footer Icon URL (Optional)" badge="Premium" placeholder="https://example.com/image.png"
-             bind:value={data.footer.icon_url}/>
+      {#if footerPremiumOnly}
+        <Input col3 label="Footer Text" placeholder="Footer Text" badge="Premium" bind:value={data.footer.text}/>
+        <Input col3 label="Footer Icon URL (Optional)" badge="Premium" placeholder="https://example.com/image.png"
+               bind:value={data.footer.icon_url}/>
+      {:else}
+        <Input col3 label="Footer Text" placeholder="Footer Text" bind:value={data.footer.text}/>
+        <Input col3 label="Footer Icon URL (Optional)" placeholder="https://example.com/image.png"
+               bind:value={data.footer.icon_url}/>
+      {/if}
       <DateTimePicker col3 label="Footer Timestamp (Optional)" bind:value={data.timestamp}/>
     </div>
   </Collapsible>
@@ -92,6 +98,7 @@
     import Button from "./Button.svelte";
 
     export let data;
+    export let footerPremiumOnly = true;
 
     if (data === undefined || data === null) {
         if (!data) {

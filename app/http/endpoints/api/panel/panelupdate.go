@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -196,7 +195,6 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
-	fmt.Println(panel.PanelId)
 	if err := dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return
