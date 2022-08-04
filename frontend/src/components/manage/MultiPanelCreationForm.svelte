@@ -20,7 +20,7 @@
     </div>
 
     <div class="col-1-4">
-      <Checkbox label="Use Select Menu" bind:value={data.select_menu} />
+      <Checkbox label="Use Dropdown Menu" bind:value={data.select_menu} />
     </div>
   </div>
 
