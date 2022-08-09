@@ -1,11 +1,11 @@
 package chatreplica
 
 import (
+	"fmt"
 	v2 "github.com/TicketsBot/logarchiver/model/v2"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/channel/message"
-	"github.com/rxdn/gdl/objects/user"
 	"strconv"
 )
 
@@ -24,10 +24,10 @@ type (
 	}
 
 	User struct {
-		Avatar        string             `json:"avatar"`
-		Username      string             `json:"username"`
-		Discriminator user.Discriminator `json:"discriminator"`
-		Badge         *Badge             `json:"badge,omitempty"`
+		Avatar        string `json:"avatar"`
+		Username      string `json:"username"`
+		Discriminator string `json:"discriminator"`
+		Badge         *Badge `json:"badge,omitempty"`
 	}
 
 	Channel struct {
@@ -95,7 +95,7 @@ func EntitiesFromTranscript(entities v2.Entities) Entities {
 		users[strconv.FormatUint(user.Id, 10)] = User{
 			Avatar:        user.AvatarUrl(256),
 			Username:      user.Username,
-			Discriminator: user.Discriminator,
+			Discriminator: fmt.Sprintf("%04d", user.Discriminator),
 			Badge:         badge,
 		}
 	}
