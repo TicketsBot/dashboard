@@ -34,17 +34,17 @@ func FromArchiveMessages(messages []message.Message, ticketId int) Payload {
 				badge = badgePtr(BadgeBot)
 			}
 
-            users[snowflake] = User{
+			users[snowflake] = User{
 				Avatar:        msg.Author.AvatarUrl(256),
 				Username:      msg.Author.Username,
-				Discriminator: msg.Author.Discriminator,
+				Discriminator: fmt.Sprintf("%04d", msg.Author.Discriminator),
 				Badge:         badge,
 			}
-        }
+		}
 	}
 
 	return Payload{
-		Entities:    Entities{
+		Entities: Entities{
 			Users:    users,
 			Channels: make(map[string]Channel),
 			Roles:    make(map[string]Role),
