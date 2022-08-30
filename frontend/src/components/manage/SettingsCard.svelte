@@ -27,13 +27,27 @@
           </div>
         </Collapsible>
 
+        <Collapsible defaultOpen tooltip="Click here to find out more about thread mode" tooltipUrl="https://docs.ticketsbot.net">
+          <span slot="header" class="header">
+            Thread Mode
+            <IconBadge icon="fas fa-flask">Beta</IconBadge>
+          </span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Checkbox label="Enabled" bind:value={data.use_threads}/>
+              <ChannelDropdown label="Ticket Notification Channel" col4 {channels} disabled={!data.use_threads}
+                               bind:value={data.ticket_notification_channel}/>
+            </div>
+          </div>
+        </Collapsible>
+
         <Collapsible defaultOpen>
           <span slot="header">Tickets</span>
           <div slot="content" class="col-1">
             <div class="row">
-              <ChannelDropdown label="Archive Channel" col3=true channels={channels} withNull={true}
+              <ChannelDropdown label="Archive Channel" col4 channels={channels} withNull={true}
                                bind:value={data.archive_channel}/>
-              <Dropdown label="Overflow Category" col3=true bind:value={data.overflow_category_id}>
+              <Dropdown label="Overflow Category" col4 bind:value={data.overflow_category_id}>
                 <option value=-1>Disabled</option>
                 <option value=-2>Uncategorised (Appears at top of channel list)</option>
                 {#each channels as channel}
@@ -197,6 +211,7 @@
     import PremiumBadge from "../PremiumBadge.svelte";
     import {toDays, toHours, toMinutes} from "../../js/timeutil";
     import Toggle from "../form/Toggle.svelte";
+    import IconBadge from "../IconBadge.svelte";
 
     export let guildId;
 
@@ -476,6 +491,6 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
     }
 </style>

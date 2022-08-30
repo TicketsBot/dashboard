@@ -95,6 +95,21 @@ func (ctx BotContext) GetGuildMember(guildId, userId uint64) (m member.Member, e
 	return
 }
 
+func (ctx BotContext) RemoveGuildMemberRole(guildId, userId, roleId uint64) (err error) {
+	err = rest.RemoveGuildMemberRole(ctx.Token, ctx.RateLimiter, guildId, userId, roleId)
+	return
+}
+
+func (ctx BotContext) CreateGuildRole(guildId uint64, data rest.GuildRoleData) (role guild.Role, err error) {
+	role, err = rest.CreateGuildRole(ctx.Token, ctx.RateLimiter, guildId, data)
+	return
+}
+
+func (ctx BotContext) DeleteGuildRole(guildId, roleId uint64) (err error) {
+	err = rest.DeleteGuildRole(ctx.Token, ctx.RateLimiter, guildId, roleId)
+	return
+}
+
 func (ctx BotContext) GetUser(userId uint64) (u user.User, err error) {
 	u, err = rest.GetUser(ctx.Token, ctx.RateLimiter, userId)
 	if err == nil {

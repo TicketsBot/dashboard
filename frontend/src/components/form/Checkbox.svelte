@@ -1,5 +1,9 @@
 <div class:col-1={col1} class:col-2={col2} class:col-3={col3} class:col-4={col4}>
-  <label for="input" class="form-label">{label}</label>
+  <slot name="label">
+    <label for="input" class="form-label">
+      {label}
+    </label>
+  </slot>
   <input id="input" class="form-checkbox" type=checkbox bind:checked={value} on:change {disabled}>
 </div>
 

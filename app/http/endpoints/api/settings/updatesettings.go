@@ -114,13 +114,17 @@ func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) err
 		return errors.New("Must be able to view channel to type")
 	}
 
-	if s.Settings.UseThreads {
-		return fmt.Errorf("threads are disabled")
+	if s.Settings.UseThreads && s.TicketNotificationChannel == nil {
+		return errors.New("You must select a ticket notification channel")
+	}
+
+	if !s.Settings.UseThreads {
+		s.TicketNotificationChannel = nil
 	}
 
 	if s.Language != nil {
 		if _, ok := i18n.FullNames[*s.Language]; !ok {
-			return fmt.Errorf("invalid language")
+			return errors.New("Invalid language")
 		}
 	}
 
@@ -216,6 +220,25 @@ func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) err
 
 			if ch.Type != channel.ChannelTypeGuildCategory {
 				return fmt.Errorf("Overflow category is not a category")
+			}
+		}
+
+		return nil
+	})
+
+	group.Go(func() error {
+		if s.Settings.TicketNotificationChannel != nil {
+			ch, ok := cache.Instance.GetChannel(*s.Settings.TicketNotificationChannel)
+			if !ok {
+				return fmt.Errorf("Invalid ticket notification channel")
+			}
+
+			if ch.GuildId != guildId {
+				return fmt.Errorf("Ticket notification channel guild ID does not match")
+			}
+
+			if ch.Type != channel.ChannelTypeGuildText {
+				return fmt.Errorf("Ticket notification channel is not a text channel")
 			}
 		}
 

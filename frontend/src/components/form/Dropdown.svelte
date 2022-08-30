@@ -2,7 +2,7 @@
   {#if label !== undefined}
     <label for="input" class="form-label">{label}</label>
   {/if}
-  <select id="input" class="form-input" on:change bind:value={value}>
+  <select id="input" class="form-input" on:change bind:value={value} {disabled}>
     <slot />
   </select>
 </div>
@@ -16,6 +16,7 @@
 <script>
     export let value;
     export let label;
+    export let disabled = false;
 
     export let col1 = false;
     export let col2 = false;

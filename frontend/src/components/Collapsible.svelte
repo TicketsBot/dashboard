@@ -11,7 +11,14 @@
     {#if tooltip !== undefined}
       <div style="">
         <Tooltip tip={tooltip} top color="#121212">
-          <i class="fas fa-circle-info form-label tooltip-icon"></i>
+
+          {#if tooltipUrl !== undefined}
+            <a href={tooltipUrl} target="_blank">
+              <i class="fas fa-circle-info form-label tooltip-icon"></i>
+            </a>
+          {:else}
+            <i class="fas fa-circle-info form-label tooltip-icon"></i>
+          {/if}
         </Tooltip>
       </div>
     {/if}
@@ -35,6 +42,7 @@
 
     export let defaultOpen = false;
     export let tooltip;
+    export let tooltipUrl;
 
     let expanded = false;
     let showOverflow = true;

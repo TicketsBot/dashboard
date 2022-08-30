@@ -6,9 +6,9 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
 	github.com/TicketsBot/common v0.0.0-20220703211704-f792aa9f0c42
-	github.com/TicketsBot/database v0.0.0-20220804213011-190281e8f797
+	github.com/TicketsBot/database v0.0.0-20220830131231-b5540b57f6cb
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20220802140902-30ca73aea6b8
+	github.com/TicketsBot/worker v0.0.0-20220830131837-12d85aca5c71
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.13.0
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
@@ -25,7 +25,7 @@ require (
 	github.com/jackc/pgx/v4 v4.7.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/pkg/errors v0.9.1
-	github.com/rxdn/gdl v0.0.0-20220726141522-788c9ce67ad0
+	github.com/rxdn/gdl v0.0.0-20220830131333-09a2e5819976
 	github.com/sirupsen/logrus v1.6.0
 	github.com/weppos/publicsuffix-go v0.20.0
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
@@ -80,6 +80,7 @@ require (
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
+	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect

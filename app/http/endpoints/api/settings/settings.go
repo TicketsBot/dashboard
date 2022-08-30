@@ -182,7 +182,7 @@ func GetSettingsHandler(ctx *gin.Context) {
 		LanguageNames map[i18n.Language]string `json:"language_names"`
 	}{
 		Settings:      settings,
-		Languages:     i18n.LanguagesAlphabetical,
+		Languages:     i18n.LanguagesAlphabetical[:],
 		LanguageNames: i18n.FullNames,
 	})
 }
