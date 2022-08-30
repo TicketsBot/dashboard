@@ -27,7 +27,7 @@
           </div>
         </Collapsible>
 
-        <Collapsible defaultOpen tooltip="Click here to find out more about thread mode" tooltipUrl="https://docs.ticketsbot.net">
+        <Collapsible defaultOpen tooltip="Click here to find out more about thread mode" tooltipUrl="https://docs.ticketsbot.net/features/thread-mode">
           <span slot="header" class="header">
             Thread Mode
             <IconBadge icon="fas fa-flask">Beta</IconBadge>
