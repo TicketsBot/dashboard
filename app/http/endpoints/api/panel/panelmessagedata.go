@@ -24,15 +24,16 @@ type panelMessageData struct {
 
 func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData {
 	var emote *emoji.Emoji
-	if panel.EmojiName != nil && *panel.EmojiName == "" { // No emoji = nil
-		id := objects.NewNullSnowflake()
-		if panel.EmojiId != nil {
-			id = objects.NewNullableSnowflake(*panel.EmojiId)
-		}
-
-		emote = &emoji.Emoji{
-			Id:   id,
-			Name: *panel.EmojiName,
+	if panel.EmojiName != nil { // No emoji = nil
+		if panel.EmojiId == nil { // Unicode emoji
+			emote = &emoji.Emoji{
+				Name: *panel.EmojiName,
+			}
+		} else { // Custom emoji
+			emote = &emoji.Emoji{
+				Id:   objects.NewNullableSnowflake(*panel.EmojiId),
+				Name: *panel.EmojiName,
+			}
 		}
 	}
 
