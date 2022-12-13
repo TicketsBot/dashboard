@@ -49,6 +49,11 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
+	if existing.ForceDisabled {
+		ctx.JSON(400, utils.ErrorStr("This panel is disabled and cannot be modified: please reactivate premium to re-enable it"))
+		return
+	}
+
 	if !data.doValidations(ctx, guildId) {
 		return
 	}
@@ -162,6 +167,7 @@ func UpdatePanel(ctx *gin.Context) {
 		ButtonLabel:         data.ButtonLabel,
 		FormId:              data.FormId,
 		NamingScheme:        data.NamingScheme,
+		ForceDisabled:       existing.ForceDisabled,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {

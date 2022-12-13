@@ -50,10 +50,10 @@
                 <td>{panel.title}</td>
                 <td class="category-col">{channels.find((c) => c.id === panel.category_id)?.name ?? 'Unknown Category'}</td>
                 <td>
-                  <Button on:click={() => resendPanel(panel.panel_id)}>Resend</Button>
+                  <Button disabled={panel.force_disabled} on:click={() => resendPanel(panel.panel_id)}>Resend</Button>
                 </td>
                 <td>
-                  <Button on:click={() => openEditModal(panel.panel_id)}>Edit</Button>
+                  <Button disabled={panel.force_disabled} on:click={() => openEditModal(panel.panel_id)}>Edit</Button>
                 </td>
                 <td>
                   <Button on:click={() => panelToDelete = panel}>Delete</Button>

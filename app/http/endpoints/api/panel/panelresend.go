@@ -46,6 +46,11 @@ func ResendPanel(ctx *gin.Context) {
 		return
 	}
 
+	if panel.ForceDisabled {
+		ctx.JSON(400, utils.ErrorStr("This panel is disabled and cannot be modified: please reactivate premium to re-enable it"))
+		return
+	}
+
 	// delete old message
 	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.GuildId); err != nil {
 		var unwrapped request.RestError
