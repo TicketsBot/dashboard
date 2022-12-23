@@ -75,6 +75,7 @@
         display: flex;
         width: 75%;
         margin: 10% auto auto auto;
+        padding-bottom: 5%;
     }
 
     @media only screen and (max-width: 1280px) {

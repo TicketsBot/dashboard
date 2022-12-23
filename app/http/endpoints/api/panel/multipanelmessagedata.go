@@ -90,6 +90,7 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 				CustomId: panel.CustomId,
 				Style:    component.ButtonStyle(panel.ButtonStyle),
 				Emoji:    emoji,
+				Disabled: panel.Disabled,
 			})
 		}
 

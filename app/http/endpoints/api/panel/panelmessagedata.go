@@ -19,6 +19,7 @@ type panelMessageData struct {
 	Emoji                    *emoji.Emoji
 	ButtonStyle              component.ButtonStyle
 	ButtonLabel              string
+	ButtonDisabled           bool
 	IsPremium                bool
 }
 
@@ -38,17 +39,18 @@ func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData
 	}
 
 	return panelMessageData{
-		ChannelId:    panel.ChannelId,
-		Title:        panel.Title,
-		Content:      panel.Content,
-		CustomId:     panel.CustomId,
-		Colour:       int(panel.Colour),
-		ImageUrl:     panel.ImageUrl,
-		ThumbnailUrl: panel.ThumbnailUrl,
-		Emoji:        emote,
-		ButtonStyle:  component.ButtonStyle(panel.ButtonStyle),
-		ButtonLabel:  panel.ButtonLabel,
-		IsPremium:    isPremium,
+		ChannelId:      panel.ChannelId,
+		Title:          panel.Title,
+		Content:        panel.Content,
+		CustomId:       panel.CustomId,
+		Colour:         int(panel.Colour),
+		ImageUrl:       panel.ImageUrl,
+		ThumbnailUrl:   panel.ThumbnailUrl,
+		Emoji:          emote,
+		ButtonStyle:    component.ButtonStyle(panel.ButtonStyle),
+		ButtonLabel:    panel.ButtonLabel,
+		ButtonDisabled: panel.Disabled,
+		IsPremium:      isPremium,
 	}
 }
 
@@ -79,7 +81,7 @@ func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
 				Style:    p.ButtonStyle,
 				Emoji:    p.Emoji,
 				Url:      nil,
-				Disabled: false,
+				Disabled: p.ButtonDisabled,
 			})),
 		},
 	}

@@ -87,7 +87,8 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.ImageUrl != data.ImageUrl ||
 		existing.ThumbnailUrl != data.ThumbnailUrl ||
 		component.ButtonStyle(existing.ButtonStyle) != data.ButtonStyle ||
-		existing.ButtonLabel != data.ButtonLabel
+		existing.ButtonLabel != data.ButtonLabel ||
+		existing.Disabled != data.Disabled
 
 	newMessageId := existing.MessageId
 
@@ -168,6 +169,7 @@ func UpdatePanel(ctx *gin.Context) {
 		FormId:              data.FormId,
 		NamingScheme:        data.NamingScheme,
 		ForceDisabled:       existing.ForceDisabled,
+		Disabled:            data.Disabled,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {
