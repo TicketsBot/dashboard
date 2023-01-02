@@ -86,7 +86,7 @@
         align-items: center;
         width: 100%;
         cursor: pointer;
-        padding: 5px 0 5px 0;
+        padding: 5px 4%;
     }
 
     .sidebar-element:hover {
@@ -107,7 +107,6 @@
         align-items: center;
         color: white !important;
         font-size: 18px;
-        margin-left: 4%;
         text-decoration: none;
     }
 
@@ -172,7 +171,6 @@
 
         :global(.sidebar-link) {
             width: unset;
-            margin-left: 0 !important;
         }
 
         .user-element {
