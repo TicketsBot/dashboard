@@ -32,6 +32,11 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
+	if panel.PanelId == 0 {
+		ctx.JSON(404, utils.ErrorStr("Panel not found"))
+		return
+	}
+
 	// verify panel belongs to guild
 	if panel.GuildId != guildId {
 		ctx.JSON(403, utils.ErrorStr("Guild ID doesn't match"))

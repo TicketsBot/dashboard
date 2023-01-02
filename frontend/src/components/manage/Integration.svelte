@@ -22,6 +22,25 @@
         </Badge>
       {/if}
     </div>
+
+    {#if showAuthor && author}
+      <div class="author">
+        <a href="https://discord.com/users/{author.id}" class="link" style="gap: 4px">
+          <img src="https://cdn.discordapp.com/avatars/{author.id}/{author.avatar}.webp" class="author-avatar"
+               alt="Author avatar" on:error={(e) => handleAvatarError(e, author.discriminator)}/>
+          <b>{author.username}#{author.discriminator}</b>
+        </a>
+      </div>
+    {:else if showAuthor}
+      <div class="author">
+        <a href="https://discord.com/users/{ownerId}" class="link" style="gap: 4px">
+          <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="author-avatar"
+               alt="Author avatar" />
+          <b>Unknown User</b>
+        </a>
+      </div>
+    {/if}
+
     <span class="description">
       <slot name="description"></slot>
     </span>
@@ -62,8 +81,11 @@
     export let integrationId;
     export let name;
     export let imageUrl;
+    export let ownerId;
     export let owned = false;
     export let guildCount;
+    export let author;
+    export let showAuthor = false;
 
     export let added = false;
     export let builtIn = false;
@@ -74,6 +96,15 @@
 
     function useDefaultLogo() {
         logo.src = "/assets/img/grey.png";
+    }
+
+    function handleAvatarError(ev, discriminator) {
+        const src = `https://cdn.discordapp.com/embed/avatars/${(discriminator || 0) % 5}.png`;
+        if (ev.target.src === src) { // Setting onerror to null does not work with svelte
+            return;
+        }
+
+        ev.target.src = src;
     }
 </script>
 
@@ -137,5 +168,17 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-around;
+    }
+
+    .author {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .author-avatar {
+        height: 24px;
+        border-radius: 50%;
     }
 </style>

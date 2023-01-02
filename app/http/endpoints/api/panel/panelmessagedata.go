@@ -19,35 +19,38 @@ type panelMessageData struct {
 	Emoji                    *emoji.Emoji
 	ButtonStyle              component.ButtonStyle
 	ButtonLabel              string
+	ButtonDisabled           bool
 	IsPremium                bool
 }
 
 func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData {
 	var emote *emoji.Emoji
-	if panel.EmojiName != nil && *panel.EmojiName == "" { // No emoji = nil
-		id := objects.NewNullSnowflake()
-		if panel.EmojiId != nil {
-			id = objects.NewNullableSnowflake(*panel.EmojiId)
-		}
-
-		emote = &emoji.Emoji{
-			Id:   id,
-			Name: *panel.EmojiName,
+	if panel.EmojiName != nil { // No emoji = nil
+		if panel.EmojiId == nil { // Unicode emoji
+			emote = &emoji.Emoji{
+				Name: *panel.EmojiName,
+			}
+		} else { // Custom emoji
+			emote = &emoji.Emoji{
+				Id:   objects.NewNullableSnowflake(*panel.EmojiId),
+				Name: *panel.EmojiName,
+			}
 		}
 	}
 
 	return panelMessageData{
-		ChannelId:    panel.ChannelId,
-		Title:        panel.Title,
-		Content:      panel.Content,
-		CustomId:     panel.CustomId,
-		Colour:       int(panel.Colour),
-		ImageUrl:     panel.ImageUrl,
-		ThumbnailUrl: panel.ThumbnailUrl,
-		Emoji:        emote,
-		ButtonStyle:  component.ButtonStyle(panel.ButtonStyle),
-		ButtonLabel:  panel.ButtonLabel,
-		IsPremium:    isPremium,
+		ChannelId:      panel.ChannelId,
+		Title:          panel.Title,
+		Content:        panel.Content,
+		CustomId:       panel.CustomId,
+		Colour:         int(panel.Colour),
+		ImageUrl:       panel.ImageUrl,
+		ThumbnailUrl:   panel.ThumbnailUrl,
+		Emoji:          emote,
+		ButtonStyle:    component.ButtonStyle(panel.ButtonStyle),
+		ButtonLabel:    panel.ButtonLabel,
+		ButtonDisabled: panel.Disabled,
+		IsPremium:      isPremium,
 	}
 }
 
@@ -78,7 +81,7 @@ func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
 				Style:    p.ButtonStyle,
 				Emoji:    p.Emoji,
 				Url:      nil,
-				Disabled: false,
+				Disabled: p.ButtonDisabled,
 			})),
 		},
 	}

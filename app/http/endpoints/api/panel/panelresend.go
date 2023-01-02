@@ -18,29 +18,36 @@ func ResendPanel(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	panelId, err := strconv.Atoi(ctx.Param("panelid"))
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, utils.ErrorJson(err))
+		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	// get existing
 	panel, err := dbclient.Client.Panel.GetById(panelId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if panel.PanelId == 0 {
+		ctx.JSON(404, utils.ErrorStr("Panel not found"))
 		return
 	}
 
 	// check guild ID matches
 	if panel.GuildId != guildId {
-		ctx.AbortWithStatusJSON(400, gin.H{
-			"success": false,
-			"error":   "Guild ID does not match",
-		})
+		ctx.JSON(403, utils.ErrorStr("Guild ID doesn't match"))
+		return
+	}
+
+	if panel.ForceDisabled {
+		ctx.JSON(400, utils.ErrorStr("This panel is disabled and cannot be modified: please reactivate premium to re-enable it"))
 		return
 	}
 
@@ -73,7 +80,7 @@ func ResendPanel(ctx *gin.Context) {
 	}
 
 	if err = dbclient.Client.Panel.UpdateMessageId(panel.PanelId, msgId); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

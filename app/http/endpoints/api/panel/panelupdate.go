@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -50,6 +49,11 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
+	if existing.ForceDisabled {
+		ctx.JSON(400, utils.ErrorStr("This panel is disabled and cannot be modified: please reactivate premium to re-enable it"))
+		return
+	}
+
 	if !data.doValidations(ctx, guildId) {
 		return
 	}
@@ -83,7 +87,8 @@ func UpdatePanel(ctx *gin.Context) {
 		existing.ImageUrl != data.ImageUrl ||
 		existing.ThumbnailUrl != data.ThumbnailUrl ||
 		component.ButtonStyle(existing.ButtonStyle) != data.ButtonStyle ||
-		existing.ButtonLabel != data.ButtonLabel
+		existing.ButtonLabel != data.ButtonLabel ||
+		existing.Disabled != data.Disabled
 
 	newMessageId := existing.MessageId
 
@@ -163,6 +168,8 @@ func UpdatePanel(ctx *gin.Context) {
 		ButtonLabel:         data.ButtonLabel,
 		FormId:              data.FormId,
 		NamingScheme:        data.NamingScheme,
+		ForceDisabled:       existing.ForceDisabled,
+		Disabled:            data.Disabled,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {
@@ -196,7 +203,6 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
-	fmt.Println(panel.PanelId)
 	if err := dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
 		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
 		return

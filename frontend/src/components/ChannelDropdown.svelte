@@ -1,4 +1,4 @@
-<Dropdown {col1} {col2} {col3} {col4} bind:value label={label}>
+<Dropdown {col1} {col2} {col3} {col4} bind:value {label} {disabled} >
   {#if withNull}
     <option value=null>
       {nullLabel}
@@ -18,6 +18,7 @@
 
     export let value;
     export let label;
+    export let disabled = false;
     export let channels = [];
     export let withNull = false;
     export let nullLabel = "Disabled";

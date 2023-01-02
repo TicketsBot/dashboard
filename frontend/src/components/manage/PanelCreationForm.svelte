@@ -26,7 +26,7 @@
         </Dropdown>
     </div>
     <div class="row">
-        <Dropdown col4=true label="Button Style" bind:value={data.button_style}>
+        <Dropdown col4=true label="Button Colour" bind:value={data.button_style}>
             <option value="1">Blue</option>
             <option value="2">Grey</option>
             <option value="3">Green</option>
@@ -136,6 +136,18 @@
                 <Input col2={true} label="Large Image URL" bind:value={data.image_url} placeholder="https://example.com/image.png" />
                 <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
             </div>
+            <div class="row">
+                <div class="col-2">
+                    <div class="row" style="justify-content: flex-start; gap: 10px">
+                        <div style="white-space: nowrap">
+                            <Checkbox label="Disable Panel" bind:value={data.disabled}></Checkbox>
+                        </div>
+                        {#if data.disabled}
+                            <b style="display: flex; align-self: center">You will be unable to open any tickets with this panel</b>
+                        {/if}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </form>
@@ -156,6 +168,7 @@
     import Select from 'svelte-select';
     import Dropdown from "../form/Dropdown.svelte";
     import Toggle from "svelte-toggle";
+    import Checkbox from "../form/Checkbox.svelte";
 
     export let guildId;
     export let seedDefault = true;

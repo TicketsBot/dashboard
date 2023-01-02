@@ -32,13 +32,13 @@ func MultiPanelResend(ctx *gin.Context) {
 
 	// check panel exists
 	if !ok {
-		ctx.JSON(404, utils.ErrorJson(errors.New("No panel with the provided ID found")))
+		ctx.JSON(404, utils.ErrorStr("No panel with the provided ID found"))
 		return
 	}
 
 	// check panel is in the same guild
 	if guildId != multiPanel.GuildId {
-		ctx.JSON(403, utils.ErrorJson(errors.New("Guild ID doesn't match")))
+		ctx.JSON(403, utils.ErrorStr("Guild ID doesn't match"))
 		return
 	}
 

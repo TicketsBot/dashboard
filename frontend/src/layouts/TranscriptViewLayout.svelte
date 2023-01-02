@@ -6,6 +6,7 @@
 <style>
     body {
         padding: 0 !important;
+        overflow-y: clip;
     }
 </style>
 

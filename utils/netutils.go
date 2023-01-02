@@ -1,8 +1,8 @@
 package utils
 
 import (
+	"github.com/weppos/publicsuffix-go/publicsuffix"
 	"net/url"
-	"strings"
 )
 
 func GetUrlHost(rawUrl string) string {
@@ -15,10 +15,10 @@ func GetUrlHost(rawUrl string) string {
 }
 
 func SecondLevelDomain(domain string) string {
-	split := strings.Split(strings.TrimRight(domain, "."), ".")
-	if len(split) > 2 {
-		return strings.Join(split[len(split)-2:len(split)], ".")
-	} else {
-		return strings.Join(split, ".")
+	domain, err := publicsuffix.Domain(domain)
+	if err != nil {
+		return "Invalid domain"
 	}
+
+	return domain
 }

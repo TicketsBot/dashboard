@@ -45,21 +45,23 @@ type panelBody struct {
 	ButtonLabel     string                `json:"button_label"`
 	FormId          *int                  `json:"form_id"`
 	NamingScheme    *string               `json:"naming_scheme"`
+	Disabled        bool                  `json:"disabled"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
 	return panelMessageData{
-		ChannelId:    p.ChannelId,
-		Title:        p.Title,
-		Content:      p.Content,
-		CustomId:     customId,
-		Colour:       int(p.Colour),
-		ImageUrl:     p.ImageUrl,
-		ThumbnailUrl: p.ThumbnailUrl,
-		Emoji:        p.getEmoji(),
-		ButtonStyle:  p.ButtonStyle,
-		ButtonLabel:  p.ButtonLabel,
-		IsPremium:    isPremium,
+		ChannelId:      p.ChannelId,
+		Title:          p.Title,
+		Content:        p.Content,
+		CustomId:       customId,
+		Colour:         int(p.Colour),
+		ImageUrl:       p.ImageUrl,
+		ThumbnailUrl:   p.ThumbnailUrl,
+		Emoji:          p.getEmoji(),
+		ButtonStyle:    p.ButtonStyle,
+		ButtonLabel:    p.ButtonLabel,
+		ButtonDisabled: p.Disabled,
+		IsPremium:      isPremium,
 	}
 }
 
@@ -171,6 +173,7 @@ func CreatePanel(ctx *gin.Context) {
 		ButtonLabel:         data.ButtonLabel,
 		FormId:              data.FormId,
 		NamingScheme:        data.NamingScheme,
+		Disabled:            data.Disabled,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)

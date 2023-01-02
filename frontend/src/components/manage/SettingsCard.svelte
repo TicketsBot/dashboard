@@ -27,13 +27,27 @@
           </div>
         </Collapsible>
 
+        <Collapsible defaultOpen tooltip="Click here to find out more about thread mode" tooltipUrl="https://docs.ticketsbot.net/features/thread-mode">
+          <span slot="header" class="header">
+            Thread Mode
+            <IconBadge icon="fas fa-flask">Beta</IconBadge>
+          </span>
+          <div slot="content" class="col-1">
+            <div class="row">
+              <Checkbox label="Enabled" bind:value={data.use_threads}/>
+              <ChannelDropdown label="Ticket Notification Channel" col4 {channels} disabled={!data.use_threads}
+                               bind:value={data.ticket_notification_channel}/>
+            </div>
+          </div>
+        </Collapsible>
+
         <Collapsible defaultOpen>
           <span slot="header">Tickets</span>
           <div slot="content" class="col-1">
             <div class="row">
-              <ChannelDropdown label="Transcripts Channel" col3=true channels={channels} withNull={true}
+              <ChannelDropdown label="Transcripts Channel" col4 channels={channels} withNull={true}
                                bind:value={data.archive_channel}/>
-              <Dropdown label="Overflow Category" col3=true bind:value={data.overflow_category_id}>
+              <Dropdown label="Overflow Category" col4 bind:value={data.overflow_category_id}>
                 <option value=-1>Disabled</option>
                 <option value=-2>Uncategorised (Appears at top of channel list)</option>
                 {#each channels as channel}
@@ -93,7 +107,8 @@
             <div class="row">
               <Checkbox label="SUPPORT REPS CAN VIEW CLAIMED TICKETS" bind:value={data.claim_settings.support_can_view}
                         on:change={validateView}/>
-              <Checkbox label="SUPPORT REPS CAN TYPE IN CLAIMED TICKETS" bind:value={data.claim_settings.support_can_type}
+              <Checkbox label="SUPPORT REPS CAN TYPE IN CLAIMED TICKETS"
+                        bind:value={data.claim_settings.support_can_type}
                         on:change={validateType}/>
             </div>
           </div>
@@ -104,12 +119,14 @@
           <div slot="content" class="col-1">
             <div class="row">
               <Checkbox label="Enabled" bind:value={data.auto_close.enabled}/>
-              <Checkbox label="Close On User Leave" disabled={!data.auto_close.enabled} bind:value={data.auto_close.on_user_leave}/>
+              <Checkbox label="Close On User Leave" disabled={!data.auto_close.enabled}
+                        bind:value={data.auto_close.on_user_leave}/>
             </div>
 
             <div class="row" style="justify-content: space-between">
               <div class="col-2" style="flex-direction: row">
-                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceOpenDays} bind:hours={sinceOpenHours}
+                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceOpenDays}
+                          bind:hours={sinceOpenHours}
                           bind:minutes={sinceOpenMinutes}>
                   <div slot="header" class="header">
                     <label class="form-label" style="margin-bottom: unset">Since Open With No Response</label>
@@ -118,7 +135,8 @@
                 </Duration>
               </div>
               <div class="col-2" style="flex-direction: row">
-                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceLastDays} bind:hours={sinceLastHours}
+                <Duration disabled={!isPremium || !data.auto_close.enabled} bind:days={sinceLastDays}
+                          bind:hours={sinceLastHours}
                           bind:minutes={sinceLastMinutes}>
                   <div slot="header" class="header">
                     <label class="form-label" style="margin-bottom: unset">Since Last Message</label>
@@ -127,6 +145,15 @@
                 </Duration>
               </div>
             </div>
+          </div>
+        </Collapsible>
+
+        <Collapsible tooltip="Define which permissions are given to users in ticket channels">
+          <span slot="header">Ticket Permissions</span>
+          <div slot="content" class="row">
+            <Toggle label="Attach Files" bind:value={data.ticket_permissions.attach_files}/>
+            <Toggle label="Embed Links" bind:value={data.ticket_permissions.embed_links}/>
+            <Toggle label="Add Reactions" bind:value={data.ticket_permissions.add_reactions}/>
           </div>
         </Collapsible>
 
@@ -183,6 +210,8 @@
     import Colour from "../form/Colour.svelte";
     import PremiumBadge from "../PremiumBadge.svelte";
     import {toDays, toHours, toMinutes} from "../../js/timeutil";
+    import Toggle from "../form/Toggle.svelte";
+    import IconBadge from "../IconBadge.svelte";
 
     export let guildId;
 
@@ -462,6 +491,6 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
     }
 </style>

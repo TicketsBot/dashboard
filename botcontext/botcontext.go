@@ -10,6 +10,7 @@ import (
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/guild/emoji"
+	"github.com/rxdn/gdl/objects/interaction"
 	"github.com/rxdn/gdl/objects/member"
 	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
@@ -94,6 +95,21 @@ func (ctx BotContext) GetGuildMember(guildId, userId uint64) (m member.Member, e
 	return
 }
 
+func (ctx BotContext) RemoveGuildMemberRole(guildId, userId, roleId uint64) (err error) {
+	err = rest.RemoveGuildMemberRole(ctx.Token, ctx.RateLimiter, guildId, userId, roleId)
+	return
+}
+
+func (ctx BotContext) CreateGuildRole(guildId uint64, data rest.GuildRoleData) (role guild.Role, err error) {
+	role, err = rest.CreateGuildRole(ctx.Token, ctx.RateLimiter, guildId, data)
+	return
+}
+
+func (ctx BotContext) DeleteGuildRole(guildId, roleId uint64) (err error) {
+	err = rest.DeleteGuildRole(ctx.Token, ctx.RateLimiter, guildId, roleId)
+	return
+}
+
 func (ctx BotContext) GetUser(userId uint64) (u user.User, err error) {
 	u, err = rest.GetUser(ctx.Token, ctx.RateLimiter, userId)
 	if err == nil {
@@ -167,4 +183,12 @@ func (ctx BotContext) ListMembers(guildId uint64) (members []member.Member, err 
 	}
 
 	return
+}
+
+func (ctx BotContext) CreateGuildCommand(guildId uint64, data rest.CreateCommandData) (interaction.ApplicationCommand, error) {
+	return rest.CreateGuildCommand(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, data)
+}
+
+func (ctx BotContext) DeleteGuildCommand(guildId, commandId uint64) error {
+	return rest.DeleteGuildCommand(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, commandId)
 }

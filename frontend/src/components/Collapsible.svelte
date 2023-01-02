@@ -8,6 +8,21 @@
 
     <slot name="header"></slot>
 
+    {#if tooltip !== undefined}
+      <div style="">
+        <Tooltip tip={tooltip} top color="#121212">
+
+          {#if tooltipUrl !== undefined}
+            <a href={tooltipUrl} target="_blank">
+              <i class="fas fa-circle-info form-label tooltip-icon"></i>
+            </a>
+          {:else}
+            <i class="fas fa-circle-info form-label tooltip-icon"></i>
+          {/if}
+        </Tooltip>
+      </div>
+    {/if}
+
     <hr/>
   </div>
 
@@ -20,11 +35,14 @@
 
 <script>
     import {onMount} from "svelte";
+    import Tooltip from "svelte-tooltip";
 
     export let retractIcon = "fas fa-minus";
     export let expandIcon = "fas fa-plus";
 
     export let defaultOpen = false;
+    export let tooltip;
+    export let tooltipUrl;
 
     let expanded = false;
     let showOverflow = true;

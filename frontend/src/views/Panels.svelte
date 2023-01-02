@@ -28,7 +28,7 @@
   <div class="col-main">
     <div class="row">
       <Card footer="{false}">
-        <span slot="title">Reaction Panels</span>
+        <span slot="title">Your Reaction Panels</span>
         <div slot="body" class="card-body">
           <p>Your panel quota: <b>{panels.length} / {isPremium ? '∞' : '3'}</b></p>
 
@@ -50,10 +50,10 @@
                 <td>{panel.title}</td>
                 <td class="category-col">{channels.find((c) => c.id === panel.category_id)?.name ?? 'Unknown Category'}</td>
                 <td>
-                  <Button on:click={() => resendPanel(panel.panel_id)}>Resend</Button>
+                  <Button disabled={panel.force_disabled} on:click={() => resendPanel(panel.panel_id)}>Resend</Button>
                 </td>
                 <td>
-                  <Button on:click={() => openEditModal(panel.panel_id)}>Edit</Button>
+                  <Button disabled={panel.force_disabled} on:click={() => openEditModal(panel.panel_id)}>Edit</Button>
                 </td>
                 <td>
                   <Button on:click={() => panelToDelete = panel}>Delete</Button>
@@ -85,7 +85,7 @@
   <div class="col-small">
     <div class="row">
       <Card footer="{false}">
-        <span slot="title">Multi-Panels</span>
+        <span slot="title">Your Multi-Panels</span>
         <div slot="body" class="card-body">
           <table style="margin-top: 10px">
             <thead>
@@ -118,7 +118,7 @@
     </div>
     <div class="row">
       <Card footer={false}>
-        <span slot="title">Create A Multi-Panel</span>
+        <span slot="title">Create Multi-Panel</span>
         <div slot="body" class="card-body">
           <p>Note: The panels which you wish to combine into a multi-panel must already exist</p>
 
