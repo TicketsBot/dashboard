@@ -513,7 +513,7 @@ func (p *panelBody) verifyNamingScheme() bool {
 	}
 
 	// Validate placeholders used
-	validPlaceholders := []string{"id", "username", "nickname"}
+	validPlaceholders := []string{"id", "username", "nickname", "id_padded"}
 	for _, match := range placeholderPattern.FindAllStringSubmatch(*p.NamingScheme, -1) {
 		if len(match) < 2 { // Infallible
 			return false
