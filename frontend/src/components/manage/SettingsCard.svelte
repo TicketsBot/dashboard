@@ -45,7 +45,7 @@
           <span slot="header">Tickets</span>
           <div slot="content" class="col-1">
             <div class="row">
-              <ChannelDropdown label="Archive Channel" col4 channels={channels} withNull={true}
+              <ChannelDropdown label="Transcripts Channel" col4 channels={channels} withNull={true}
                                bind:value={data.archive_channel}/>
               <Dropdown label="Overflow Category" col4 bind:value={data.overflow_category_id}>
                 <option value=-1>Disabled</option>

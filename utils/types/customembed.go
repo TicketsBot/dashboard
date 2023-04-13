@@ -10,7 +10,7 @@ type CustomEmbed struct {
 	Title        *string        `json:"title" validate:"omitempty,min=1,max=255"`
 	Description  *string        `json:"description" validate:"omitempty,min=1,max=4096"`
 	Url          *string        `json:"url" validate:"omitempty,url,max=255"`
-	Colour       Colour         `json:"colour" validate:"required,gte=0,lte=16777215"`
+	Colour       Colour         `json:"colour" validate:"gte=0,lte=16777215"`
 	Author       Author         `json:"author" validate:"dive"`
 	ImageUrl     *string        `json:"image_url" validate:"omitempty,url,max=255"`
 	ThumbnailUrl *string        `json:"thumbnail_url" validate:"omitempty,url,max=255"`
