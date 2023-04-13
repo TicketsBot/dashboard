@@ -31,7 +31,7 @@
     export let value;
     export let label;
     export let placeholder;
-    export let badge;
+    export let badge = undefined;
     export let disabled = false;
 
     export let tooltipText = undefined;

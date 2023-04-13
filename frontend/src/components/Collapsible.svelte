@@ -1,6 +1,8 @@
 <div style="margin-bottom: 8px">
-  <div style="cursor: pointer;" class="inline" on:click={toggle}>
-    {#if expanded}
+  <div class="inline" class:pointer={!forceAlwaysOpen} on:click={() => toggle(false)}>
+    {#if forceAlwaysOpen}
+      <i class="fas fa-chevron-right"></i>
+    {:else if expanded}
       <i class="{retractIcon}"></i>
     {:else}
       <i class="{expandIcon}"></i>
@@ -36,13 +38,15 @@
 <script>
     import {onMount} from "svelte";
     import Tooltip from "svelte-tooltip";
+    import { createEventDispatcher } from 'svelte';
 
     export let retractIcon = "fas fa-minus";
     export let expandIcon = "fas fa-plus";
 
+    export let forceAlwaysOpen = false;
     export let defaultOpen = false;
-    export let tooltip;
-    export let tooltipUrl;
+    export let tooltip = undefined;
+    export let tooltipUrl = undefined;
 
     let expanded = false;
     let showOverflow = true;
@@ -52,7 +56,13 @@
     let innerWidth;
     $: innerWidth, updateIfExpanded();
 
-    export function toggle() {
+    const dispatch = createEventDispatcher();
+
+    export function toggle(force) {
+        if (forceAlwaysOpen && !force) {
+            return;
+        }
+
         if (expanded) {
             content.style.maxHeight = 0;
         } else {
@@ -62,7 +72,7 @@
         expanded = !expanded;
     }
 
-    export function updateSize() {
+    function updateSize() {
         content.style.maxHeight = `${content.scrollHeight}px`;
     }
 
@@ -73,10 +83,17 @@
     }
 
     onMount(() => {
-        content.addEventListener('DOMNodeInserted', updateIfExpanded);
-        content.addEventListener('DOMNodeRemoved', updateIfExpanded);
+        // content.addEventListener('DOMNodeInserted', updateIfExpanded);
+        // content.addEventListener('DOMNodeRemoved', updateIfExpanded);
 
-        if (defaultOpen) toggle();
+        const observer = new MutationObserver(() => {
+            updateIfExpanded();
+            setTimeout(updateIfExpanded, 300); // TODO: Move with transition height
+        });
+
+        observer.observe(content, { childList: true, subtree: true });
+
+        if (defaultOpen || forceAlwaysOpen) toggle(true);
     });
 </script>
 
@@ -104,5 +121,9 @@
         border-right: 0;
         width: 100%;
         flex: 1;
+    }
+
+    .pointer {
+        cursor: pointer;
     }
 </style>
