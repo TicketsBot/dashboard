@@ -5,105 +5,84 @@
 {/if}
 
 <form class="settings-form" on:submit|preventDefault>
-    <div class="row">
-        <div class="col-1-3">
-            <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.title}/>
-        </div>
-        <div class="col-2-3">
-            <Textarea col1=true label="Panel Content" placeholder="By clicking the button, a ticket will be opened for you."
-                bind:value={data.content}/>
-        </div>
-    </div>
-    <div class="row">
-        <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
-        <ChannelDropdown label="Panel Channel" allowAnnouncementChannel col4 {channels} bind:value={data.channel_id}/>
-        <CategoryDropdown label="Ticket Category" col4 {channels} bind:value={data.category_id}/>
-        <Dropdown col4=true label="Form" bind:value={data.form_id}>
-            <option value=null>None</option>
-            {#each forms as form}
-                <option value={form.form_id}>{form.title}</option>
-            {/each}
-        </Dropdown>
-    </div>
-    <div class="row">
-        <Dropdown col4=true label="Button Colour" bind:value={data.button_style}>
-            <option value="1">Blue</option>
-            <option value="2">Grey</option>
-            <option value="3">Green</option>
-            <option value="4">Red</option>
-        </Dropdown>
-
-        <Input col4={true} label="Button Text" placeholder="Open a ticket!" bind:value={data.button_label} />
-
-        <div class="col-2" style="z-index: 1">
-            <label for="emoji-pick-wrapper" class="form-label">Button Emoji</label>
-            <div id="emoji-pick-wrapper" class="row">
-                <div class="col-2">
-                    <label class="form-label" style="margin-bottom: 0 !important;">Custom Emoji</label>
-                    <Toggle hideLabel
-                            toggledColor="#66bb6a"
-                            untoggledColor="#ccc"
-                            bind:toggled={data.use_custom_emoji}
-                            on:toggle={handleEmojiTypeChange} />
-                </div>
-                {#if data.use_custom_emoji}
-                    <div class="multiselect-super">
-                        <Select items={emojis}
-                                Item={EmojiItem}
-                                selectedValue={data.emote}
-                                optionIdentifier="id"
-                                getSelectionLabel={emojiNameMapper}
-                                getOptionLabel={emojiNameMapper}
-                                placeholderAlwaysShow={true}
-                                on:select={handleCustomEmojiChange} />
-                    </div>
-                {:else}
-                    <EmojiInput col1=true bind:value={data.emote}/>
-                {/if}
-            </div>
-        </div>
-    </div>
-    <div class="row" style="justify-content: center">
-        <div class="col-3">
-            <Button icon="fas fa-sliders-h" fullWidth=true type="button"
-                    on:click={toggleAdvancedSettings}>Toggle Advanced Settings
-            </Button>
-        </div>
-    </div>
-    <div class="row advanced-settings" class:advanced-settings-show={advancedSettings}
-         class:advanced-settings-hide={!advancedSettings} class:show-overflow={overflowShow}>
-        <div class="inner" class:inner-show={advancedSettings} class:absolute={advancedSettings && !overflowShow} >
+    <Collapsible defaultOpen>
+        <span slot="header">Panel Message</span>
+        <div slot="content" class="col-1">
             <div class="row">
+                <div class="col-1-3">
+                    <Input label="Panel Title" placeholder="Open a ticket!" col1=true bind:value={data.title}/>
+                </div>
+                <div class="col-2-3">
+                        <Textarea col1=true label="Panel Content" placeholder="By clicking the button, a ticket will be opened for you."
+                                  bind:value={data.content}/>
+                </div>
+            </div>
+
+            <div class="row">
+                <Colour col4=true label="Panel Colour" on:change={updateColour} bind:value={tempColour}/>
+                <ChannelDropdown label="Panel Channel" allowAnnouncementChannel col4 {channels} bind:value={data.channel_id}/>
                 <div class="col-2">
-                    <label class="form-label">Welcome Message</label>
                     <div class="row" style="justify-content: flex-start; gap: 10px">
-                        <Button icon="fas fa-brush" on:click={openWelcomeMessageBuilder}>Open Editor</Button>
-                        <Button icon="fas fa-trash-can" danger
-                                on:click={() => data.welcome_message = null}>Clear</Button>
+                        <div style="white-space: nowrap">
+                            <Checkbox label="Disable Panel" bind:value={data.disabled}></Checkbox>
+                        </div>
+                        {#if data.disabled}
+                            <b style="display: flex; align-self: center">You will be unable to open any tickets with this panel</b>
+                        {/if}
                     </div>
                 </div>
-                <div class="col-2">
-                    <label for="naming-scheme-wrapper" class="form-label">Naming Scheme</label>
-                    <div class="row" id="naming-scheme-wrapper">
-                        <div>
-                            <label class="form-label">Use Server Default</label>
+            </div>
+
+            <div class="row">
+                <Dropdown col4=true label="Button Colour" bind:value={data.button_style}>
+                    <option value="1">Blue</option>
+                    <option value="2">Grey</option>
+                    <option value="3">Green</option>
+                    <option value="4">Red</option>
+                </Dropdown>
+
+                <Input col4={true} label="Button Text" placeholder="Open a ticket!" bind:value={data.button_label} />
+
+                <div class="col-2" style="z-index: 1">
+                    <label for="emoji-pick-wrapper" class="form-label">Button Emoji</label>
+                    <div id="emoji-pick-wrapper" class="row">
+                        <div class="col-2">
+                            <label class="form-label" style="margin-bottom: 0 !important;">Custom Emoji</label>
                             <Toggle hideLabel
                                     toggledColor="#66bb6a"
                                     untoggledColor="#ccc"
-                                    bind:toggled={data.use_server_default_naming_scheme} />
+                                    bind:toggled={data.use_custom_emoji}
+                                    on:toggle={handleEmojiTypeChange} />
                         </div>
-                        <div class="col-fill">
-                            {#if !data.use_server_default_naming_scheme}
-                                <Input label="Naming Scheme"
-                                       bind:value={data.naming_scheme}
-                                       placeholder="ticket-%id%"
-                                       tooltipText="Click here for the full placeholder list"
-                                       tooltipLink="https://docs.ticketsbot.net" />
-                            {/if}
-                        </div>
+                        {#if data.use_custom_emoji}
+                            <div class="multiselect-super">
+                                <Select items={emojis}
+                                        Item={EmojiItem}
+                                        selectedValue={data.emote}
+                                        optionIdentifier="id"
+                                        getSelectionLabel={emojiNameMapper}
+                                        getOptionLabel={emojiNameMapper}
+                                        placeholderAlwaysShow={true}
+                                        on:select={handleCustomEmojiChange} />
+                            </div>
+                        {:else}
+                            <EmojiInput col1=true bind:value={data.emote}/>
+                        {/if}
                     </div>
                 </div>
             </div>
+
+
+            <div class="row">
+                <Input col2={true} label="Large Image URL" badge="Optional" bind:value={data.image_url} placeholder="https://example.com/image.png" />
+                <Input col2={true} label="Small Image URL" badge="Optional" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
+            </div>
+        </div>
+    </Collapsible>
+
+    <Collapsible defaultOpen>
+        <span slot="header">Ticket Properties</span>
+        <div slot="content" class="col-1">
             <div class="row">
                 <div class="col-2">
                     <label class="form-label">Mention On Open</label>
@@ -133,23 +112,24 @@
                 </div>
             </div>
             <div class="row">
-                <Input col2={true} label="Large Image URL" bind:value={data.image_url} placeholder="https://example.com/image.png" />
-                <Input col2={true} label="Small Image URL" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
-            </div>
-            <div class="row">
-                <div class="col-2">
-                    <div class="row" style="justify-content: flex-start; gap: 10px">
-                        <div style="white-space: nowrap">
-                            <Checkbox label="Disable Panel" bind:value={data.disabled}></Checkbox>
-                        </div>
-                        {#if data.disabled}
-                            <b style="display: flex; align-self: center">You will be unable to open any tickets with this panel</b>
-                        {/if}
-                    </div>
-                </div>
+                <CategoryDropdown label="Ticket Category" col3 {channels} bind:value={data.category_id}/>
+
+                <Dropdown col4 label="Form" bind:value={data.form_id}>
+                    <option value=null>None</option>
+                    {#each forms as form}
+                        <option value={form.form_id}>{form.title}</option>
+                    {/each}
+                </Dropdown>
             </div>
         </div>
-    </div>
+    </Collapsible>
+
+    <Collapsible>
+        <span slot="header">Welcome Message</span>
+        <div slot="content" class="col-1">
+            <EmbedForm bind:data={data.welcome_message} />
+        </div>
+    </Collapsible>
 </form>
 
 <script>
@@ -169,6 +149,8 @@
     import Dropdown from "../form/Dropdown.svelte";
     import Toggle from "svelte-toggle";
     import Checkbox from "../form/Checkbox.svelte";
+    import Collapsible from "../Collapsible.svelte";
+    import EmbedForm from "../EmbedForm.svelte";
 
     export let guildId;
     export let seedDefault = true;

@@ -26,7 +26,7 @@
     <hr/>
   </div>
 
-  <div bind:this={content} class="content">
+  <div bind:this={content} class="content" class:hide-overflow={!expanded}>
     <slot name="content"></slot>
   </div>
 </div>
@@ -81,12 +81,16 @@
 </script>
 
 <style>
+    .hide-overflow {
+        overflow: hidden;
+    }
+
     .content {
         display: flex;
         transition: max-height .3s ease-in-out, margin-top .3s ease-in-out, margin-bottom .3s ease-in-out;
         position: relative;
-        overflow: hidden;
         max-height: 0;
+        margin-top: 4px;
     }
 
     .inline {
