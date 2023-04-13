@@ -1,4 +1,4 @@
-<div class="modal" transition:fade>
+<div class="modal" transition:fade bind:this={modal}>
   <div class="modal-wrapper">
     <Card footer="{true}" footerRight="{true}" fill="{false}">
       <span slot="title">Edit Panel</span>
@@ -28,6 +28,8 @@
     import PanelCreationForm from "./PanelCreationForm.svelte";
     import Card from "../Card.svelte";
     import Button from "../Button.svelte";
+
+    export let modal;
 
     export let guildId;
     export let panel = {};
@@ -74,7 +76,7 @@
     .modal-wrapper {
         display: flex;
         width: 75%;
-        margin: 10% auto auto auto;
+        margin: 2% auto auto auto;
         padding-bottom: 5%;
     }
 

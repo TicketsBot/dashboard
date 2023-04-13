@@ -1,5 +1,5 @@
 {#if editModal}
-  <PanelEditModal {guildId} {channels} {roles} {emojis} {teams} {forms} bind:panel={editData}
+  <PanelEditModal bind:modal={editModalElement} {guildId} {channels} {roles} {emojis} {teams} {forms} bind:panel={editData}
                     on:close={() => editModal = false} on:confirm={submitEdit}/>
 {/if}
 
@@ -149,6 +149,7 @@
     import MultiPanelCreationForm from '../components/manage/MultiPanelCreationForm.svelte';
     import MultiPanelEditModal from "../components/manage/MultiPanelEditModal.svelte";
     import ConfirmationModal from "../components/ConfirmationModal.svelte";
+    import {afterUpdate} from "svelte";
 
     export let currentRoute;
     export let params = {};
@@ -176,14 +177,20 @@
     let multiPanelCreateData;
     let multiPanelEditData;
 
+    let editModalElement;
+
     function openEditModal(panelId) {
         editData = panels.find((p) => p.panel_id === panelId);
         editModal = true;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function openMultiEditModal(id) {
         multiPanelEditData = multiPanels.find((mp) => mp.id === id);
         multiEditModal = true;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function resendPanel(panelId) {
