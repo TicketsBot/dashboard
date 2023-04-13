@@ -11,7 +11,7 @@
                       bind:value={data.description}/>
     </div>
 
-    <Collapsible>
+    <Collapsible forceAlwaysOpen>
       <span slot="header">Author</span>
 
       <div slot="content" class="row">
@@ -23,7 +23,7 @@
       </div>
     </Collapsible>
 
-    <Collapsible>
+    <Collapsible forceAlwaysOpen>
       <span slot="header">Images</span>
       <div slot="content" class="row">
         <Input col2 label="Large Image URL" placeholder="https://example.com/image.png"
@@ -33,7 +33,7 @@
       </div>
     </Collapsible>
 
-    <Collapsible>
+    <Collapsible forceAlwaysOpen>
       <span slot="header">Footer</span>
       <div slot="content" class="row">
         {#if footerPremiumOnly}
@@ -49,7 +49,7 @@
       </div>
     </Collapsible>
 
-    <Collapsible>
+    <Collapsible forceAlwaysOpen>
       <span slot="header">Fields</span>
       <div slot="content" class="col-1">
         {#each data.fields as field, i}
@@ -100,18 +100,15 @@
     import Button from "./Button.svelte";
 
     export let data;
+
+    $: data = data ?? {
+        fields: [],
+        colour: '#2ECC71',
+        author: {},
+        footer: {},
+    };
+
     export let footerPremiumOnly = true;
-
-    if (data === undefined || data === null) {
-        if (!data) {
-            data = {};
-        }
-
-        data.fields = [];
-        data.colour = '#2ECC71';
-        data.author = {};
-        data.footer = {};
-    }
 
     function addField() {
         data.fields.push({name: '', value: '', inline: false});

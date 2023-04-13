@@ -10,7 +10,7 @@
 </button>
 
 <script>
-    export let icon;
+    export let icon = undefined;
     export let fullWidth = false;
     export let disabled = false;
     export let type = "submit";

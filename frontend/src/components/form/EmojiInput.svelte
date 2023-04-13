@@ -14,8 +14,8 @@
 
 <script>
     export let value;
-    export let label;
-    export let placeholder;
+    export let label = undefined;
+    export let placeholder = undefined;
     export let disabled = false;
 
     export let col1 = false;

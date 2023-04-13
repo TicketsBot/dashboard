@@ -6,6 +6,50 @@
 
 <form class="settings-form" on:submit|preventDefault>
     <Collapsible defaultOpen>
+        <span slot="header">Ticket Properties</span>
+        <div slot="content" class="col-1">
+            <div class="row">
+                <div class="col-2">
+                    <label class="form-label">Mention On Open</label>
+                    <div class="multiselect-super">
+                        <Select items={mentionItems}
+                                bind:selectedValue={selectedMentions}
+                                on:select={updateMentions}
+                                optionIdentifier="id"
+                                getSelectionLabel={mentionNameMapper}
+                                getOptionLabel={mentionNameMapper}
+                                placeholderAlwaysShow={true}
+                                isMulti={true} />
+                    </div>
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Support Teams</label>
+                    <div class="multiselect-super">
+                        <Select items={teamsWithDefault}
+                                bind:selectedValue={selectedTeams}
+                                on:select={updateTeams}
+                                isSearchable={false}
+                                optionIdentifier="id"
+                                getSelectionLabel={nameMapper}
+                                getOptionLabel={nameMapper}
+                                isMulti={true} />
+                    </div>
+                </div>
+            </div>
+            <div class="incomplete-row">
+                <CategoryDropdown label="Ticket Category" col3 {channels} bind:value={data.category_id}/>
+
+                <Dropdown col4 label="Form" bind:value={data.form_id}>
+                    <option value=null>None</option>
+                    {#each forms as form}
+                        <option value={form.form_id}>{form.title}</option>
+                    {/each}
+                </Dropdown>
+            </div>
+        </div>
+    </Collapsible>
+
+    <Collapsible defaultOpen>
         <span slot="header">Panel Message</span>
         <div slot="content" class="col-1">
             <div class="row">
@@ -80,54 +124,12 @@
         </div>
     </Collapsible>
 
-    <Collapsible defaultOpen>
-        <span slot="header">Ticket Properties</span>
-        <div slot="content" class="col-1">
-            <div class="row">
-                <div class="col-2">
-                    <label class="form-label">Mention On Open</label>
-                    <div class="multiselect-super">
-                        <Select items={mentionItems}
-                                bind:selectedValue={selectedMentions}
-                                on:select={updateMentions}
-                                optionIdentifier="id"
-                                getSelectionLabel={mentionNameMapper}
-                                getOptionLabel={mentionNameMapper}
-                                placeholderAlwaysShow={true}
-                                isMulti={true} />
-                    </div>
-                </div>
-                <div class="col-2">
-                    <label class="form-label">Support Teams</label>
-                    <div class="multiselect-super">
-                        <Select items={teamsWithDefault}
-                                bind:selectedValue={selectedTeams}
-                                on:select={updateTeams}
-                                isSearchable={false}
-                                optionIdentifier="id"
-                                getSelectionLabel={nameMapper}
-                                getOptionLabel={nameMapper}
-                                isMulti={true} />
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <CategoryDropdown label="Ticket Category" col3 {channels} bind:value={data.category_id}/>
-
-                <Dropdown col4 label="Form" bind:value={data.form_id}>
-                    <option value=null>None</option>
-                    {#each forms as form}
-                        <option value={form.form_id}>{form.title}</option>
-                    {/each}
-                </Dropdown>
-            </div>
-        </div>
-    </Collapsible>
-
     <Collapsible>
         <span slot="header">Welcome Message</span>
         <div slot="content" class="col-1">
-            <EmbedForm bind:data={data.welcome_message} />
+            <div class="row">
+                <EmbedForm bind:data={data.welcome_message} />
+            </div>
         </div>
     </Collapsible>
 </form>
@@ -324,6 +326,14 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .incomplete-row {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
         width: 100%;
         margin-bottom: 10px;
     }

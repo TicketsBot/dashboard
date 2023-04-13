@@ -13,7 +13,7 @@
   <!--<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">-->
 
   <!-- Icons -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.1.1/css/all.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
 
   <!-- GA -->
   <script async src='https://www.google-analytics.com/analytics.js'

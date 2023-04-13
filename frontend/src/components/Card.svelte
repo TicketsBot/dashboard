@@ -3,7 +3,7 @@
     export let fill = true;
     export let footerRight = false;
     export let dropdown = false;
-    export let ref;
+    export let ref = undefined;
 
     let dropdownActive = false;
 </script>

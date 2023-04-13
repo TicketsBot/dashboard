@@ -18,7 +18,7 @@
 
 <script>
   export let icon;
-  export let link;
+  export let link = undefined;
 </script>
 
 <style>
