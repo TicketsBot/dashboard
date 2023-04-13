@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/types"
@@ -58,12 +57,7 @@ func CreateTag(ctx *gin.Context) {
 			return
 		}
 
-		formatted := "Your input contained the following errors:"
-		for _, validationError := range validationErrors {
-			formatted += fmt.Sprintf("\n%s", validationError.Error())
-		}
-
-		formatted = strings.TrimSuffix(formatted, "\n")
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
 		ctx.JSON(400, utils.ErrorStr(formatted))
 		return
 	}

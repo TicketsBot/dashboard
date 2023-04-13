@@ -1,13 +1,11 @@
 package api
 
 import (
-	"fmt"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"strings"
 )
 
 type integrationCreateBody struct {
@@ -64,12 +62,7 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 			return
 		}
 
-		formatted := "Your input contained the following errors:"
-		for _, validationError := range validationErrors {
-			formatted += fmt.Sprintf("\n%s", validationError.Error())
-		}
-
-		formatted = strings.TrimSuffix(formatted, "\n")
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
 		ctx.JSON(400, utils.ErrorStr(formatted))
 		return
 	}

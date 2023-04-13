@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -234,20 +233,14 @@ var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-
 var validate = validator.New()
 
 func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
-	err := validate.Struct(p)
-	if err != nil {
+	if err := validate.Struct(p); err != nil {
 		validationErrors, ok := err.(validator.ValidationErrors)
 		if !ok {
 			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
 			return false
 		}
 
-		formatted := "Your input contained the following errors:"
-		for _, validationError := range validationErrors {
-			formatted += fmt.Sprintf("\n%s", validationError.Error())
-		}
-
-		formatted = strings.TrimSuffix(formatted, "\n")
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
 		ctx.JSON(400, utils.ErrorStr(formatted))
 		return false
 	}

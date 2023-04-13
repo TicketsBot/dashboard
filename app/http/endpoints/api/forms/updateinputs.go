@@ -11,7 +11,6 @@ import (
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 type (
@@ -59,12 +58,7 @@ func UpdateInputs(ctx *gin.Context) {
 			return
 		}
 
-		formatted := "Your input contained the following errors:"
-		for _, validationError := range validationErrors {
-			formatted += fmt.Sprintf("\n%s", validationError.Error())
-		}
-
-		formatted = strings.TrimSuffix(formatted, "\n")
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
 		ctx.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
