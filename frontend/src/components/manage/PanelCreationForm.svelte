@@ -1,9 +1,3 @@
-{#if welcomeMessageBuilder}
-    <EmbedBuilder data={data.welcome_message}
-                  on:close={closeWelcomeMessageBuilder}
-                  on:confirm={handleWelcomeMessageUpdate}/>
-{/if}
-
 <form class="settings-form" on:submit|preventDefault>
     <Collapsible defaultOpen>
         <span slot="header">Ticket Properties</span>
@@ -200,17 +194,6 @@
     let selectedTeams = seedDefault ? [{id: 'default', name: 'Default'}] : [];
     let selectedMentions = [];
 
-    let welcomeMessageBuilder = false;
-
-    function openWelcomeMessageBuilder() {
-        welcomeMessageBuilder = true;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function closeWelcomeMessageBuilder() {
-        welcomeMessageBuilder = false;
-    }
-
     // Replace spaces with dashes in naming scheme as the user types
     $: if (data.naming_scheme !== undefined && data.naming_scheme !== null && data.naming_scheme.includes(' ')) {
         data.naming_scheme = data.naming_scheme.replaceAll(' ', '-');
@@ -258,11 +241,6 @@
         } else {
             overflowShow = false;
         }
-    }
-
-    function handleWelcomeMessageUpdate(e) {
-        data.welcome_message = e.detail;
-        closeWelcomeMessageBuilder();
     }
 
     function handleEmojiTypeChange(e) {
@@ -327,7 +305,6 @@
               colour: 0x2ECC71,
               use_custom_emoji: false,
               emote: '📩',
-              welcome_message: null,
               mentions: [],
               default_team: true,
               teams: [],
@@ -336,6 +313,13 @@
               channel_id: channels.find((c) => c.type === 0 || c.type === 5)?.id,
               category_id: channels.find((c) => c.type === 4)?.id,
               use_server_default_naming_scheme: true,
+              welcome_message: {
+                  fields: [],
+                  colour: '#2ECC71',
+                  author: {},
+                  footer: {},
+                  description: 'Thank you for contacting support.\nPlease describe your issue and wait for a response.'
+              },
             };
         } else {
             applyOverrides();
