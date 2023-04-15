@@ -92,14 +92,12 @@ func CreatePanel(ctx *gin.Context) {
 	if premiumTier == premium.None {
 		panels, err := dbclient.Client.Panel.GetByGuild(guildId)
 		if err != nil {
-			ctx.AbortWithStatusJSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
 		}
 
 		if len(panels) >= freePanelLimit {
-			ctx.AbortWithStatusJSON(402, utils.ErrorStr("You have exceeded your panel quota. Purchase premium to unlock more panels."))
+			ctx.JSON(402, utils.ErrorStr("You have exceeded your panel quota. Purchase premium to unlock more panels."))
 			return
 		}
 	}
@@ -251,7 +249,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	}
 
 	if !p.verifyTitle() {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Panel titles must be between 1 - 80 characters in length",
 		})
@@ -259,7 +257,7 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 	}
 
 	if !p.verifyContent() {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Panel content must be between 1 - 4096 characters in length",
 		})

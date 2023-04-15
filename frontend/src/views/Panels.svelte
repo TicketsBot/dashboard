@@ -236,15 +236,9 @@
     }
 
     async function createPanel() {
-        let mapped = Object.fromEntries(Object.entries(panelCreateData).map(([k, v]) => {
-            if (v === "null") {
-                return [k, null];
-            } else {
-                return [k, v];
-            }
-        }));
+        setBlankStringsToNull(panelCreateData);
 
-        const res = await axios.post(`${API_URL}/api/${guildId}/panels`, mapped);
+        const res = await axios.post(`${API_URL}/api/${guildId}/panels`, panelCreateData);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
@@ -256,6 +250,7 @@
 
     async function submitEdit(e) {
         let data = e.detail;
+        setBlankStringsToNull(data);
 
         const res = await axios.patch(`${API_URL}/api/${guildId}/panels/${data.panel_id}`, data);
         if (res.status !== 200) {
@@ -268,6 +263,17 @@
         }
 
         await loadPanels();
+    }
+
+    function setBlankStringsToNull(obj) {
+        // Set all blank strings in the object, including nested objects, to null
+        for (const key in obj) {
+            if (obj[key] === "" || obj[key] === "null") {
+                obj[key] = null;
+            } else if (typeof obj[key] === "object") {
+                setBlankStringsToNull(obj[key]);
+            }
+        }
     }
 
     async function submitMultiPanelEdit(e) {

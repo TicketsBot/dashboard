@@ -12,6 +12,12 @@ func ValueOrZero[T any](v *T) T {
 	}
 }
 
+func SetNilIfZero[T comparable](value **T) {
+	if value != nil && *value != nil && **value == *new(T) {
+		*value = nil
+	}
+}
+
 func Slice[T any](v ...T) []T {
 	return v
 }
