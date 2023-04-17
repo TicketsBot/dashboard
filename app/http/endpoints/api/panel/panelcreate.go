@@ -297,6 +297,11 @@ func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
 		return false
 	}
 
+	if !p.validateWelcomeMessage() {
+		ctx.JSON(400, utils.ErrorStr("The welcome message you provided has no content"))
+		return false
+	}
+
 	if !p.verifyButtonLabel() {
 		ctx.JSON(400, utils.ErrorStr("Button labels cannot be longer than 80 characters"))
 		return false
@@ -518,6 +523,14 @@ func (p *panelBody) verifyNamingScheme() bool {
 
 	// Discord filters out illegal characters (such as +, $, ") when creating the channel for us
 	return true
+}
+
+func (p *panelBody) validateWelcomeMessage() bool {
+	return p.WelcomeMessage == nil || !(p.WelcomeMessage.Title == nil &&
+		p.WelcomeMessage.Description == nil &&
+		len(p.WelcomeMessage.Fields) == 0 &&
+		p.WelcomeMessage.ImageUrl == nil &&
+		p.WelcomeMessage.ThumbnailUrl == nil)
 }
 
 func getRoleHashSet(guildId uint64) (*collections.Set[uint64], error) {
