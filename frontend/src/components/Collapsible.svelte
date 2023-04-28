@@ -28,7 +28,7 @@
     <hr/>
   </div>
 
-  <div bind:this={content} class="content">
+  <div bind:this={content} class="content" class:expanded={expanded}>
     <slot name="content"></slot>
   </div>
 </div>
@@ -69,7 +69,13 @@
             updateSize();
         }
 
-        expanded = !expanded;
+        if (expanded) {
+            expanded = !expanded;
+        } else {
+            setTimeout(() => {
+                expanded = !expanded;
+            }, 300);
+        }
     }
 
     function updateSize() {
@@ -104,6 +110,10 @@
         position: relative;
         overflow: hidden;
         max-height: 0;
+    }
+
+    .content.expanded {
+        overflow: unset !important;
     }
 
     .inline {
