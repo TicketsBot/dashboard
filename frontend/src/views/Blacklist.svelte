@@ -72,32 +72,6 @@
               <table class="nice">
                 <thead>
                 <tr>
-                  <th class="full-width">Role</th>
-                  <th>Remove</th>
-                </tr>
-                </thead>
-                <tbody>
-                {#each data.roles as role}
-                  <tr>
-                    {#if role.name === ''}
-                      <td class="full-width">Unknown ({role.id})</td>
-                    {:else}
-                      <td class="full-width">{role.name}</td>
-                    {/if}
-
-                    <td>
-                      <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeRoleBlacklist(role)}>
-                        Remove
-                      </Button>
-                    </td>
-                  </tr>
-                {/each}
-                </tbody>
-              </table>
-
-              <table class="nice">
-                <thead>
-                <tr>
                   <th class="full-width">User</th>
                   <th>Remove</th>
                 </tr>
@@ -113,6 +87,32 @@
 
                     <td>
                       <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeUserBlacklist(user)}>
+                        Remove
+                      </Button>
+                    </td>
+                  </tr>
+                {/each}
+                </tbody>
+              </table>
+
+              <table class="nice">
+                <thead>
+                <tr>
+                  <th class="full-width">Role</th>
+                  <th>Remove</th>
+                </tr>
+                </thead>
+                <tbody>
+                {#each data.roles as role}
+                  <tr>
+                    {#if role.name === ''}
+                      <td class="full-width">Unknown ({role.id})</td>
+                    {:else}
+                      <td class="full-width">{role.name}</td>
+                    {/if}
+
+                    <td>
+                      <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeRoleBlacklist(role)}>
                         Remove
                       </Button>
                     </td>
