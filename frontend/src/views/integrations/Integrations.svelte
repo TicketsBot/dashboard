@@ -29,7 +29,7 @@
           <div class="integration">
             <Integration builtIn name="Bloxlink"
                          imageUrl="https://dbl-static.b-cdn.net/9bbd1f9504ddefc89606b19b290e9a0f.png"
-                         viewLink="https://docs.ticketsbot.net/setup/placeholders#bloxlink">
+                         viewLink="https://docs.ticketsbot.net/dashboard/settings/placeholders#bloxlink">
           <span slot="description">
             Our Bloxlink integration inserts the Roblox usernames, profile URLs and more of your users into
             ticket welcome messages automatically! This integration is automatically enabled in all servers, press the
