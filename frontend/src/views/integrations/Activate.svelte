@@ -79,7 +79,11 @@
 
         let res = await axios.post(`${API_URL}/api/${guildId}/integrations/${integrationId}`, data);
         if (res.status !== 204) {
-            notifyError(res.data.error);
+            if (res.data.client_error) {
+                notifyError(`${res.data.error}: ${res.data.client_error}`);
+            } else {
+                notifyError(res.data.error);
+            }
             return;
         }
 

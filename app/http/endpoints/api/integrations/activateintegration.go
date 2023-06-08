@@ -2,11 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type activateIntegrationBody struct {
@@ -77,6 +79,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 
 	// Since we've checked the length, we can just iterate over the secrets and they're guaranteed to be correct
 	secretMap := make(map[int]string)
+	secretValues := make(map[string]string)
 	for secretName, value := range data.Secrets {
 		if len(value) == 0 || len(value) > 255 {
 			ctx.JSON(400, utils.ErrorStr("Secret values must be between 1 and 255 characters"))
@@ -90,6 +93,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 			if secret.Name == secretName {
 				found = true
 				secretMap[secret.Id] = value
+				secretValues[secret.Name] = value
 				break inner
 			}
 		}
@@ -102,7 +106,23 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 
 	// Validate secrets
 	if integration.Public && integration.Approved && integration.ValidationUrl != nil {
-		res, statusCode, err := utils.SecureProxyClient.DoRequest(http.MethodPost, *integration.ValidationUrl, nil, data.Secrets)
+		integrationHeaders, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(integrationId)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		headers := make(map[string]string)
+		for _, header := range integrationHeaders {
+			value := header.Value
+			for key, secret := range secretValues {
+				value = strings.ReplaceAll(value, fmt.Sprintf("%%%s%%", key), secret)
+			}
+
+			headers[header.Name] = value
+		}
+
+		res, statusCode, err := utils.SecureProxyClient.DoRequest(http.MethodPost, *integration.ValidationUrl, headers, secretValues)
 		if err != nil {
 			if statusCode == http.StatusRequestTimeout {
 				ctx.JSON(400, utils.ErrorStr("Secret validation server did not respond in time (contact the integration author)"))

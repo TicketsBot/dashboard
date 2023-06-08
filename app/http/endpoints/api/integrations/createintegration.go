@@ -1,11 +1,13 @@
 package api
 
 import (
+	"errors"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"strings"
 )
 
 type integrationCreateBody struct {
@@ -68,6 +70,19 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
+	if data.ValidationUrl != nil {
+		sameHost, err := isSameValidationUrlHost(data.WebhookUrl, *data.ValidationUrl)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		if !sameHost {
+			ctx.JSON(400, utils.ErrorStr("Validation URL must be on the same host as the webhook URL"))
+			return
+		}
+	}
+
 	integration, err := dbclient.Client.CustomIntegrations.Create(userId, data.WebhookUrl, data.ValidationUrl, data.Method, data.Name, data.Description, data.ImageUrl, data.PrivacyPolicyUrl)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
@@ -123,4 +138,15 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, integration)
+}
+
+func isSameValidationUrlHost(webhookUrl, validationUrl string) (bool, error) {
+	webhookStripped := utils.GetUrlHost(strings.ReplaceAll(webhookUrl, "%", ""))
+	validationStripped := utils.GetUrlHost(strings.ReplaceAll(validationUrl, "%", ""))
+
+	if webhookStripped == "Invalid URL" || validationStripped == "Invalid URL" {
+		return false, errors.New("invalid webhook or validation URL")
+	}
+
+	return strings.ToLower(utils.SecondLevelDomain(webhookStripped)) == strings.ToLower(utils.SecondLevelDomain(validationStripped)), nil
 }

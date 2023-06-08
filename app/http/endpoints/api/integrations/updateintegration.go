@@ -88,6 +88,19 @@ func UpdateIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
+	if data.ValidationUrl != nil {
+		sameHost, err := isSameValidationUrlHost(data.WebhookUrl, *data.ValidationUrl)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		if !sameHost {
+			ctx.JSON(400, utils.ErrorStr("Validation URL must be on the same host as the webhook URL"))
+			return
+		}
+	}
+
 	// Update integration metadata
 	err = dbclient.Client.CustomIntegrations.Update(database.CustomIntegration{
 		Id:               integration.Id,
