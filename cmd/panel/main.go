@@ -50,10 +50,13 @@ func main() {
 		fmt.Printf("Error initialising sentry: %s", err.Error())
 	}
 
+	fmt.Println("Connecting to database...")
 	database.ConnectToDatabase()
 
+	fmt.Println("Connecting to cache...")
 	cache.Instance = cache.NewCache()
 
+	fmt.Println("Initialising microservice clients...")
 	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
 	utils.SecureProxyClient = secureproxy.NewSecureProxy(config.Conf.SecureProxyUrl)
 
@@ -65,6 +68,7 @@ func main() {
 		request.RegisterHook(utils.ProxyHook)
 	}
 
+	fmt.Println("Connecting to Redis...")
 	redis.Client = redis.NewRedisClient()
 	go ListenChat(redis.Client)
 
@@ -80,6 +84,7 @@ func main() {
 		rpc.PremiumClient = &c
 	}
 
+	fmt.Println("Starting server...")
 	app.StartServer()
 }
 
