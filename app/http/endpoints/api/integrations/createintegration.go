@@ -14,8 +14,9 @@ type integrationCreateBody struct {
 	ImageUrl         *string `json:"image_url" validate:"omitempty,url,max=255,startswith=https://"`
 	PrivacyPolicyUrl *string `json:"privacy_policy_url" validate:"omitempty,url,max=255,startswith=https://"`
 
-	Method     string `json:"http_method" validate:"required,oneof=GET POST"`
-	WebhookUrl string `json:"webhook_url" validate:"required,webhook,max=255"`
+	Method        string  `json:"http_method" validate:"required,oneof=GET POST"`
+	WebhookUrl    string  `json:"webhook_url" validate:"required,webhook,max=255,startsnotwith=https://discord.com,startsnotwith=https://discord.gg"`
+	ValidationUrl *string `json:"validation_url" validate:"omitempty,url,max=255,startsnotwith=https://discord.com,startsnotwith=https://discord.gg"`
 
 	Secrets []struct {
 		Name        string  `json:"name" validate:"required,min=1,max=32,excludesall=% "`
@@ -67,7 +68,7 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	integration, err := dbclient.Client.CustomIntegrations.Create(userId, data.WebhookUrl, data.Method, data.Name, data.Description, data.ImageUrl, data.PrivacyPolicyUrl)
+	integration, err := dbclient.Client.CustomIntegrations.Create(userId, data.WebhookUrl, data.ValidationUrl, data.Method, data.Name, data.Description, data.ImageUrl, data.PrivacyPolicyUrl)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

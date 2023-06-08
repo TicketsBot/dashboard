@@ -17,8 +17,9 @@ type integrationUpdateBody struct {
 	ImageUrl         *string `json:"image_url" validate:"omitempty,url,max=255,startswith=https://"`
 	PrivacyPolicyUrl *string `json:"privacy_policy_url" validate:"omitempty,url,max=255,startswith=https://"`
 
-	Method     string `json:"http_method" validate:"required,oneof=GET POST"`
-	WebhookUrl string `json:"webhook_url" validate:"required,webhook,max=255"`
+	Method        string  `json:"http_method" validate:"required,oneof=GET POST"`
+	WebhookUrl    string  `json:"webhook_url" validate:"required,webhook,max=255,startsnotwith=https://discord.com,startsnotwith=https://discord.gg"`
+	ValidationUrl *string `json:"validation_url" validate:"omitempty,url,max=255,startsnotwith=https://discord.com,startsnotwith=https://discord.gg"`
 
 	Secrets []struct {
 		Id          int     `json:"id" validate:"omitempty,min=1"`
@@ -93,6 +94,7 @@ func UpdateIntegrationHandler(ctx *gin.Context) {
 		OwnerId:          integration.OwnerId,
 		HttpMethod:       data.Method,
 		WebhookUrl:       data.WebhookUrl,
+		ValidationUrl:    data.ValidationUrl,
 		Name:             data.Name,
 		Description:      data.Description,
 		ImageUrl:         data.ImageUrl,

@@ -1,9 +1,11 @@
 package api
 
 import (
+	"encoding/json"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
@@ -35,6 +37,17 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 	var data activateIntegrationBody
 	if err := ctx.BindJSON(&data); err != nil {
 		ctx.JSON(400, utils.ErrorJson(err))
+		return
+	}
+
+	integration, ok, err := dbclient.Client.CustomIntegrations.Get(integrationId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if !ok {
+		ctx.JSON(404, utils.ErrorStr("Integration not found"))
 		return
 	}
 
@@ -83,6 +96,48 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 
 		if !found {
 			ctx.JSON(400, utils.ErrorStr("Invalid secret values"))
+			return
+		}
+	}
+
+	// Validate secrets
+	if integration.Public && integration.Approved && integration.ValidationUrl != nil {
+		res, statusCode, err := utils.SecureProxyClient.DoRequest(http.MethodPost, *integration.ValidationUrl, nil, data.Secrets)
+		if err != nil {
+			if statusCode == http.StatusRequestTimeout {
+				ctx.JSON(400, utils.ErrorStr("Secret validation server did not respond in time (contact the integration author)"))
+				return
+			} else {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+		}
+
+		type validationResponse struct {
+			Error string `json:"error"`
+		}
+
+		var useClientError bool
+		var parsed validationResponse
+		if err := json.Unmarshal(res, &parsed); err == nil {
+			useClientError = len(parsed.Error) > 0
+
+			if len(parsed.Error) > 255 {
+				parsed.Error = parsed.Error[:255]
+			}
+		}
+
+		if statusCode > 299 {
+			if useClientError {
+				ctx.JSON(400, gin.H{
+					"success":      false,
+					"error":        "Integration rejected the secret values (contact the integration author for help)",
+					"client_error": parsed.Error,
+				})
+			} else {
+				ctx.JSON(400, utils.ErrorStr("Integration rejected the secret values (contact the integration author for help)"))
+			}
+
 			return
 		}
 	}

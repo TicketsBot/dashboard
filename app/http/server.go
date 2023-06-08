@@ -160,7 +160,13 @@ func StartServer() {
 
 		guildAuthApiAdmin.GET("/integrations/available", api_integrations.ListIntegrationsHandler)
 		guildAuthApiAdmin.GET("/integrations/:integrationid", api_integrations.IsIntegrationActiveHandler)
-		guildAuthApiAdmin.POST("/integrations/:integrationid", api_integrations.ActivateIntegrationHandler)
+		guildAuthApiAdmin.POST("/integrations/:integrationid",
+			rl(middleware.RateLimitTypeUser, 10, time.Minute),
+			rl(middleware.RateLimitTypeGuild, 10, time.Minute),
+			rl(middleware.RateLimitTypeUser, 30, time.Minute*30),
+			rl(middleware.RateLimitTypeGuild, 30, time.Minute*30),
+			api_integrations.ActivateIntegrationHandler,
+		)
 		guildAuthApiAdmin.PATCH("/integrations/:integrationid", api_integrations.UpdateIntegrationSecretsHandler)
 		guildAuthApiAdmin.DELETE("/integrations/:integrationid", api_integrations.RemoveIntegrationHandler)
 	}

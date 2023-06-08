@@ -15,6 +15,7 @@ import (
 	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/premium"
+	"github.com/TicketsBot/common/secureproxy"
 	"github.com/TicketsBot/worker/i18n"
 	"github.com/apex/log"
 	"github.com/getsentry/sentry-go"
@@ -54,6 +55,7 @@ func main() {
 	cache.Instance = cache.NewCache()
 
 	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
+	utils.SecureProxyClient = secureproxy.NewSecureProxy(config.Conf.SecureProxyUrl)
 
 	utils.LoadEmoji()
 

@@ -5,8 +5,8 @@ go 1.18
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
-	github.com/TicketsBot/common v0.0.0-20220703211704-f792aa9f0c42
-	github.com/TicketsBot/database v0.0.0-20221223231047-b0d3d36c563b
+	github.com/TicketsBot/common v0.0.0-20230608150251-8d29dcf6ae26
+	github.com/TicketsBot/database v0.0.0-20230608141414-836e32290408
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
 	github.com/TicketsBot/worker v0.0.0-20220830131837-12d85aca5c71
 	github.com/apex/log v1.1.2

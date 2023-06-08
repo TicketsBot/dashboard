@@ -20,6 +20,7 @@ type (
 		Bot             Bot
 		Redis           Redis
 		Cache           Cache
+		SecureProxyUrl  string
 	}
 
 	Server struct {
@@ -177,5 +178,6 @@ func fromEnvvar() {
 		Cache: Cache{
 			Uri: os.Getenv("CACHE_URI"),
 		},
+		SecureProxyUrl: os.Getenv("SECURE_PROXY_URL"),
 	}
 }

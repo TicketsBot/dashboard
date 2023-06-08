@@ -137,6 +137,17 @@
               </div>
 
               <div>
+                <h3>Secret Validation (Optional)</h3>
+                <div class="section">
+                  <p>You can specify a URL to send a POST request to when a user adds your integration to their server /
+                    updates the secrets. Respond with 2XX if the secrets are valid, or any other status code to reject
+                    them. You can read more about secret validation in our <a class="link-blue" href="https://docs.ticketsbot.net/integrations/building-integrations#secret-validation">documentation</a>.</p>
+                  <Input col1 label="Validation URL (Optional)" bind:value={data.validation_url}
+                         on:change={ensureNullIfBlank} placeholder="https://api.example.com/validate"/>
+                </div>
+              </div>
+
+              <div>
                 <h3>Request Headers</h3>
                 <div class="section">
                   <p>You can specify up to 5 HTTP headers that will be sent with the request, for example, containing
@@ -365,6 +376,10 @@
 
         if (data.privacy_policy_url !== undefined && data.privacy_policy_url !== null && data.privacy_policy_url.length === 0) {
             data.privacy_policy_url = null;
+        }
+
+        if (data.validation_url !== undefined && data.validation_url !== null && data.validation_url.length === 0) {
+            data.validation_url = null;
         }
     }
 
