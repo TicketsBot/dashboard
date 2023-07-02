@@ -2,6 +2,7 @@ name: Build and Publish
 
 env:
   REGISTRY: ghcr.io
+  PACKAGE_NAME: api
   GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
   GITHUB_SHA: ${{ github.sha }}
 
@@ -27,6 +28,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set image name
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> ${GITHUB_ENV}
+          echo "IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${PACKAGE_NAME,,}:${GITHUB_SHA}" >> ${GITHUB_ENV}
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
@@ -38,5 +44,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER }}/api:${{ env.GITHUB_SHA }}
+          tags: ${{ env.IMAGE_NAME }}
           labels: ${{ steps.meta.outputs.labels }}
