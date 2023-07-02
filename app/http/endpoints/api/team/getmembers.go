@@ -114,7 +114,6 @@ func formatMembers(guildId uint64, userIds, roleIds []uint64) ([]entity, error) 
 			Id:   roleId,
 			Type: entityTypeRole,
 		})
-		break
 	}
 
 	// map user ids to names & discrims
