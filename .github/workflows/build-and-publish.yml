@@ -2,7 +2,7 @@ name: Build and Publish
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ GITHUB_REPOSITORY_OWNER }}/api:${{ GITHUB_SHA }}
+  IMAGE_NAME: ${{ github.repository }}/api:${{ github.sha }}
 
 on:
   push:
