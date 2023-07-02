@@ -1,8 +1,6 @@
 # Build
 FROM golang:1.19-alpine
 
-ARG branch
-
 RUN apk update && apk upgrade && apk add git zlib-dev gcc musl-dev
 
 RUN mkdir -p /tmp/compile
@@ -10,7 +8,6 @@ WORKDIR /tmp/compile
 
 RUN git clone --recurse-submodules https://github.com/TicketsBot/GoPanel .
 RUN cd locale && git pull origin master
-RUN git checkout $branch
 RUN go build -o panel cmd/panel/main.go
 
 # Prod container
