@@ -6,7 +6,6 @@ import (
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects/member"
-	discordperms "github.com/rxdn/gdl/permission"
 )
 
 func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, error) {
@@ -117,12 +116,6 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 		if member.HasRole(roleId) {
 			return true, nil
 		}
-	}
-
-	// Check Discord permissions
-	hasAdminPermission := permission.HasPermissions(botContext, guildId, member.User.Id, discordperms.Administrator)
-	if hasAdminPermission {
-		return true, nil
 	}
 
 	// If ticket is not from a panel, we can use default team perms

@@ -18,7 +18,7 @@
               <td>{ticket.id}</td>
               <td>{ticket.panel_title}</td>
               {#if ticket.user !== undefined}
-                <td>{ticket.user.username}#{ticket.user.discriminator}</td>
+                <td>{ticket.user.username}</td>
               {:else}
                 <td>Unknown</td>
               {/if}

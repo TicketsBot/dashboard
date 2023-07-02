@@ -139,7 +139,7 @@
             return;
         }
 
-        notifySuccess(`${selectedUser.username}#${selectedUser.discriminator} has been added to the support team ${activeTeam.name}`);
+        notifySuccess(`${selectedUser.username} has been added to the support team ${activeTeam.name}`);
 
         let entity = {
             id: selectedUser.id,

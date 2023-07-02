@@ -77,16 +77,17 @@
                 </tr>
                 </thead>
                 <tbody>
-                {#each data.roles as role}
+                {#each data.roles as roleId}
+                  {@const role = roles.find(role => role.id === roleId)}
                   <tr>
-                    {#if role.name === ''}
-                      <td class="full-width">Unknown ({role.id})</td>
+                    {#if role === undefined}
+                      <td class="full-width">Unknown ({roleId})</td>
                     {:else}
                       <td class="full-width">{role.name}</td>
                     {/if}
 
                     <td>
-                      <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeRoleBlacklist(role)}>
+                      <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeRoleBlacklist(roleId, role)}>
                         Remove
                       </Button>
                     </td>
@@ -105,8 +106,8 @@
                 <tbody>
                 {#each data.users as user}
                   <tr>
-                    {#if user.username !== '' && user.discriminator !== ''}
-                      <td class="full-width">{user.username}#{user.discriminator} ({user.id})</td>
+                    {#if user.username !== ''}
+                      <td class="full-width">{user.username} ({user.id})</td>
                     {:else}
                       <td class="full-width">Unknown ({user.id})</td>
                     {/if}
@@ -198,19 +199,17 @@
         }
 
         if (res.data.resolved) {
-            notifySuccess(`${res.data.username}#${res.data.discriminator} has been blacklisted`);
+            notifySuccess(`${res.data.username} has been blacklisted`);
 
             data.users = [...data.users, {
                 id: res.data.id,
                 username: res.data.username,
-                discriminator: res.data.discriminator,
             }];
         } else {
             notifySuccess(`User with ID ${res.data.id} has been blacklisted`);
             data.users = [...data.users, {
                 id: res.data.id,
                 username: "Unknown",
-                discriminator: "0000",
             }];
         }
 
@@ -232,10 +231,7 @@
             return;
         }
 
-        data.roles = [...data.roles, {
-            id: blacklistRole.id,
-            name: blacklistRole.name,
-        }];
+        data.roles = [...data.roles, blacklistRole.id];
 
         notifySuccess(`${blacklistRole.name} has been blacklisted`);
         blacklistRole = undefined;
@@ -249,19 +245,24 @@
             return;
         }
 
-        notifySuccess(`${user.username}#${user.discriminator} has been removed from the blacklist`);
+        notifySuccess(`${user.username || `User with ID ${user.id}`} has been removed from the blacklist`);
         data.users = data.users.filter((u) => u.id !== user.id);
     }
 
-    async function removeRoleBlacklist(role) {
-        const res = await axios.delete(`${API_URL}/api/${guildId}/blacklist/role/${role.id}`);
+    async function removeRoleBlacklist(roleId, role) {
+        const res = await axios.delete(`${API_URL}/api/${guildId}/blacklist/role/${roleId}`);
         if (res.status !== 204) {
             notifyError(res.data.error);
             return;
         }
 
-        notifySuccess(`${role.name} has been removed from the blacklist`);
-        data.roles = data.roles.filter((r) => r.id !== role.id);
+        if (role) {
+            notifySuccess(`${role.name} has been removed from the blacklist`);
+        } else {
+            notifySuccess(`Role with ID ${roleId} has been removed from the blacklist`);
+        }
+
+        data.roles = data.roles.filter((otherId) => otherId !== roleId);
     }
 
     async function loadRoles() {

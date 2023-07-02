@@ -35,7 +35,7 @@ func WhitelabelGetGuilds(ctx *gin.Context) {
 
 	for _, id := range ids {
 		// get guild name
-		if guild, found := cache.Instance.GetGuild(id, false); found {
+		if guild, found := cache.Instance.GetGuild(id); found {
 			guilds[strconv.FormatUint(id, 10)] = guild.Name
 		}
 	}

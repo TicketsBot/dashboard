@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -11,11 +10,10 @@ import (
 
 type (
 	blacklistAddResponse struct {
-		Success       bool   `json:"success"`
-		Resolved      bool   `json:"resolved"`
-		Id            uint64 `json:"id,string"`
-		Username      string `json:"username"`
-		Discriminator string `json:"discriminator"`
+		Success  bool   `json:"success"`
+		Resolved bool   `json:"resolved"`
+		Id       uint64 `json:"id,string"`
+		Username string `json:"username"`
 	}
 
 	blacklistAddBody struct {
@@ -73,11 +71,10 @@ func AddBlacklistHandler(ctx *gin.Context) {
 		user, ok := cache.Instance.GetUser(body.Snowflake)
 		if ok {
 			ctx.JSON(200, blacklistAddResponse{
-				Success:       true,
-				Resolved:      true,
-				Id:            body.Snowflake,
-				Username:      user.Username,
-				Discriminator: fmt.Sprintf("%04d", user.Discriminator),
+				Success:  true,
+				Resolved: true,
+				Id:       body.Snowflake,
+				Username: user.Username,
 			})
 		} else {
 			ctx.JSON(200, blacklistAddResponse{

@@ -5,10 +5,9 @@ import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/worker/bot/command/impl/admin"
+	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/worker/bot/command/manager"
 	"github.com/gin-gonic/gin"
-	"github.com/rxdn/gdl/objects/interaction"
 	"github.com/rxdn/gdl/rest"
 	"time"
 )
@@ -24,19 +23,13 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 		// Get bot
 		bot, err := database.Client.Whitelabel.GetByUserId(userId)
 		if err != nil {
-			ctx.JSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
+			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
 		// Ensure bot exists
 		if bot.BotId == 0 {
-			ctx.JSON(404, gin.H{
-				"success": false,
-				"error":   "No bot found",
-			})
+			ctx.JSON(404, utils.ErrorStr("No bot found"))
 			return
 		}
 
@@ -57,64 +50,27 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 		if !wasSet {
 			expiration, err := redis.Client.TTL(redis.DefaultContext(), key).Result()
 			if err != nil {
-				ctx.JSON(500, gin.H{
-					"success": false,
-					"error":   err.Error(),
-				})
+				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
 
-			ctx.JSON(400, gin.H{
-				"success": false,
-				"error":   fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds())),
-			})
+			ctx.JSON(400, utils.ErrorStr(fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds()))))
 
 			return
 		}
 
 		botContext, err := botcontext.ContextForGuild(0)
 		if err != nil {
-			ctx.JSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
+			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
-		var interactions []rest.CreateCommandData
-		for _, cmd := range cm.GetCommands() {
-			properties := cmd.Properties()
+		commands, _ := cm.BuildCreatePayload(true, nil)
 
-			if properties.MessageOnly || properties.AdminOnly || properties.HelperOnly || properties.MainBotOnly {
-				continue
-			}
-
-			option := admin.BuildOption(cmd)
-
-			var description string
-			if properties.Type == interaction.ApplicationCommandTypeChatInput {
-				description = option.Description
-			}
-
-			data := rest.CreateCommandData{
-				Name:        option.Name,
-				Description: description,
-				Options:     option.Options,
-				Type:        properties.Type,
-			}
-
-			interactions = append(interactions, data)
-		}
-
-		if _, err = rest.ModifyGlobalCommands(bot.Token, botContext.RateLimiter, bot.BotId, interactions); err == nil {
-			ctx.JSON(200, gin.H{
-				"success": true,
-			})
+		if _, err = rest.ModifyGlobalCommands(bot.Token, botContext.RateLimiter, bot.BotId, commands); err == nil {
+			ctx.JSON(200, utils.SuccessResponse)
 		} else {
-			ctx.JSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
+			ctx.JSON(500, utils.ErrorJson(err))
 		}
 	}
 }

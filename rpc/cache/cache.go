@@ -20,11 +20,11 @@ func NewCache() *Cache {
 	}
 
 	cache := gdlcache.NewPgCache(pool, gdlcache.CacheOptions{
-		Guilds:      true,
-		Users:       true,
-		Members:     true,
-		Channels:    true,
-		Roles:       true,
+		Guilds:   true,
+		Users:    true,
+		Members:  true,
+		Channels: true,
+		Roles:    false,
 	})
 
 	return &Cache{

@@ -5,6 +5,7 @@ import (
 	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
+	"github.com/TicketsBot/common/restcache"
 	"github.com/rxdn/gdl/rest/ratelimit"
 )
 
@@ -26,6 +27,7 @@ func ContextForGuild(guildId uint64) (ctx BotContext, err error) {
 			BotId:       res.BotId,
 			Token:       res.Token,
 			RateLimiter: rateLimiter,
+			RestCache:   restcache.NewRedisRestCache(redis.Client.Client, res.Token, rateLimiter),
 		}, nil
 	} else {
 		return PublicContext(), nil
@@ -33,9 +35,12 @@ func ContextForGuild(guildId uint64) (ctx BotContext, err error) {
 }
 
 func PublicContext() BotContext {
+	rateLimiter := ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, "ratelimiter:public"), 1)
+
 	return BotContext{
 		BotId:       config.Conf.Bot.Id,
 		Token:       config.Conf.Bot.Token,
-		RateLimiter: ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, "ratelimiter:public"), 1),
+		RateLimiter: rateLimiter,
+		RestCache:   restcache.NewRedisRestCache(redis.Client.Client, config.Conf.Bot.Token, rateLimiter),
 	}
 }

@@ -55,7 +55,7 @@ func ListSelfTranscripts(ctx *gin.Context) {
 		group.Go(func() error {
 			var guildName string
 			{
-				guild, ok := cache.Instance.GetGuild(ticket.GuildId, false)
+				guild, ok := cache.Instance.GetGuild(ticket.GuildId)
 				if ok {
 					guildName = guild.Name
 				} else {

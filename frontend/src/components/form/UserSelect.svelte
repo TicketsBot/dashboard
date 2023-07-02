@@ -36,7 +36,11 @@
     }
 
     function labelMapper(user) {
-        return `${user.username}#${user.discriminator}`
+        if (!user.discriminator || user.discriminator === "0" || user.discriminator === "0000") {
+            return user.username;
+        } else {
+            return `${user.username}#${user.discriminator}`
+        }
     }
 
     onMount(() => {
