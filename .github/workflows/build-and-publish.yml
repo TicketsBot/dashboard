@@ -2,7 +2,7 @@ name: Build and Publish
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/api:${{ github.sha }}
+  IMAGE_NAME: ${{ github.repository }}/api
 
 on:
   push:
@@ -37,5 +37,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER }}/api:${{ env.GITHUB_SHA }}
           labels: ${{ steps.meta.outputs.labels }}
