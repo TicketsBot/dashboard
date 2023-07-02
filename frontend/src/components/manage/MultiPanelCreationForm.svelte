@@ -63,9 +63,11 @@
 
     export let seedDefault = true;
     if (seedDefault) {
+      const firstChannel = channels[0];
+
       data = {
         colour: 0x7289da,
-        channels: channels[0].id,
+        channels: firstChannel ? firstChannel.id : undefined,
         panels: [],
       }
     }
