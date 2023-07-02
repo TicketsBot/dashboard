@@ -30,7 +30,6 @@ jobs:
 
       - name: Set image name
         run: |
-          echo "OWNER_LC=${OWNER,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${PACKAGE_NAME,,}:${GITHUB_SHA}" >> ${GITHUB_ENV}
 
       - name: Extract metadata (tags, labels) for Docker
@@ -46,3 +45,7 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Log image name
+        run: |
+          echo "Image URI: ${IMAGE_NAME}"
