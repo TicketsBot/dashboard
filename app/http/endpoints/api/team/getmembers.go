@@ -87,7 +87,7 @@ func getTeamMembers(ctx *gin.Context, teamId int, guildId uint64) {
 		roleIds, err = dbclient.Client.SupportTeamRoles.Get(teamId)
 		return
 	})
-	
+
 	if err := group.Wait(); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -107,25 +107,14 @@ func formatMembers(guildId uint64, userIds, roleIds []uint64) ([]entity, error) 
 		return nil, err
 	}
 
-	// get role objects so we can get name
-	roles, err := ctx.GetGuildRoles(guildId)
-	if err != nil {
-		return nil, err
-	}
-
 	// map role ids to names
 	data := make([]entity, 0)
 	for _, roleId := range roleIds {
-		for _, role := range roles {
-			if roleId == role.Id {
-				data = append(data, entity{
-					Id:   roleId,
-					Name: role.Name,
-					Type: entityTypeRole,
-				})
-				break
-			}
-		}
+		data = append(data, entity{
+			Id:   roleId,
+			Type: entityTypeRole,
+		})
+		break
 	}
 
 	// map user ids to names & discrims
@@ -161,7 +150,7 @@ func formatMembers(guildId uint64, userIds, roleIds []uint64) ([]entity, error) 
 			case user := <-users:
 				data = append(data, entity{
 					Id:   user.Id,
-					Name: fmt.Sprintf("%s#%s", user.Username, user.PadDiscriminator()),
+					Name: fmt.Sprintf("%s", user.Username),
 					Type: entityTypeUser,
 				})
 			}

@@ -14,6 +14,6 @@ var entityTypes = map[int]entityType{
 
 type entity struct {
 	Id   uint64     `json:"id,string"`
-	Name string     `json:"name"`
+	Name string     `json:"name,omitempty"`
 	Type entityType `json:"type"`
 }

@@ -43,7 +43,12 @@
                 <tbody>
                 {#each members as member}
                   <tr>
-                    <td>{member.name}</td>
+                    {#if member.type === USER_TYPE}
+                      <td>{member.name}</td>
+                    {:else if member.type === ROLE_TYPE}
+                      {@const role = roles.find(role => role.id === member.id)}
+                      <td>{role === undefined ? "Unknown Role" : role.name}</td>
+                    {/if}
                     <td style="display: flex; flex-direction: row-reverse">
                       <Button type="button" danger={true} on:click={() => removeMember(activeTeam.id, member)}>Delete
                       </Button>
@@ -102,6 +107,9 @@
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
+
+    const USER_TYPE = 0;
+    const ROLE_TYPE = 1;
 
     let defaultTeam = {id: 'default', name: 'Default'};
 
@@ -175,8 +183,14 @@
             return;
         }
 
-        notifySuccess(`${entity.name} has been removed from the team`);
         members = members.filter((member) => member.id !== entity.id);
+
+        if (entity.type === USER_TYPE) {
+            notifySuccess(`${entity.name} has been removed from the team`);
+        } else {
+            const role = roles.find((role) => role.id === entity.id);
+            notifySuccess(`${role === undefined ? "Unknown role" : role.name} has been removed from the team`);
+        }
     }
 
     async function createTeam() {
