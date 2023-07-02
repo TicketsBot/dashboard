@@ -268,6 +268,16 @@
         isPremium = res.data.premium;
     }
 
+    async function loadSettings() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/settings`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        data = res.data;
+    }
+
     async function updateSettings() {
         // Svelte hack - I can't even remember what this does
         let mapped = Object.fromEntries(Object.entries(data).map(([k, v]) => {
@@ -348,15 +358,7 @@
         return success;
     }
 
-    async function loadData() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/settings`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        data = res.data;
-
+    function doOverrides() {
         // Overrides
         if (data.archive_channel === "0") {
             let first = channels.find((c) => c.type === 0);
@@ -406,10 +408,11 @@
         await Promise.all([
             loadPanels(),
             loadChannels(),
-            loadPremium()
+            loadPremium(),
+            loadSettings()
         ]);
 
-        await loadData(); // Depends on channels
+        doOverrides(); // Depends on channels
     });
 </script>
 
