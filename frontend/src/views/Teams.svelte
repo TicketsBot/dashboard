@@ -20,9 +20,9 @@
 
           <div class="col-1" style="flex-direction: row">
             <div class="col-4" style="margin-right: 12px">
-              <div class="multiselect-super">
-                <Select isSearchable={false} isClearable={false} optionIdentifier="id" items={teams}
-                        bind:selectedValue={activeTeam} getOptionLabel={labelMapper} getSelectionLabel={labelMapper}
+              <div class="col-1">
+                <WrappedSelect isSearchable={false} isClearable={false} optionIdentifier="id" items={teams} placeholder="Select a team..."
+                        bind:selectedValue={activeTeam} nameMapper={labelMapper}
                         on:select={updateActiveTeam}/>
               </div>
             </div>
@@ -67,7 +67,7 @@
                 </div>
 
                 <div style="margin-left: 10px">
-                  <Button type="button" icon="fas fa-plus" disabled={selectedUser === undefined}
+                  <Button type="button" icon="fas fa-plus" disabled={selectedUser === null || selectedUser === undefined}
                           on:click={addUser}>Add To Team
                   </Button>
                 </div>
@@ -75,12 +75,12 @@
 
               <h3>Add Role</h3>
               <div class="user-select">
-                <div style="display: flex; flex: 1">
+                <div class="col-1" style="display: flex; flex: 1">
                   <RoleSelect {guildId} {roles} bind:value={selectedRole}/>
                 </div>
 
                 <div style="margin-left: 10px">
-                  <Button type="button" icon="fas fa-plus" disabled={selectedRole === undefined}
+                  <Button type="button" icon="fas fa-plus" disabled={selectedRole === null || selectedRole == undefined}
                           on:click={addRole}>Add To Team
                   </Button>
                 </div>
@@ -104,6 +104,7 @@
     import Select from 'svelte-select';
     import UserSelect from "../components/form/UserSelect.svelte";
     import RoleSelect from "../components/form/RoleSelect.svelte";
+    import WrappedSelect from "../components/WrappedSelect.svelte";
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
@@ -152,7 +153,7 @@
         let entity = {
             id: selectedUser.id,
             type: 0,
-            name: `${selectedUser.username}#${selectedUser.discriminator}`
+            name: `${selectedUser.username}`
         }
         members = [...members, entity];
         selectedUser = undefined;

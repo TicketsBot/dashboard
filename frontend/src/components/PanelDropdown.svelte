@@ -1,14 +1,11 @@
 <label class="form-label">{label}</label>
-<div class="multiselect-super">
-  <Select placeholder="Select..." items={panels} optionIdentifier="panel_id" getOptionLabel={labelMapper}
-          getSelectionLabel={labelMapper} bind:selectedValue={selectedRaw}
-          on:select={update} on:clear={handleClear} {isMulti} {isSearchable}
-          placeholderAlwaysShow={true} />
-</div>
+
+<WrappedSelect placeholder="Select panel..." items={panels} optionIdentifier="panel_id" nameMapper={labelMapper}
+               bind:selectedValue={selectedRaw} on:select={update} on:clear={handleClear} {isMulti} {isSearchable} />
 
 <script>
-    import Select from 'svelte-select';
     import {onMount} from "svelte";
+    import WrappedSelect from "./WrappedSelect.svelte";
 
     export let label;
     export let panels;

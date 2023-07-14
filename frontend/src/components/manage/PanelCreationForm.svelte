@@ -5,29 +5,28 @@
             <div class="row">
                 <div class="col-2">
                     <label class="form-label">Mention On Open</label>
-                    <div class="multiselect-super">
-                        <Select items={mentionItems}
-                                bind:selectedValue={selectedMentions}
-                                on:select={updateMentions}
-                                optionIdentifier="id"
-                                getSelectionLabel={mentionNameMapper}
-                                getOptionLabel={mentionNameMapper}
-                                placeholderAlwaysShow={true}
-                                isMulti={true} />
+                    <div class="col-1">
+                        <WrappedSelect items={mentionItems}
+                                       bind:selectedValue={selectedMentions}
+                                       on:select={updateMentions}
+                                       optionIdentifier="id"
+                                       nameMapper={mentionNameMapper}
+                                       placeholder="Select roles..."
+                                       isMulti={true} />
                     </div>
                 </div>
                 <div class="col-2">
                     <label class="form-label">Support Teams</label>
-                    <div class="multiselect-super">
-                        <Select items={teamsWithDefault}
-                                bind:selectedValue={selectedTeams}
-                                on:select={updateTeams}
-                                isSearchable={false}
-                                optionIdentifier="id"
-                                getSelectionLabel={nameMapper}
-                                getOptionLabel={nameMapper}
-                                isMulti={true} />
-                    </div>
+                    <WrappedSelect items={teamsWithDefault}
+                            bind:selectedValue={selectedTeams}
+                            on:select={updateTeams}
+                            optionIdentifier="id"
+                            nameMapper={nameMapper}
+                            placeholder="Select teams..."
+                            isMulti={true}>
+                        <div slot="item" let:item>{item.name}</div>
+                        <div slot="selection" let:selection>{selection.name}</div>
+                    </WrappedSelect>
                 </div>
             </div>
             <div class="incomplete-row">
@@ -105,9 +104,9 @@
 
                 <div class="col-2" style="z-index: 1">
                     <label for="emoji-pick-wrapper" class="form-label">Button Emoji</label>
-                    <div id="emoji-pick-wrapper" class="row">
-                        <div class="col-2">
-                            <label class="form-label" style="margin-bottom: 0 !important;">Custom Emoji</label>
+                    <div id="emoji-pick-wrapper" class="row" style="gap: 2%">
+                        <div class="col">
+                            <label class="form-label" style="margin-bottom: 0 !important; white-space: nowrap;">Custom Emoji</label>
                             <Toggle hideLabel
                                     toggledColor="#66bb6a"
                                     untoggledColor="#ccc"
@@ -115,13 +114,12 @@
                                     on:toggle={handleEmojiTypeChange} />
                         </div>
                         {#if data.use_custom_emoji}
-                            <div class="multiselect-super">
-                                <Select items={emojis}
-                                        Item={EmojiItem}
+                            <div class="col-fill">
+                                <!--Item=EmojiItem-->
+                                <WrappedSelect items={emojis}
                                         selectedValue={data.emote}
                                         optionIdentifier="id"
-                                        getSelectionLabel={emojiNameMapper}
-                                        getOptionLabel={emojiNameMapper}
+                                        nameMapper={emojiNameMapper}
                                         placeholderAlwaysShow={true}
                                         on:select={handleCustomEmojiChange} />
                             </div>
@@ -169,6 +167,7 @@
     import Checkbox from "../form/Checkbox.svelte";
     import Collapsible from "../Collapsible.svelte";
     import EmbedForm from "../EmbedForm.svelte";
+    import WrappedSelect from "../WrappedSelect.svelte";
 
     export let guildId;
     export let seedDefault = true;
@@ -351,6 +350,11 @@
         height: 100%;
     }
 
+    .col {
+        display: flex;
+        flex-direction: column;
+    }
+
     .col-fill {
         display: flex;
         flex-direction: column;
@@ -397,57 +401,11 @@
         min-height: 0 !important;
     }
 
-    .advanced-settings-show {
-        visibility: visible;
-        min-height: 297px;
-        margin-bottom: 10px;
-    }
-
     :global(.show-overflow) {
         overflow: visible;
     }
 
-    .inner {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-        /*position: absolute;*/
-        height: 100%;
-        width: 100%;
-    }
-
-    .absolute {
-        position: absolute;
-    }
-
     #naming-scheme-wrapper {
         gap: 10px;
-    }
-
-    :global(.multiselect-super) {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        --background: #2e3136;
-        --border: #2e3136;
-        --borderRadius: 4px;
-        --itemHoverBG: #121212;
-        --listBackground: #2e3136;
-        --itemColor: white;
-        --multiItemBG: #272727;
-        --multiItemActiveBG: #272727;
-        --multiClearFill: #272727;
-        --multiClearHoverFill: #272727;
-        --inputColor: white;
-        --inputFontSize: 16px;
-    }
-
-    :global(.multiselect-super > .selectContainer) {
-        width: 100%;
-    }
-
-    :global(.selectContainer > .multiSelect, .selectContainer > .multiSelect > input) {
-        cursor: pointer;
     }
 </style>

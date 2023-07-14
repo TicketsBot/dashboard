@@ -28,7 +28,7 @@
     "sirv-cli": "^1.0.0",
     "svelte-emoji-selector": "^1.0.1",
     "svelte-router-spa": "^6.0.2",
-    "svelte-select": "^3.17.0",
+    "svelte-select": "^5.6.1",
     "svelte-tooltip": "^1.2.0"
   }
 }
