@@ -4,7 +4,7 @@
       <span slot="title">Edit Panel</span>
 
       <div slot="body" class="body-wrapper">
-        <PanelCreationForm {guildId} {channels} {roles} {emojis} {teams} {forms} bind:data={panel} seedDefault={false} />
+        <PanelCreationForm {guildId} {channels} {roles} {emojis} {teams} {forms} {isPremium} bind:data={panel} seedDefault={false} />
       </div>
 
       <div slot="footer">
