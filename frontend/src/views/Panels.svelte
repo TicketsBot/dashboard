@@ -1,5 +1,5 @@
 {#if editModal}
-  <PanelEditModal bind:modal={editModalElement} {guildId} {channels} {roles} {emojis} {teams} {forms} bind:panel={editData}
+  <PanelEditModal bind:modal={editModalElement} {guildId} {channels} {roles} {emojis} {teams} {forms} {isPremium} bind:panel={editData}
                     on:close={() => editModal = false} on:confirm={submitEdit}/>
 {/if}
 
@@ -71,7 +71,7 @@
 
         <div slot="body" class="body-wrapper">
           {#if !$loadingScreen}
-            <PanelCreationForm {guildId} {channels} {roles} {emojis} {teams} {forms} bind:data={panelCreateData}/>
+            <PanelCreationForm {guildId} {channels} {roles} {emojis} {teams} {forms} {isPremium} bind:data={panelCreateData}/>
             <div style="display: flex; justify-content: center">
               <div class="col-3">
                 <Button icon="fas fa-paper-plane" fullWidth={true} on:click={createPanel}>Submit</Button>

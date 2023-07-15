@@ -10,10 +10,11 @@ import (
 
 const pageLimit = 15
 
-type transcript struct {
+type transcriptMetadata struct {
 	TicketId      int     `json:"ticket_id"`
 	Username      string  `json:"username"`
 	CloseReason   *string `json:"close_reason"`
+	ClosedBy      *uint64 `json:"closed_by"`
 	Rating        *uint8  `json:"rating"`
 	HasTranscript bool    `json:"has_transcript"`
 }
@@ -88,9 +89,9 @@ func ListTranscripts(ctx *gin.Context) {
 		return
 	}
 
-	transcripts := make([]transcript, len(tickets))
+	transcripts := make([]transcriptMetadata, len(tickets))
 	for i, ticket := range tickets {
-		transcript := transcript{
+		transcript := transcriptMetadata{
 			TicketId:      ticket.Id,
 			Username:      usernames[ticket.UserId],
 			HasTranscript: ticket.HasTranscript,
@@ -101,7 +102,8 @@ func ListTranscripts(ctx *gin.Context) {
 		}
 
 		if v, ok := closeReasons[ticket.Id]; ok {
-			transcript.CloseReason = &v
+			transcript.CloseReason = v.Reason
+			transcript.ClosedBy = v.ClosedBy
 		}
 
 		transcripts[i] = transcript

@@ -6,9 +6,9 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
 	github.com/TicketsBot/common v0.0.0-20230702161316-9b2fa80535aa
-	github.com/TicketsBot/database v0.0.0-20230608141414-836e32290408
+	github.com/TicketsBot/database v0.0.0-20230715182338-2e9789a42c47
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20230702161701-e7d98e52292f
+	github.com/TicketsBot/worker v0.0.0-20230715182525-e90848f33c9c
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.21.0
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
@@ -27,6 +27,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rxdn/gdl v0.0.0-20230622203838-cad65ada73f0
 	github.com/sirupsen/logrus v1.9.0
+	github.com/stretchr/testify v1.8.2
 	github.com/weppos/publicsuffix-go v0.20.0
 	golang.org/x/sync v0.0.0-20220923202941-7f9b1623fab7
 )
@@ -42,6 +43,7 @@ require (
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/caarlos0/env/v6 v6.9.3 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/elliotchance/orderedmap v1.2.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -77,6 +79,7 @@ require (
 	github.com/paulmach/orb v0.9.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.32.1 // indirect

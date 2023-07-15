@@ -37,7 +37,8 @@
     export let forms = [];
     export let roles = [];
     export let emojis = [];
-    export let teams = [];
+    export let teams = []
+    export let isPremium = false;
 
     const dispatch = createEventDispatcher();
 

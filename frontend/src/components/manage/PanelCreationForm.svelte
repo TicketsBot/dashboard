@@ -61,6 +61,14 @@
                            tooltipLink="https://docs.ticketsbot.net" />
                 {/if}
             </div>
+            <div class="incomplete-row">
+                <Dropdown col3 label="Exit Survey Form" premiumBadge={true} bind:value={data.exit_survey_form_id} disabled={!isPremium}>
+                    <option value=null>None</option>
+                    {#each forms as form}
+                        <option value={form.form_id}>{form.title}</option>
+                    {/each}
+                </Dropdown>
+            </div>
         </div>
     </Collapsible>
 
@@ -183,6 +191,7 @@
     export let emojis = [];
     export let teams = [];
     export let forms = [];
+    export let isPremium = false;
 
     let advancedSettings = false;
     let overflowShow = false;

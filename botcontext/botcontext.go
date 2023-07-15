@@ -8,6 +8,7 @@ import (
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/common/restcache"
 	"github.com/TicketsBot/database"
+	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction"
@@ -109,6 +110,24 @@ func (ctx BotContext) GetUser(userId uint64) (u user.User, err error) {
 
 func (ctx BotContext) GetGuildRoles(guildId uint64) (roles []guild.Role, err error) {
 	return ctx.RestCache.GetGuildRoles(guildId)
+}
+
+func (ctx BotContext) GetGuildChannels(guildId uint64) ([]channel.Channel, error) {
+	cachedChannels := cache.Instance.GetGuildChannels(guildId)
+	if len(cachedChannels) == 0 {
+		// If guild is cached but not any channels, likely that it does truly have 0 channels, so don't fetch from REST
+		_, ok := cache.Instance.GetGuild(guildId)
+		if ok {
+			return []channel.Channel{}, nil
+		}
+	}
+
+	channels, err := rest.GetGuildChannels(ctx.Token, ctx.RateLimiter, guildId)
+	if err == nil {
+		go cache.Instance.StoreChannels(channels)
+	}
+
+	return channels, err
 }
 
 func (ctx BotContext) GetGuildEmoji(guildId, emojiId uint64) (emoji.Emoji, error) {

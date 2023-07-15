@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -9,6 +10,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
@@ -54,13 +56,51 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	if !data.doValidations(ctx, guildId) {
-		return
-	}
+	// Apply defaults
+	ApplyPanelDefaults(&data)
 
 	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	channels, err := botContext.GetGuildChannels(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	// Do custom validation
+	validationContext := PanelValidationContext{
+		Data:       data,
+		GuildId:    guildId,
+		IsPremium:  premiumTier > premium.None,
+		BotContext: botContext,
+		Channels:   channels,
+	}
+
+	if err := ValidatePanelBody(validationContext); err != nil {
+		var validationError *validation.InvalidInputError
+		if errors.As(err, &validationError) {
+			ctx.JSON(400, utils.ErrorStr(validationError.Error()))
+		} else {
+			ctx.JSON(500, utils.ErrorJson(err))
+		}
+
+		return
+	}
+
+	// Do tag validation
+	if err := validate.Struct(data); err != nil {
+		validationErrors, ok := err.(validator.ValidationErrors)
+		if !ok {
+			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+			return
+		}
+
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
+		ctx.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
@@ -170,6 +210,7 @@ func UpdatePanel(ctx *gin.Context) {
 		NamingScheme:        data.NamingScheme,
 		ForceDisabled:       existing.ForceDisabled,
 		Disabled:            data.Disabled,
+		ExitSurveyFormId:    data.ExitSurveyFormId,
 	}
 
 	if err = dbclient.Client.Panel.Update(panel); err != nil {

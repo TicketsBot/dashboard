@@ -2,10 +2,10 @@ package api
 
 import (
 	"errors"
+	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/common/collections"
@@ -13,38 +13,34 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest/request"
-	"regexp"
 	"strconv"
-	"strings"
 )
 
 const freePanelLimit = 3
 
-var placeholderPattern = regexp.MustCompile(`%(\w+)%`)
-
 type panelBody struct {
-	ChannelId       uint64                `json:"channel_id,string"`
-	MessageId       uint64                `json:"message_id,string"`
-	Title           string                `json:"title"`
-	Content         string                `json:"content"`
-	Colour          uint32                `json:"colour"`
-	CategoryId      uint64                `json:"category_id,string"`
-	Emoji           types.Emoji           `json:"emote"`
-	WelcomeMessage  *types.CustomEmbed    `json:"welcome_message" validate:"omitempty,dive"`
-	Mentions        []string              `json:"mentions"`
-	WithDefaultTeam bool                  `json:"default_team"`
-	Teams           []int                 `json:"teams"`
-	ImageUrl        *string               `json:"image_url,omitempty"`
-	ThumbnailUrl    *string               `json:"thumbnail_url,omitempty"`
-	ButtonStyle     component.ButtonStyle `json:"button_style,string"`
-	ButtonLabel     string                `json:"button_label"`
-	FormId          *int                  `json:"form_id"`
-	NamingScheme    *string               `json:"naming_scheme"`
-	Disabled        bool                  `json:"disabled"`
+	ChannelId        uint64                `json:"channel_id,string"`
+	MessageId        uint64                `json:"message_id,string"`
+	Title            string                `json:"title"`
+	Content          string                `json:"content"`
+	Colour           uint32                `json:"colour"`
+	CategoryId       uint64                `json:"category_id,string"`
+	Emoji            types.Emoji           `json:"emote"`
+	WelcomeMessage   *types.CustomEmbed    `json:"welcome_message" validate:"omitempty,dive"`
+	Mentions         []string              `json:"mentions"`
+	WithDefaultTeam  bool                  `json:"default_team"`
+	Teams            []int                 `json:"teams"`
+	ImageUrl         *string               `json:"image_url,omitempty"`
+	ThumbnailUrl     *string               `json:"thumbnail_url,omitempty"`
+	ButtonStyle      component.ButtonStyle `json:"button_style,string"`
+	ButtonLabel      string                `json:"button_label"`
+	FormId           *int                  `json:"form_id"`
+	NamingScheme     *string               `json:"naming_scheme"`
+	Disabled         bool                  `json:"disabled"`
+	ExitSurveyFormId *int                  `json:"exit_survey_form_id"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
@@ -63,6 +59,8 @@ func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelM
 		IsPremium:      isPremium,
 	}
 }
+
+var validate = validator.New()
 
 func CreatePanel(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
@@ -102,7 +100,45 @@ func CreatePanel(ctx *gin.Context) {
 		}
 	}
 
-	if !data.doValidations(ctx, guildId) {
+	// Apply defaults
+	ApplyPanelDefaults(&data)
+
+	channels, err := botContext.GetGuildChannels(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	// Do custom validation
+	validationContext := PanelValidationContext{
+		Data:       data,
+		GuildId:    guildId,
+		IsPremium:  premiumTier > premium.None,
+		BotContext: botContext,
+		Channels:   channels,
+	}
+
+	if err := ValidatePanelBody(validationContext); err != nil {
+		var validationError *validation.InvalidInputError
+		if errors.As(err, &validationError) {
+			ctx.JSON(400, utils.ErrorStr(validationError.Error()))
+		} else {
+			ctx.JSON(500, utils.ErrorJson(err))
+		}
+
+		return
+	}
+
+	// Do tag validation
+	if err := validate.Struct(data); err != nil {
+		validationErrors, ok := err.(validator.ValidationErrors)
+		if !ok {
+			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+			return
+		}
+
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
+		ctx.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
@@ -170,7 +206,9 @@ func CreatePanel(ctx *gin.Context) {
 		ButtonLabel:         data.ButtonLabel,
 		FormId:              data.FormId,
 		NamingScheme:        data.NamingScheme,
+		ForceDisabled:       false,
 		Disabled:            data.Disabled,
+		ExitSurveyFormId:    data.ExitSurveyFormId,
 	}
 
 	panelId, err := dbclient.Client.Panel.Create(panel)
@@ -227,310 +265,9 @@ func CreatePanel(ctx *gin.Context) {
 	})
 }
 
-var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-zA-Z0-9()]{1,63}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$`)
-var validate = validator.New()
-
-func (p *panelBody) doValidations(ctx *gin.Context, guildId uint64) bool {
-	if err := validate.Struct(p); err != nil {
-		validationErrors, ok := err.(validator.ValidationErrors)
-		if !ok {
-			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
-			return false
-		}
-
-		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
-		ctx.JSON(400, utils.ErrorStr(formatted))
-		return false
-	}
-
-	botContext, err := botcontext.ContextForGuild(guildId)
-	if err != nil {
-		return false // TODO: Log error
-	}
-
-	if !p.verifyTitle() {
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error":   "Panel titles must be between 1 - 80 characters in length",
-		})
-		return false
-	}
-
-	if !p.verifyContent() {
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error":   "Panel content must be between 1 - 4096 characters in length",
-		})
-		return false
-	}
-
-	channels := cache.Instance.GetGuildChannels(guildId)
-
-	if !p.verifyChannel(channels) {
-		ctx.JSON(400, utils.ErrorStr("Invalid channel"))
-		return false
-	}
-
-	if !p.verifyCategory(channels) {
-		ctx.JSON(400, utils.ErrorStr("Invalid channel category"))
-		return false
-	}
-
-	if !p.verifyEmoji(botContext, guildId) {
-		ctx.JSON(400, utils.ErrorStr("Invalid emoji"))
-		return false
-	}
-
-	if !p.verifyImageUrl() || !p.verifyThumbnailUrl() {
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error":   "Image URL must be between 1 - 255 characters and a valid URL",
-		})
-		return false
-	}
-
-	if !p.verifyButtonStyle() {
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error":   "Invalid button style",
-		})
-		return false
-	}
-
-	if !p.validateWelcomeMessage() {
-		ctx.JSON(400, utils.ErrorStr("The welcome message you provided has no content"))
-		return false
-	}
-
-	if !p.verifyButtonLabel() {
-		ctx.JSON(400, utils.ErrorStr("Button labels cannot be longer than 80 characters"))
-		return false
-	}
-
-	{
-		valid, err := p.verifyTeams(guildId)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return false
-		}
-
-		if !valid {
-			ctx.JSON(400, utils.ErrorStr("Invalid teams provided"))
-			return false
-		}
-	}
-
-	{
-		ok, err := p.verifyFormId(guildId)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return false
-		}
-
-		if !ok {
-			ctx.JSON(400, utils.ErrorStr("Guild ID for form does not match"))
-			return false
-		}
-	}
-
-	if !p.verifyNamingScheme() {
-		ctx.JSON(400, utils.ErrorStr("Invalid naming scheme: ensure that the naming scheme is less than 100 characters and	 the placeholders you have used are valid"))
-		return false
-	}
-
-	return true
-}
-
-func (p *panelBody) verifyTitle() bool {
-	if len(p.Title) > 80 {
-		return false
-	} else if len(p.Title) == 0 { // Fill default
-		p.Title = "Open a ticket!"
-	}
-
-	return true
-}
-
-func (p *panelBody) verifyContent() bool {
-	if len(p.Content) > 4096 {
-		return false
-	} else if len(p.Content) == 0 { // Fill default
-		p.Content = "By clicking the button, a ticket will be opened for you."
-	}
-
-	return true
-}
-
 // Data must be validated before calling this function
 func (p *panelBody) getEmoji() *emoji.Emoji {
 	return p.Emoji.IntoGdl()
-}
-
-func (p *panelBody) verifyChannel(channels []channel.Channel) bool {
-	var valid bool
-	for _, ch := range channels {
-		if ch.Id == p.ChannelId && (ch.Type == channel.ChannelTypeGuildText || ch.Type == channel.ChannelTypeGuildNews) {
-			valid = true
-			break
-		}
-	}
-
-	return valid
-}
-
-func (p *panelBody) verifyCategory(channels []channel.Channel) bool {
-	var valid bool
-	for _, ch := range channels {
-		if ch.Id == p.CategoryId && ch.Type == channel.ChannelTypeGuildCategory {
-			valid = true
-			break
-		}
-	}
-
-	return valid
-}
-
-func (p *panelBody) verifyEmoji(ctx botcontext.BotContext, guildId uint64) bool {
-	if p.Emoji.IsCustomEmoji {
-		if p.Emoji.Id == nil {
-			return false
-		}
-
-		emoji, err := ctx.GetGuildEmoji(guildId, *p.Emoji.Id)
-		if err != nil { // TODO: Log
-			return false
-		}
-
-		if emoji.Id.Value == 0 {
-			return false
-		}
-
-		if emoji.Name != p.Emoji.Name {
-			return false
-		}
-
-		return true
-	} else {
-		if len(p.Emoji.Name) == 0 {
-			return true
-		}
-
-		// Convert from :emoji: to unicode if we need to
-		name := strings.TrimSpace(p.Emoji.Name)
-		name = strings.Replace(name, ":", "", -1)
-
-		unicode, ok := utils.GetEmoji(name)
-		if !ok {
-			return false
-		}
-
-		p.Emoji.Name = unicode
-		return true
-	}
-}
-
-func (p *panelBody) verifyImageUrl() bool {
-	if p.ImageUrl != nil && len(*p.ImageUrl) == 0 {
-		p.ImageUrl = nil
-	}
-
-	return p.ImageUrl == nil || (len(*p.ImageUrl) <= 255 && urlRegex.MatchString(*p.ImageUrl))
-}
-
-func (p *panelBody) verifyThumbnailUrl() bool {
-	if p.ThumbnailUrl != nil && len(*p.ThumbnailUrl) == 0 {
-		p.ThumbnailUrl = nil
-	}
-
-	return p.ThumbnailUrl == nil || (len(*p.ThumbnailUrl) <= 255 && urlRegex.MatchString(*p.ThumbnailUrl))
-}
-
-func (p *panelBody) verifyButtonStyle() bool {
-	return p.ButtonStyle >= component.ButtonStylePrimary && p.ButtonStyle <= component.ButtonStyleDanger
-}
-
-func (p *panelBody) verifyButtonLabel() bool {
-	if len(p.ButtonLabel) == 0 {
-		p.ButtonLabel = p.Title // Title already checked for 80 char max
-	}
-
-	return len(p.ButtonLabel) > 0 && len(p.ButtonLabel) <= 80
-}
-
-func (p *panelBody) verifyFormId(guildId uint64) (bool, error) {
-	if p.FormId == nil {
-		return true, nil
-	} else {
-		form, ok, err := dbclient.Client.Forms.Get(*p.FormId)
-		if err != nil {
-			return false, err
-		}
-
-		if !ok {
-			return false, nil
-		}
-
-		if form.GuildId != guildId {
-			return false, nil
-		}
-
-		return true, nil
-	}
-}
-
-func (p *panelBody) verifyTeams(guildId uint64) (bool, error) {
-	// Query does not work nicely if there are no teams created in the guild, but if the user submits no teams,
-	// then the input is guaranteed to be valid.
-	if len(p.Teams) == 0 {
-		return true, nil
-	}
-
-	return dbclient.Client.SupportTeam.AllTeamsExistForGuild(guildId, p.Teams)
-}
-
-func (p *panelBody) verifyNamingScheme() bool {
-	if p.NamingScheme == nil {
-		return true
-	}
-
-	if len(*p.NamingScheme) == 0 {
-		p.NamingScheme = nil
-		return true
-	}
-
-	// Substitute out {} users may use by mistake, spaces for dashes and convert to lowercase
-	p.NamingScheme = utils.Ptr(strings.ReplaceAll(*p.NamingScheme, "{", "%"))
-	p.NamingScheme = utils.Ptr(strings.ReplaceAll(*p.NamingScheme, "}", "%"))
-	p.NamingScheme = utils.Ptr(strings.ReplaceAll(*p.NamingScheme, " ", "-"))
-	p.NamingScheme = utils.Ptr(strings.ToLower(*p.NamingScheme))
-
-	if len(*p.NamingScheme) > 100 {
-		return false
-	}
-
-	// Validate placeholders used
-	validPlaceholders := []string{"id", "username", "nickname", "id_padded"}
-	for _, match := range placeholderPattern.FindAllStringSubmatch(*p.NamingScheme, -1) {
-		if len(match) < 2 { // Infallible
-			return false
-		}
-
-		placeholder := match[1]
-		if !utils.Contains(validPlaceholders, placeholder) {
-			return false
-		}
-	}
-
-	// Discord filters out illegal characters (such as +, $, ") when creating the channel for us
-	return true
-}
-
-func (p *panelBody) validateWelcomeMessage() bool {
-	return p.WelcomeMessage == nil || !(p.WelcomeMessage.Title == nil &&
-		p.WelcomeMessage.Description == nil &&
-		len(p.WelcomeMessage.Fields) == 0 &&
-		p.WelcomeMessage.ImageUrl == nil &&
-		p.WelcomeMessage.ThumbnailUrl == nil)
 }
 
 func getRoleHashSet(guildId uint64) (*collections.Set[uint64], error) {
