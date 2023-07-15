@@ -8,7 +8,7 @@
                     <div class="col-1">
                         <WrappedSelect items={mentionItems}
                                        bind:selectedValue={selectedMentions}
-                                       on:select={updateMentions}
+                                       on:change={updateMentions}
                                        optionIdentifier="id"
                                        nameMapper={mentionNameMapper}
                                        placeholder="Select roles..."
@@ -19,7 +19,7 @@
                     <label class="form-label">Support Teams</label>
                     <WrappedSelect items={teamsWithDefault}
                             bind:selectedValue={selectedTeams}
-                            on:select={updateTeams}
+                            on:change={updateTeams}
                             optionIdentifier="id"
                             nameMapper={nameMapper}
                             placeholder="Select teams..."
@@ -129,7 +129,7 @@
                                         optionIdentifier="id"
                                         nameMapper={emojiNameMapper}
                                         placeholderAlwaysShow={true}
-                                        on:select={handleCustomEmojiChange} />
+                                        on:change={handleCustomEmojiChange} />
                             </div>
                         {:else}
                             <EmojiInput col1=true bind:value={data.emote}/>

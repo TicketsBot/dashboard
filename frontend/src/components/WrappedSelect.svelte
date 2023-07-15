@@ -1,6 +1,7 @@
 <Select {items}
         bind:value={selectedValue}
-        on:select
+        on:change
+        on:clear
         searchable={searchable}
         clearable={isClearable}
         itemId={optionIdentifier}

@@ -23,7 +23,7 @@
               <div class="col-1">
                 <WrappedSelect isSearchable={false} isClearable={false} optionIdentifier="id" items={teams} placeholder="Select a team..."
                         bind:selectedValue={activeTeam} nameMapper={labelMapper}
-                        on:select={updateActiveTeam}/>
+                        on:change={updateActiveTeam}/>
               </div>
             </div>
 
