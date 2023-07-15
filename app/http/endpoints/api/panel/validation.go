@@ -152,7 +152,7 @@ var urlRegex = regexp.MustCompile(`^https?://([-a-zA-Z0-9@:%._+~#=]{1,256})\.[a-
 
 func validateNullableUrl(url *string) validation.ValidationFunc {
 	return func() error {
-		if url != nil && len(*url) <= 255 && urlRegex.MatchString(*url) {
+		if url != nil && (len(*url) > 255 || !urlRegex.MatchString(*url)) {
 			return validation.NewInvalidInputError("Invalid URL")
 		}
 
