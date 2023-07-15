@@ -47,7 +47,7 @@ func GetTranscriptRenderHandler(ctx *gin.Context) {
 		}
 
 		if !hasPermission {
-			ctx.JSON(403, utils.ErrorStr("You do not have permission to view this transcriptMetadata"))
+			ctx.JSON(403, utils.ErrorStr("You do not have permission to view this transcript"))
 			return
 		}
 	}
