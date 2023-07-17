@@ -62,7 +62,7 @@ func StartServer() {
 	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
 	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler)
 
-	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken)
+	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, middleware.UpdateLastSeen)
 	{
 		apiGroup.GET("/session", api.SessionHandler)
 
@@ -171,7 +171,7 @@ func StartServer() {
 		guildAuthApiAdmin.DELETE("/integrations/:integrationid", api_integrations.RemoveIntegrationHandler)
 	}
 
-	userGroup := router.Group("/user", middleware.AuthenticateToken)
+	userGroup := router.Group("/user", middleware.AuthenticateToken, middleware.UpdateLastSeen)
 	{
 		userGroup.GET("/guilds", api.GetGuilds)
 		userGroup.POST("/guilds/reload", api.ReloadGuildsHandler)

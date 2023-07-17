@@ -6,6 +6,7 @@ import (
 	"fmt"
 	wrapper "github.com/TicketsBot/GoPanel/redis"
 	"github.com/go-redis/redis/v8"
+	"time"
 )
 
 var ErrNoSession = errors.New("no session data found")
@@ -46,7 +47,9 @@ func (s *RedisStore) Set(userId uint64, data SessionData) error {
 		return err
 	}
 
-	return s.client.Set(wrapper.DefaultContext(), fmt.Sprintf("%s:%d", keyPrefix, userId), encoded, 0).Err()
+	expiration := time.Unix(data.Expiry, 0).Sub(time.Now())
+
+	return s.client.Set(wrapper.DefaultContext(), fmt.Sprintf("%s:%d", keyPrefix, userId), encoded, expiration).Err()
 }
 
 func (s *RedisStore) Clear(userId uint64) error {

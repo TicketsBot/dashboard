@@ -51,7 +51,8 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 		return
 	}
 
-	if store.Expiry > (time.Now().UnixNano() / int64(time.Second)) {
+	// What does this do?
+	if store.Expiry > time.Now().Unix() {
 		res, err := discord.RefreshToken(store.RefreshToken)
 		if err != nil { // Tell client to re-authenticate
 			ctx.JSON(200, gin.H{
@@ -63,7 +64,7 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 
 		store.AccessToken = res.AccessToken
 		store.RefreshToken = res.RefreshToken
-		store.Expiry = (time.Now().UnixNano() / int64(time.Second)) + int64(res.ExpiresIn)
+		store.Expiry = time.Now().Unix() + int64(res.ExpiresIn)
 
 		if err := session.Store.Set(userId, store); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
