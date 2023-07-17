@@ -1,6 +1,7 @@
 <Select {items}
         bind:value={selectedValue}
         on:change
+        on:input
         on:clear
         searchable={searchable}
         clearable={isClearable}

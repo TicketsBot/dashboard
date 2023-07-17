@@ -1,7 +1,7 @@
 <label class="form-label">{label}</label>
 
 <WrappedSelect placeholder="Select panel..." items={panels} optionIdentifier="panel_id" nameMapper={labelMapper}
-               bind:selectedValue={selectedRaw} on:change={update} on:clear={handleClear} {isMulti} {isSearchable} />
+               bind:selectedValue={selectedRaw} on:input={update} on:clear={handleClear} {isMulti} {isSearchable} />
 
 <script>
     import {onMount} from "svelte";
