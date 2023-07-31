@@ -1,22 +1,19 @@
 package utils
 
 import (
+	_ "embed"
 	"encoding/json"
 	"github.com/apex/log"
-	"io/ioutil"
 )
+
+//go:embed emojis.json
+var emojisFile []byte
 
 var emojisByName map[string]string
 var emojis []string
 
 func LoadEmoji() {
-	bytes, err := ioutil.ReadFile("emojis.json")
-	if err != nil {
-		log.Error("Couldn't load emoji: " + err.Error())
-		return
-	}
-
-	if err := json.Unmarshal(bytes, &emojisByName); err != nil {
+	if err := json.Unmarshal(emojisFile, &emojisByName); err != nil {
 		log.Error("Couldn't load emoji: " + err.Error())
 		return
 	}

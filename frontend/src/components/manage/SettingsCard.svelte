@@ -14,9 +14,9 @@
               <Number label="per user simultaneous ticket limit" min=1 max=10 bind:value={data.ticket_limit}/>
               <Dropdown label="Language" bind:value={data.language}>
                 <option value=null selected="selected">Server Default</option>
-                {#if data.languages}
-                  {#each data.languages as language}
-                    <option value={language}>{data.language_names[language]}</option>
+                {#if data.locales}
+                  {#each data.locales as locale}
+                    <option value={locale.iso_short_code}>{locale.local_name}</option>
                   {/each}
                 {/if}
               </Dropdown>

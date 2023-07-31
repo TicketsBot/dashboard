@@ -1,28 +1,31 @@
-# Build
-FROM golang:1.19-alpine
+# Build container
+FROM golang:alpine AS builder
 
 RUN apk update && apk upgrade && apk add git zlib-dev gcc musl-dev
 
-RUN mkdir -p /tmp/compile
-WORKDIR /tmp/compile
+COPY . /go/src/github.com/TicketsBot/dashboard
+WORKDIR /go/src/github.com/TicketsBot/dashboard
 
-RUN git clone --recurse-submodules https://github.com/TicketsBot/GoPanel .
-RUN cd locale && git pull origin master
-RUN go build -o panel cmd/panel/main.go
+RUN set -Eeux && \
+    go mod download && \
+    go mod verify
+
+RUN GOOS=linux GOARCH=amd64 \
+    go build \
+    -tags=jsoniter \
+    -trimpath \
+    -o main cmd/panel/main.go
 
 # Prod container
 FROM alpine:latest
 
 RUN apk update && apk upgrade && apk add curl
 
-COPY --from=0 /tmp/compile/locale /srv/panel/locale
-COPY --from=0 /tmp/compile/panel /srv/panel/panel
-RUN chmod +x /srv/panel/panel
-
-COPY --from=0 /tmp/compile/emojis.json /srv/panel/emojis.json
+COPY --from=builder /go/src/github.com/TicketsBot/dashboard/main /srv/dashboard/main
+RUN chmod +x /srv/dashboard/main
 
 RUN adduser container --disabled-password --no-create-home
 USER container
-WORKDIR /srv/panel
+WORKDIR /srv/dashboard
 
-CMD ["/srv/panel/panel"]
+CMD ["/srv/dashboard/main"]

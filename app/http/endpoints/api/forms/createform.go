@@ -22,17 +22,21 @@ func CreateForm(ctx *gin.Context) {
 
 	if len(data.Title) > 45 {
 		ctx.JSON(400, utils.ErrorStr("Title is too long"))
-        return
+		return
 	}
 
 	// 26^50 chance of collision
-	customId := utils.RandString(50)
+	customId, err := utils.RandString(30)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	id, err := dbclient.Client.Forms.Create(guildId, data.Title, customId)
 	if err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	form := database.Form{
 		Id:       id,

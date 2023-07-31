@@ -61,7 +61,12 @@ func MultiPanelUpdate(ctx *gin.Context) {
 
 	for _, panel := range panels {
 		if panel.CustomId == "" {
-			panel.CustomId = utils.RandString(80)
+			panel.CustomId, err = utils.RandString(30)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+
 			if err := dbclient.Client.Panel.Update(panel); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return

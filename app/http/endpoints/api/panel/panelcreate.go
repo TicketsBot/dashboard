@@ -142,7 +142,11 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
-	customId := utils.RandString(80)
+	customId, err := utils.RandString(30)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	messageData := data.IntoPanelMessageData(customId, premiumTier > premium.None)
 	msgId, err := messageData.send(&botContext)

@@ -1,8 +1,6 @@
 package main
 
 import (
-	crypto_rand "crypto/rand"
-	"encoding/binary"
 	"fmt"
 	app "github.com/TicketsBot/GoPanel/app/http"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
@@ -17,25 +15,14 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/common/secureproxy"
 	"github.com/TicketsBot/worker/i18n"
-	"github.com/apex/log"
 	"github.com/getsentry/sentry-go"
 	"github.com/rxdn/gdl/rest/request"
-	"math/rand"
 	"net/http"
 	"net/http/pprof"
 	"time"
 )
 
 func main() {
-	var b [8]byte
-	_, err := crypto_rand.Read(b[:])
-	if err == nil {
-		rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
-	} else {
-		log.Error(err.Error())
-		rand.Seed(time.Now().UnixNano())
-	}
-
 	startPprof()
 
 	config.LoadConfig()
@@ -62,7 +49,7 @@ func main() {
 
 	utils.LoadEmoji()
 
-	i18n.LoadMessages()
+	i18n.Init()
 
 	if config.Conf.Bot.ProxyUrl != "" {
 		request.RegisterHook(utils.ProxyHook)

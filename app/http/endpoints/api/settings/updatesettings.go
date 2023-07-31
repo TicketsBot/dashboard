@@ -123,7 +123,7 @@ func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) err
 	}
 
 	if s.Language != nil {
-		if _, ok := i18n.FullNames[*s.Language]; !ok {
+		if _, ok := i18n.MappedByIsoShortCode[*s.Language]; !ok {
 			return errors.New("Invalid language")
 		}
 	}

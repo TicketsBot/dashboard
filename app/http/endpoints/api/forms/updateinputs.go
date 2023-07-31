@@ -220,10 +220,15 @@ func saveInputs(formId int, data updateInputsBody, existingInputs []database.For
 	}
 
 	for _, input := range data.Create {
+		customId, err := utils.RandString(30)
+		if err != nil {
+			return err
+		}
+
 		if _, err := dbclient.Client.FormInput.CreateTx(
 			tx,
 			formId,
-			utils.RandString(30),
+			customId,
 			input.Position,
 			uint8(input.Style),
 			input.Label,

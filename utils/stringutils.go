@@ -1,20 +1,27 @@
 package utils
 
 import (
+	"crypto/rand"
 	"encoding/base64"
-	"math/rand"
+	"math/big"
 	"strconv"
 	"strings"
 )
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
-func RandString(length int) string {
+func RandString(length int) (string, error) {
 	b := make([]rune, length)
 	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(letterRunes))))
+		if err != nil {
+			return "", err
+		}
+
+		b[i] = letterRunes[idx.Int64()]
 	}
-	return string(b)
+
+	return string(b), nil
 }
 
 func IsInt(str string) bool {

@@ -61,7 +61,11 @@ func CreateInput(ctx *gin.Context) {
 	}
 
 	// 2^30 chance of collision
-	customId := utils.RandString(30)
+	customId, err := utils.RandString(30)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	formInputId, err := dbclient.Client.FormInput.Create(formId, customId, uint8(data.Style), data.Label, data.Placeholder, data.Required)
 	if err != nil {

@@ -30,7 +30,7 @@ type (
 		UsersCanClose     bool                  `json:"users_can_close"`
 		CloseConfirmation bool                  `json:"close_confirmation"`
 		FeedbackEnabled   bool                  `json:"feedback_enabled"`
-		Language          *i18n.Language        `json:"language"`
+		Language          *string               `json:"language"`
 	}
 
 	AutoCloseData struct {
@@ -159,13 +159,13 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// language
 	group.Go(func() error {
-		tmp, err := dbclient.Client.ActiveLanguage.Get(guildId)
+		locale, err := dbclient.Client.ActiveLanguage.Get(guildId)
 		if err != nil {
 			return err
 		}
 
-		if tmp != "" {
-			settings.Language = utils.Ptr(i18n.Language(tmp))
+		if locale != "" {
+			settings.Language = utils.Ptr(locale)
 		}
 
 		return nil
@@ -176,14 +176,26 @@ func GetSettingsHandler(ctx *gin.Context) {
 		return
 	}
 
+	// short_code -> local_name
+	type MinimalLocale struct {
+		IsoShortCode string `json:"iso_short_code"`
+		LocalName    string `json:"local_name"`
+	}
+
+	locales := make([]MinimalLocale, len(i18n.Locales))
+	for i, locale := range i18n.Locales {
+		locales[i] = MinimalLocale{
+			IsoShortCode: locale.IsoShortCode,
+			LocalName:    locale.LocalName,
+		}
+	}
+
 	ctx.JSON(200, struct {
 		Settings
-		Languages     []i18n.Language          `json:"languages"`
-		LanguageNames map[i18n.Language]string `json:"language_names"`
+		Locales []MinimalLocale `json:"locales"`
 	}{
-		Settings:      settings,
-		Languages:     i18n.LanguagesAlphabetical[:],
-		LanguageNames: i18n.FullNames,
+		Settings: settings,
+		Locales:  locales,
 	})
 }
 
