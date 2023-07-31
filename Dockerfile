@@ -21,7 +21,9 @@ FROM alpine:latest
 
 RUN apk update && apk upgrade && apk add curl
 
+COPY --from=builder /go/src/github.com/TicketsBot/dashboard/locale /srv/dashboard/locale
 COPY --from=builder /go/src/github.com/TicketsBot/dashboard/main /srv/dashboard/main
+
 RUN chmod +x /srv/dashboard/main
 
 RUN adduser container --disabled-password --no-create-home
