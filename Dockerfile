@@ -14,7 +14,7 @@ RUN GOOS=linux GOARCH=amd64 \
     go build \
     -tags=jsoniter \
     -trimpath \
-    -o main cmd/panel/main.go
+    -o main cmd/api/main.go
 
 # Prod container
 FROM alpine:latest
