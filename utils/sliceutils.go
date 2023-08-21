@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"github.com/TicketsBot/common/collections"
 	"github.com/rxdn/gdl/objects/channel/message"
+	"github.com/rxdn/gdl/objects/guild"
 )
 
 func Contains[T comparable](slice []T, value T) bool {
@@ -20,4 +22,27 @@ func Reverse(slice []message.Message) []message.Message {
 		slice[i], slice[opp] = slice[opp], slice[i]
 	}
 	return slice
+}
+
+func Map[T comparable, U any](slice []T, f func(T) U) []U {
+	result := make([]U, len(slice))
+	for i, elem := range slice {
+		result[i] = f(elem)
+	}
+
+	return result
+}
+
+func ToSet[T comparable](slice []T) *collections.Set[T] {
+	set := collections.NewSet[T]()
+
+	for _, el := range slice {
+		set.Add(el)
+	}
+
+	return set
+}
+
+func RoleToId(role guild.Role) uint64 {
+	return role.Id
 }

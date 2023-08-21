@@ -11,6 +11,7 @@ import (
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v4"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
@@ -71,6 +72,12 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
+	roles, err := botContext.GetGuildRoles(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
 	// Do custom validation
 	validationContext := PanelValidationContext{
 		Data:       data,
@@ -78,6 +85,7 @@ func UpdatePanel(ctx *gin.Context) {
 		IsPremium:  premiumTier > premium.None,
 		BotContext: botContext,
 		Channels:   channels,
+		Roles:      roles,
 	}
 
 	if err := ValidatePanelBody(validationContext); err != nil {
@@ -213,17 +221,8 @@ func UpdatePanel(ctx *gin.Context) {
 		ExitSurveyFormId:    data.ExitSurveyFormId,
 	}
 
-	if err = dbclient.Client.Panel.Update(panel); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
-
 	// insert mention data
-	validRoles, err := getRoleHashSet(guildId)
-	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
+	validRoles := utils.ToSet(utils.Map(roles, utils.RoleToId))
 
 	// string is role ID or "user" to mention the ticket opener
 	var shouldMentionUser bool
@@ -244,22 +243,37 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
-	if err := dbclient.Client.PanelUserMention.Set(panel.PanelId, shouldMentionUser); err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-		return
-	}
+	err = dbclient.Client.Panel.BeginFunc(ctx, func(tx pgx.Tx) error {
+		if err := dbclient.Client.Panel.UpdateWithTx(tx, panel); err != nil {
+			return err
+		}
 
-	if err := dbclient.Client.PanelRoleMentions.Replace(panel.PanelId, roleMentions); err != nil {
+		if err := dbclient.Client.PanelUserMention.SetWithTx(tx, panel.PanelId, shouldMentionUser); err != nil {
+			return err
+		}
+
+		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(tx, panel.PanelId, roleMentions); err != nil {
+			return err
+		}
+
+		// We are safe to insert, team IDs already validated
+		if err := dbclient.Client.PanelTeams.ReplaceWithTx(tx, panel.PanelId, data.Teams); err != nil {
+			return err
+		}
+
+		if err := dbclient.Client.PanelAccessControlRules.ReplaceWithTx(ctx, tx, panel.PanelId, data.AccessControlList); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	// We are safe to insert, team IDs already validated
-	if err := dbclient.Client.PanelTeams.Replace(panel.PanelId, data.Teams); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
-
+	// This doesn't need to be done in a transaction
 	// Update multi panels
 
 	// check if this will break a multi-panel;

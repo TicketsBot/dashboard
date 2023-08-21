@@ -9,14 +9,24 @@ import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects/channel"
+	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"regexp"
 	"strings"
 	"time"
 )
 
-func ApplyPanelDefaults(data *panelBody) []defaults.DefaultApplicator {
+func ApplyPanelDefaults(data *panelBody) {
+	for _, applicator := range DefaultApplicators(data) {
+		if applicator.ShouldApply() {
+			applicator.Apply()
+		}
+	}
+}
+
+func DefaultApplicators(data *panelBody) []defaults.DefaultApplicator {
 	return []defaults.DefaultApplicator{
 		defaults.NewDefaultApplicator(defaults.EmptyStringCheck, &data.Title, "Open a ticket!"),
 		defaults.NewDefaultApplicator(defaults.EmptyStringCheck, &data.Content, "By clicking the button, a ticket will be opened for you."),
@@ -34,6 +44,7 @@ type PanelValidationContext struct {
 	IsPremium  bool
 	BotContext botcontext.BotContext
 	Channels   []channel.Channel
+	Roles      []guild.Role
 }
 
 func ValidatePanelBody(validationContext PanelValidationContext) error {
@@ -59,6 +70,7 @@ func panelValidators() []validation.Validator[PanelValidationContext] {
 		validateTeams,
 		validateNamingScheme,
 		validateWelcomeMessage,
+		validateAccessControlList,
 	}
 }
 
@@ -280,5 +292,46 @@ func validateWelcomeMessage(ctx PanelValidationContext) validation.ValidationFun
 		}
 
 		return validation.NewInvalidInputError("Welcome message has no content")
+	}
+}
+
+func validateAccessControlList(ctx PanelValidationContext) validation.ValidationFunc {
+	return func() error {
+		acl := ctx.Data.AccessControlList
+
+		if len(acl) == 0 {
+			return validation.NewInvalidInputError("Access control list is empty")
+		}
+
+		if len(acl) > 10 {
+			return validation.NewInvalidInputError("Access control list cannot have more than 10 roles")
+		}
+
+		roles := utils.ToSet(utils.Map(ctx.Roles, utils.RoleToId))
+
+		if roles.Size() != len(ctx.Roles) {
+			return validation.NewInvalidInputError("Duplicate roles in access control list")
+		}
+
+		everyoneRoleFound := false
+		for _, rule := range acl {
+			if rule.RoleId == ctx.GuildId {
+				everyoneRoleFound = true
+			}
+
+			if rule.Action != database.AccessControlActionDeny && rule.Action != database.AccessControlActionAllow {
+				return validation.NewInvalidInputErrorf("Invalid access control action \"%s\"", rule.Action)
+			}
+
+			if !roles.Contains(rule.RoleId) {
+				return validation.NewInvalidInputErrorf("Invalid role %d in access control list not found in the guild", rule.RoleId)
+			}
+		}
+
+		if !everyoneRoleFound {
+			return validation.NewInvalidInputError("Access control list does not contain @everyone rule")
+		}
+
+		return nil
 	}
 }

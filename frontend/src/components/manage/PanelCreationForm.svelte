@@ -154,28 +154,38 @@
             </div>
         </div>
     </Collapsible>
+
+    <Collapsible>
+        <span slot="header">Access Control</span>
+        <div slot="content" class="col-1">
+            <div class="row">
+                <p>Control who can open tickets with from this panel. Rules are evaluated from <em>top to bottom</em>,
+                    stopping after the first match.</p>
+            </div>
+            <div class="row">
+                <AccessControlList {guildId} {roles} bind:acl={data.access_control_list} />
+            </div>
+        </div>
+    </Collapsible>
 </form>
 
 <script>
     import Input from "../form/Input.svelte";
     import Textarea from "../form/Textarea.svelte";
     import Colour from "../form/Colour.svelte";
-    import Button from "../Button.svelte";
     import ChannelDropdown from "../ChannelDropdown.svelte";
-    import EmbedBuilder from "../EmbedBuilder.svelte";
 
     import {createEventDispatcher, onMount} from 'svelte';
     import {colourToInt, intToColour} from "../../js/util";
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import EmojiInput from "../form/EmojiInput.svelte";
-    import EmojiItem from "../EmojiItem.svelte";
-    import Select from 'svelte-select';
     import Dropdown from "../form/Dropdown.svelte";
     import Toggle from "svelte-toggle";
     import Checkbox from "../form/Checkbox.svelte";
     import Collapsible from "../Collapsible.svelte";
     import EmbedForm from "../EmbedForm.svelte";
     import WrappedSelect from "../WrappedSelect.svelte";
+    import AccessControlList from "./AccessControlList.svelte";
 
     export let guildId;
     export let seedDefault = true;
@@ -328,6 +338,12 @@
                   footer: {},
                   description: 'Thank you for contacting support.\nPlease describe your issue and wait for a response.'
               },
+              access_control_list: [
+                {
+                  role_id: guildId,
+                  action: "allow"
+                }
+              ]
             };
         } else {
             applyOverrides();

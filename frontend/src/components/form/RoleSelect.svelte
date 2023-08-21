@@ -2,8 +2,8 @@
   <label class="form-label">{label}</label>
 {/if}
 
-<WrappedSelect placeholder="Search..." optionIdentifier="id" items={roles}
-               bind:selectedValue={value} nameMapper={labelMapper}/>
+<WrappedSelect {placeholder} optionIdentifier="id" items={roles} {disabled}
+               bind:selectedValue={value} nameMapper={labelMapper} on:change />
 
 <script>
     import {onMount} from 'svelte'
@@ -11,8 +11,10 @@
     import WrappedSelect from "../WrappedSelect.svelte";
 
     export let label;
+    export let placeholder = "Search...";
     export let roles = [];
     export let guildId;
+    export let disabled = false;
 
     export let value;
 

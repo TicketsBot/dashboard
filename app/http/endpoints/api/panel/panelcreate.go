@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/botcontext"
@@ -8,11 +9,11 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/types"
-	"github.com/TicketsBot/common/collections"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v4"
 	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest/request"
@@ -22,25 +23,26 @@ import (
 const freePanelLimit = 3
 
 type panelBody struct {
-	ChannelId        uint64                `json:"channel_id,string"`
-	MessageId        uint64                `json:"message_id,string"`
-	Title            string                `json:"title"`
-	Content          string                `json:"content"`
-	Colour           uint32                `json:"colour"`
-	CategoryId       uint64                `json:"category_id,string"`
-	Emoji            types.Emoji           `json:"emote"`
-	WelcomeMessage   *types.CustomEmbed    `json:"welcome_message" validate:"omitempty,dive"`
-	Mentions         []string              `json:"mentions"`
-	WithDefaultTeam  bool                  `json:"default_team"`
-	Teams            []int                 `json:"teams"`
-	ImageUrl         *string               `json:"image_url,omitempty"`
-	ThumbnailUrl     *string               `json:"thumbnail_url,omitempty"`
-	ButtonStyle      component.ButtonStyle `json:"button_style,string"`
-	ButtonLabel      string                `json:"button_label"`
-	FormId           *int                  `json:"form_id"`
-	NamingScheme     *string               `json:"naming_scheme"`
-	Disabled         bool                  `json:"disabled"`
-	ExitSurveyFormId *int                  `json:"exit_survey_form_id"`
+	ChannelId         uint64                            `json:"channel_id,string"`
+	MessageId         uint64                            `json:"message_id,string"`
+	Title             string                            `json:"title"`
+	Content           string                            `json:"content"`
+	Colour            uint32                            `json:"colour"`
+	CategoryId        uint64                            `json:"category_id,string"`
+	Emoji             types.Emoji                       `json:"emote"`
+	WelcomeMessage    *types.CustomEmbed                `json:"welcome_message" validate:"omitempty,dive"`
+	Mentions          []string                          `json:"mentions"`
+	WithDefaultTeam   bool                              `json:"default_team"`
+	Teams             []int                             `json:"teams"`
+	ImageUrl          *string                           `json:"image_url,omitempty"`
+	ThumbnailUrl      *string                           `json:"thumbnail_url,omitempty"`
+	ButtonStyle       component.ButtonStyle             `json:"button_style,string"`
+	ButtonLabel       string                            `json:"button_label"`
+	FormId            *int                              `json:"form_id"`
+	NamingScheme      *string                           `json:"naming_scheme"`
+	Disabled          bool                              `json:"disabled"`
+	ExitSurveyFormId  *int                              `json:"exit_survey_form_id"`
+	AccessControlList []database.PanelAccessControlRule `json:"access_control_list"`
 }
 
 func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelMessageData {
@@ -109,6 +111,12 @@ func CreatePanel(ctx *gin.Context) {
 		return
 	}
 
+	roles, err := botContext.GetGuildRoles(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
 	// Do custom validation
 	validationContext := PanelValidationContext{
 		Data:       data,
@@ -116,6 +124,7 @@ func CreatePanel(ctx *gin.Context) {
 		IsPremium:  premiumTier > premium.None,
 		BotContext: botContext,
 		Channels:   channels,
+		Roles:      roles,
 	}
 
 	if err := ValidatePanelBody(validationContext); err != nil {
@@ -215,30 +224,19 @@ func CreatePanel(ctx *gin.Context) {
 		ExitSurveyFormId:    data.ExitSurveyFormId,
 	}
 
-	panelId, err := dbclient.Client.Panel.Create(panel)
-	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
-		return
+	createOptions := panelCreateOptions{
+		TeamIds:            data.Teams,             // Already validated
+		AccessControlRules: data.AccessControlList, // Already validated
 	}
 
 	// insert role mention data
 	// string is role ID or "user" to mention the ticket opener
-	validRoles, err := getRoleHashSet(guildId)
-	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
+	validRoles := utils.ToSet(utils.Map(roles, utils.RoleToId))
 
 	var roleMentions []uint64
 	for _, mention := range data.Mentions {
 		if mention == "user" {
-			if err = dbclient.Client.PanelUserMention.Set(panelId, true); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
-				return
-			}
+			createOptions.ShouldMentionUser = true
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
@@ -247,18 +245,13 @@ func CreatePanel(ctx *gin.Context) {
 			}
 
 			if validRoles.Contains(roleId) {
-				roleMentions = append(roleMentions, roleId)
+				createOptions.RoleMentions = append(roleMentions, roleId)
 			}
 		}
 	}
 
-	if err := dbclient.Client.PanelRoleMentions.Replace(panelId, roleMentions); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
-	}
-
-	// Already validated, we are safe to insert
-	if err := dbclient.Client.PanelTeams.Replace(panelId, data.Teams); err != nil {
+	panelId, err := storePanel(ctx, panel, createOptions)
+	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
@@ -269,27 +262,52 @@ func CreatePanel(ctx *gin.Context) {
 	})
 }
 
+// DB functions
+
+type panelCreateOptions struct {
+	ShouldMentionUser  bool
+	RoleMentions       []uint64
+	TeamIds            []int
+	AccessControlRules []database.PanelAccessControlRule
+}
+
+func storePanel(ctx context.Context, panel database.Panel, options panelCreateOptions) (int, error) {
+	var panelId int
+	err := dbclient.Client.Panel.BeginFunc(ctx, func(tx pgx.Tx) error {
+		var err error
+		panelId, err = dbclient.Client.Panel.CreateWithTx(tx, panel)
+		if err != nil {
+			return err
+		}
+
+		if err := dbclient.Client.PanelUserMention.SetWithTx(tx, panelId, options.ShouldMentionUser); err != nil {
+			return err
+		}
+
+		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(tx, panelId, options.RoleMentions); err != nil {
+			return err
+		}
+
+		// Already validated, we are safe to insert
+		if err := dbclient.Client.PanelTeams.ReplaceWithTx(tx, panelId, options.TeamIds); err != nil {
+			return err
+		}
+
+		if err := dbclient.Client.PanelAccessControlRules.ReplaceWithTx(ctx, tx, panelId, options.AccessControlRules); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return panelId, nil
+}
+
 // Data must be validated before calling this function
 func (p *panelBody) getEmoji() *emoji.Emoji {
 	return p.Emoji.IntoGdl()
-}
-
-func getRoleHashSet(guildId uint64) (*collections.Set[uint64], error) {
-	ctx, err := botcontext.ContextForGuild(guildId)
-	if err != nil {
-		return nil, err
-	}
-
-	roles, err := ctx.GetGuildRoles(guildId)
-	if err != nil {
-		return nil, err
-	}
-
-	set := collections.NewSet[uint64]()
-
-	for _, role := range roles {
-		set.Add(role.Id)
-	}
-
-	return set, nil
 }

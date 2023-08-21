@@ -10,6 +10,7 @@
         {loadOptions}
         {placeholder}
         {placeholderAlwaysShow}
+        {disabled}
         multiple={isMulti}
         --background="#2e3136"
         --border="#2e3136"
@@ -46,6 +47,7 @@
     export let placeholderAlwaysShow = false;
     export let loadOptions;
     export let loadOptionsInterval;
+    export let disabled = false;
 
     export let optionIdentifier;
     export let nameMapper = (x) => x;

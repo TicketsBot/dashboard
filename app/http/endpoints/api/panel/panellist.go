@@ -14,17 +14,24 @@ import (
 func ListPanels(ctx *gin.Context) {
 	type panelResponse struct {
 		database.Panel
-		WelcomeMessage               *types.CustomEmbed `json:"welcome_message"`
-		UseCustomEmoji               bool               `json:"use_custom_emoji"`
-		Emoji                        types.Emoji        `json:"emote"`
-		Mentions                     []string           `json:"mentions"`
-		Teams                        []int              `json:"teams"`
-		UseServerDefaultNamingScheme bool               `json:"use_server_default_naming_scheme"`
+		WelcomeMessage               *types.CustomEmbed                `json:"welcome_message"`
+		UseCustomEmoji               bool                              `json:"use_custom_emoji"`
+		Emoji                        types.Emoji                       `json:"emote"`
+		Mentions                     []string                          `json:"mentions"`
+		Teams                        []int                             `json:"teams"`
+		UseServerDefaultNamingScheme bool                              `json:"use_server_default_naming_scheme"`
+		AccessControlList            []database.PanelAccessControlRule `json:"access_control_list"`
 	}
 
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	panels, err := dbclient.Client.Panel.GetByGuildWithWelcomeMessage(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	accessControlLists, err := dbclient.Client.PanelAccessControlRules.GetAllForGuild(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -85,6 +92,11 @@ func ListPanels(ctx *gin.Context) {
 				welcomeMessage = types.NewCustomEmbed(p.WelcomeMessage, fields)
 			}
 
+			accessControlList := accessControlLists[p.PanelId]
+			if accessControlList == nil {
+				accessControlList = make([]database.PanelAccessControlRule, 0)
+			}
+
 			wrapped[i] = panelResponse{
 				Panel:                        p.Panel,
 				WelcomeMessage:               welcomeMessage,
@@ -93,6 +105,7 @@ func ListPanels(ctx *gin.Context) {
 				Mentions:                     mentions,
 				Teams:                        teamIds,
 				UseServerDefaultNamingScheme: p.NamingScheme == nil,
+				AccessControlList:            accessControlList,
 			}
 
 			return nil
