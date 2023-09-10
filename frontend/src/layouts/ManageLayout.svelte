@@ -46,6 +46,8 @@
     import axios from "axios";
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
+    import {permissionLevelCache} from '../js/stores';
+    import {get} from 'svelte/store';
 
     export let currentRoute;
     export let params = {};
@@ -56,6 +58,18 @@
     setDefaultHeaders();
 
     async function loadPermissionLevel() {
+        const cache = get(permissionLevelCache);
+        if (cache && cache[guildId]) {
+            const data = cache[guildId];
+            if (data.last_updated) {
+                const date = new Date(data.last_updated.getTime() + 60000);
+                if (date > new Date()) {
+                    permissionLevel = data.permission_level;
+                    return;
+                }
+            }
+        }
+
         const res = await axios.get(`${API_URL}/user/permissionlevel?guild=${guildId}`);
         if (res.status !== 200 || !res.data.success) {
             notifyError(res.data.error);
@@ -63,6 +77,15 @@
         }
 
         permissionLevel = res.data.permission_level;
+
+        permissionLevelCache.update(cache => {
+            cache[guildId] = {
+                permission_level: permissionLevel,
+                last_updated: new Date(),
+            };
+
+            return cache;
+        });
     }
 
     withLoadingScreen(async () => {

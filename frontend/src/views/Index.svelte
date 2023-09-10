@@ -34,6 +34,7 @@
     import Card from '../components/Card.svelte'
     import InviteBadge from '../components/InviteBadge.svelte'
     import Button from '../components/Button.svelte'
+    import {permissionLevelCache} from "../js/stores";
 
     setDefaultHeaders();
 
@@ -42,6 +43,16 @@
     async function loadData() {
         const res = await axios.get(`${API_URL}/user/guilds`);
         guilds = res.data;
+
+        permissionLevelCache.update(cache => {
+            for (const guild of guilds) {
+                cache[guild.id] = {
+                    permission_level: guild.permission_level,
+                    last_updated: new Date(),
+                };
+            }
+            return cache;
+        })
     }
 
     async function refreshGuilds() {

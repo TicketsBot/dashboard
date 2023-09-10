@@ -22,3 +22,5 @@ export const notifyMessage = writable("");
 
 export const isErrorPage = writable(false);
 export const errorMessage = writable("");
+
+export const permissionLevelCache = writable({});

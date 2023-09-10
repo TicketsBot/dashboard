@@ -38,8 +38,7 @@
     }
 
     async function goto(guildId) {
-        const permissionLevel = await getPermissionLevel(guildId);
-        if (permissionLevel === 2) {
+        if (guild.permission_level === 2) {
             window.location.href = `/manage/${guildId}/settings`;
         } else {
             window.location.href = `/manage/${guildId}/transcripts`;

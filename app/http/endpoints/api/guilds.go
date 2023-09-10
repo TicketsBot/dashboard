@@ -16,9 +16,10 @@ import (
 )
 
 type wrappedGuild struct {
-	Id   uint64 `json:"id,string"`
-	Name string `json:"name"`
-	Icon string `json:"icon"`
+	Id              uint64                     `json:"id,string"`
+	Name            string                     `json:"name"`
+	Icon            string                     `json:"icon"`
+	PermissionLevel permission.PermissionLevel `json:"permission_level"`
 }
 
 func GetGuilds(ctx *gin.Context) {
@@ -73,9 +74,10 @@ func GetGuilds(ctx *gin.Context) {
 
 			if permLevel >= permission.Support {
 				wrapped := wrappedGuild{
-					Id:   g.GuildId,
-					Name: g.Name,
-					Icon: g.Icon,
+					Id:              g.GuildId,
+					Name:            g.Name,
+					Icon:            g.Icon,
+					PermissionLevel: permLevel,
 				}
 
 				ch <- wrapped
