@@ -22,6 +22,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
+	"github.com/penglongli/gin-metrics/ginmetrics"
 	"log"
 	"time"
 )
@@ -50,6 +51,22 @@ func StartServer() {
 	router.Use(rl(middleware.RateLimitTypeGuild, 600, time.Minute*5))
 
 	router.Use(middleware.Cors(config.Conf))
+
+	// Metrics
+	if len(config.Conf.Server.MetricHost) > 0 {
+		monitor := ginmetrics.GetMonitor()
+		monitor.UseWithoutExposingEndpoint(router)
+		monitor.SetMetricPath("/metrics")
+
+		metricRouter := gin.Default()
+		monitor.Expose(metricRouter)
+
+		go func() {
+			if err := metricRouter.Run(config.Conf.Server.MetricHost); err != nil {
+				panic(err)
+			}
+		}()
+	}
 
 	// util endpoints
 	router.GET("/ip", root.IpHandler)

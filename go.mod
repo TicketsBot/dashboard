@@ -24,6 +24,7 @@ require (
 	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
+	github.com/penglongli/gin-metrics v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/rxdn/gdl v0.0.0-20230716201318-bd66d6307f3b
 	github.com/sirupsen/logrus v1.9.3
@@ -39,6 +40,7 @@ require (
 	github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect

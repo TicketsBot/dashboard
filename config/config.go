@@ -25,6 +25,7 @@ type (
 
 	Server struct {
 		Host           string
+		MetricHost     string
 		BaseUrl        string
 		MainSite       string
 		Ratelimit      Ratelimit
@@ -133,9 +134,10 @@ func fromEnvvar() {
 		Debug:           os.Getenv("DEBUG") != "",
 		SentryDsn:       os.Getenv("SENTRY_DSN"),
 		Server: Server{
-			Host:     os.Getenv("SERVER_ADDR"),
-			BaseUrl:  os.Getenv("BASE_URL"),
-			MainSite: os.Getenv("MAIN_SITE"),
+			Host:       os.Getenv("SERVER_ADDR"),
+			MetricHost: os.Getenv("METRTIC_SERVER_ADDR"),
+			BaseUrl:    os.Getenv("BASE_URL"),
+			MainSite:   os.Getenv("MAIN_SITE"),
 			Ratelimit: Ratelimit{
 				Window: rateLimitWindow,
 				Max:    rateLimitMax,
