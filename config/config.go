@@ -135,7 +135,7 @@ func fromEnvvar() {
 		SentryDsn:       os.Getenv("SENTRY_DSN"),
 		Server: Server{
 			Host:       os.Getenv("SERVER_ADDR"),
-			MetricHost: os.Getenv("METRTIC_SERVER_ADDR"),
+			MetricHost: os.Getenv("METRIC_SERVER_ADDR"),
 			BaseUrl:    os.Getenv("BASE_URL"),
 			MainSite:   os.Getenv("MAIN_SITE"),
 			Ratelimit: Ratelimit{
