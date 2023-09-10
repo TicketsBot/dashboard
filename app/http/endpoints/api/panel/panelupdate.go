@@ -148,14 +148,20 @@ func UpdatePanel(ctx *gin.Context) {
 		newMessageId, err = messageData.send(&botContext)
 		if err != nil {
 			var unwrapped request.RestError
-			if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-				ctx.JSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+			if errors.As(err, &unwrapped) {
+				if unwrapped.StatusCode == 403 {
+					ctx.JSON(403, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+					return
+				} else if unwrapped.StatusCode == 404 {
+					// Swallow error
+					// TODO: Make channel_id column nullable, and set to null
+				} else {
+					ctx.JSON(500, utils.ErrorJson(err))
+				}
 			} else {
-				// TODO: Most appropriate error?
 				ctx.JSON(500, utils.ErrorJson(err))
+				return
 			}
-
-			return
 		}
 	}
 
