@@ -19,7 +19,6 @@ import (
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/common/permission"
-	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
 	"log"
@@ -41,8 +40,7 @@ func StartServer() {
 
 	router.Use(gin.Recovery())
 	router.Use(middleware.MultiReadBody, middleware.ReadResponse)
-	//router.Use(middleware.Logging(middleware.LevelError))
-	router.Use(sentrygin.New(sentrygin.Options{})) // Defaults are ok
+	router.Use(middleware.Logging(middleware.LevelError))
 
 	router.Use(rl(middleware.RateLimitTypeIp, 60, time.Minute))
 	router.Use(rl(middleware.RateLimitTypeIp, 20, time.Second*10))
