@@ -68,6 +68,7 @@ func Logging(minLevel Level) gin.HandlerFunc {
 				"status_code":  strconv.Itoa(statusCode),
 				"method":       ctx.Request.Method,
 				"path":         ctx.Request.URL.Path,
+				"query":        ctx.Request.URL.RawQuery,
 				"guild_id":     ctx.Keys["guildid"],
 				"user_id":      ctx.Keys["userid"],
 				"request_body": string(requestBody),
