@@ -9,19 +9,44 @@ import (
 	"strconv"
 )
 
-func Logging(minLevel sentry.Level) gin.HandlerFunc {
+type Level uint8
+
+const (
+	LevelDebug Level = iota
+	LevelInfo
+	LevelWarning
+	LevelError
+	LevelFatal
+)
+
+func (l Level) sentryLevel() sentry.Level {
+	switch l {
+	case LevelDebug:
+		return sentry.LevelDebug
+	case LevelInfo:
+		return sentry.LevelInfo
+	case LevelWarning:
+		return sentry.LevelWarning
+	case LevelError:
+		return sentry.LevelError
+	case LevelFatal:
+		return sentry.LevelFatal
+	default:
+		return sentry.LevelDebug
+	}
+}
+
+func Logging(minLevel Level) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 
 		statusCode := ctx.Writer.Status()
 
-		var level sentry.Level
+		level := LevelInfo
 		if statusCode >= 500 {
-			level = sentry.LevelError
+			level = LevelError
 		} else if statusCode >= 400 {
-			level = sentry.LevelWarning
-		} else {
-			level = sentry.LevelInfo
+			level = LevelWarning
 		}
 
 		if level < minLevel {
@@ -49,7 +74,7 @@ func Logging(minLevel sentry.Level) gin.HandlerFunc {
 				"response":     string(responseBody),
 				"stacktrace":   string(debug.Stack()),
 			},
-			Level:   level,
+			Level:   level.sentryLevel(),
 			Message: fmt.Sprintf("HTTP %d on %s %s", statusCode, ctx.Request.Method, ctx.FullPath()),
 			Tags: map[string]string{
 				"status_code": strconv.Itoa(statusCode),

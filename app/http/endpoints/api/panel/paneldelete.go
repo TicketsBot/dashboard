@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -8,6 +9,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
+	"github.com/rxdn/gdl/rest/request"
 	"strconv"
 )
 
@@ -64,8 +66,11 @@ func DeletePanel(ctx *gin.Context) {
 	}
 
 	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
+		var unwrapped request.RestError
+		if !errors.As(err, &unwrapped) || unwrapped.StatusCode != 404 {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
 	}
 
 	// Get premium tier
