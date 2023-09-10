@@ -77,7 +77,7 @@ func MultiPanelUpdate(ctx *gin.Context) {
 	// get bot context
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
+		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 

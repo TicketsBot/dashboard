@@ -25,9 +25,9 @@ func SendMessage(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
+		ctx.JSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -35,7 +35,7 @@ func SendMessage(ctx *gin.Context) {
 	// Get ticket ID
 	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Invalid ticket ID",
 		})
@@ -44,7 +44,7 @@ func SendMessage(ctx *gin.Context) {
 
 	var body sendMessageBody
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Message is missing",
 		})
@@ -54,7 +54,7 @@ func SendMessage(ctx *gin.Context) {
 	if len(body.Message) == 0 {
 		ctx.JSON(400, gin.H{
 			"success": false,
-			"error": "You must enter a message",
+			"error":   "You must enter a message",
 		})
 		return
 	}
@@ -67,7 +67,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	if premiumTier == premium.None {
-		ctx.AbortWithStatusJSON(402, gin.H{
+		ctx.JSON(402, gin.H{
 			"success": false,
 			"error":   "Guild is not premium",
 		})
@@ -79,7 +79,7 @@ func SendMessage(ctx *gin.Context) {
 
 	// Verify the ticket exists
 	if ticket.UserId == 0 {
-		ctx.AbortWithStatusJSON(404, gin.H{
+		ctx.JSON(404, gin.H{
 			"success": false,
 			"error":   "Ticket not found",
 		})
@@ -88,7 +88,7 @@ func SendMessage(ctx *gin.Context) {
 
 	// Verify the user has permission to send to this guild
 	if ticket.GuildId != guildId {
-		ctx.AbortWithStatusJSON(403, gin.H{
+		ctx.JSON(403, gin.H{
 			"success": false,
 			"error":   "Guild ID doesn't match",
 		})
@@ -104,7 +104,7 @@ func SendMessage(ctx *gin.Context) {
 	// Preferably send via a webhook
 	webhook, err := database.Client.Webhooks.Get(guildId, ticketId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
+		ctx.JSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),
 		})
@@ -139,7 +139,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	if ticket.ChannelId == nil {
-		ctx.AbortWithStatusJSON(404, gin.H{
+		ctx.JSON(404, gin.H{
 			"success": false,
 			"error":   "Ticket channel ID is nil",
 		})
@@ -147,7 +147,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	if _, err = rest.CreateMessage(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.CreateMessageData{Content: body.Message}); err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
+		ctx.JSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),
 		})

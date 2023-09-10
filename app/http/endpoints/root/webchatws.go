@@ -165,7 +165,7 @@ func WebChatWs(ctx *gin.Context) {
 
 			botContext, err := botcontext.ContextForGuild(authData.GuildId)
 			if err != nil {
-				ctx.AbortWithStatusJSON(500, gin.H{
+				ctx.JSON(500, gin.H{
 					"success": false,
 					"error":   err.Error(),
 				})

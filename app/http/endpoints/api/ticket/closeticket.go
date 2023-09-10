@@ -19,7 +19,7 @@ func CloseTicket(ctx *gin.Context) {
 
 	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": true,
 			"error":   "Invalid ticket ID",
 		})
@@ -28,7 +28,7 @@ func CloseTicket(ctx *gin.Context) {
 
 	var body closeBody
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "Missing reason",
 		})
@@ -38,7 +38,7 @@ func CloseTicket(ctx *gin.Context) {
 	// Get the ticket struct
 	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
+		ctx.JSON(500, gin.H{
 			"success": true,
 			"error":   err.Error(),
 		})
@@ -47,7 +47,7 @@ func CloseTicket(ctx *gin.Context) {
 
 	// Verify the ticket exists
 	if ticket.UserId == 0 {
-		ctx.AbortWithStatusJSON(404, gin.H{
+		ctx.JSON(404, gin.H{
 			"success": false,
 			"error":   "Ticket does not exist",
 		})

@@ -21,7 +21,7 @@ func GetTicket(ctx *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
+		ctx.JSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),
 		})
@@ -30,7 +30,7 @@ func GetTicket(ctx *gin.Context) {
 
 	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
 	if err != nil {
-		ctx.AbortWithStatusJSON(400, gin.H{
+		ctx.JSON(400, gin.H{
 			"success": true,
 			"error":   "Invalid ticket ID",
 		})
@@ -40,7 +40,7 @@ func GetTicket(ctx *gin.Context) {
 	// Get the ticket struct
 	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{
+		ctx.JSON(500, gin.H{
 			"success": true,
 			"error":   err.Error(),
 		})
@@ -48,7 +48,7 @@ func GetTicket(ctx *gin.Context) {
 	}
 
 	if ticket.GuildId != guildId {
-		ctx.AbortWithStatusJSON(403, gin.H{
+		ctx.JSON(403, gin.H{
 			"success": false,
 			"error":   "Guild ID doesn't match",
 		})
@@ -56,7 +56,7 @@ func GetTicket(ctx *gin.Context) {
 	}
 
 	if !ticket.Open {
-		ctx.AbortWithStatusJSON(404, gin.H{
+		ctx.JSON(404, gin.H{
 			"success": false,
 			"error":   "Ticket does not exist",
 		})
