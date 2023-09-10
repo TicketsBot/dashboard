@@ -3,9 +3,11 @@ package utils
 import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/internal/api"
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects/member"
+	"net/http"
 )
 
 func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, error) {
@@ -47,7 +49,7 @@ func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, err
 }
 
 // TODO: Use this on the ticket list
-func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (bool, error) {
+func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (bool, *api.RequestError) {
 	// If user opened the ticket, they will always have permission
 	if ticket.UserId == userId && ticket.GuildId == guildId {
 		return true, nil
@@ -56,7 +58,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	// Admin override
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		return false, err
+		return false, api.NewInternalServerError(err, "Error retrieving guild context")
 	}
 
 	if botContext.IsBotAdmin(userId) {
@@ -66,14 +68,14 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	// Check staff override
 	staffOverride, err := dbclient.Client.StaffOverride.HasActiveOverride(guildId)
 	if err != nil {
-		return false, err
+		return false, api.NewDatabaseError(err)
 	}
 
 	// If staff override enabled and the user is bot staff, grant admin permissions
 	if staffOverride {
 		isBotStaff, err := dbclient.Client.BotStaff.IsStaff(userId)
 		if err != nil {
-			return false, err
+			return false, api.NewDatabaseError(err)
 		}
 
 		if isBotStaff {
@@ -84,7 +86,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	// Check if server owner
 	guild, err := botContext.GetGuild(guildId)
 	if err != nil {
-		return false, err
+		return false, api.NewInternalServerError(err, "Error retrieving guild object")
 	}
 
 	if guild.OwnerId == userId {
@@ -93,13 +95,13 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 
 	member, err := botContext.GetGuildMember(guildId, userId)
 	if err != nil {
-		return false, err
+		return false, api.NewErrorWithMessage(http.StatusForbidden, err, "User not in server: are you logged into the correct account?")
 	}
 
 	// Admins should have access to all tickets
 	isAdmin, err := dbclient.Client.Permissions.IsAdmin(guildId, userId)
 	if err != nil {
-		return false, err
+		return false, api.NewDatabaseError(err)
 	}
 
 	if isAdmin {
@@ -109,7 +111,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	// TODO: Check in db
 	adminRoles, err := dbclient.Client.RolePermissions.GetAdminRoles(guildId)
 	if err != nil {
-		return false, err
+		return false, api.NewDatabaseError(err)
 	}
 
 	for _, roleId := range adminRoles {
@@ -120,7 +122,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 
 	// If ticket is not from a panel, we can use default team perms
 	if ticket.PanelId == nil {
-		canView, err := isOnDefaultTeam(guildId, userId, botContext, member)
+		canView, err := isOnDefaultTeam(guildId, member)
 		if err != nil {
 			return false, err
 		}
@@ -129,11 +131,11 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	} else {
 		panel, err := dbclient.Client.Panel.GetById(*ticket.PanelId)
 		if err != nil {
-			return false, err
+			return false, api.NewDatabaseError(err)
 		}
 
 		if panel.WithDefaultTeam {
-			canView, err := isOnDefaultTeam(guildId, userId, botContext, member)
+			canView, err := isOnDefaultTeam(guildId, member)
 			if err != nil {
 				return false, err
 			}
@@ -146,7 +148,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 		// If panel does not use the default team, or the user is not assigned to it, check support teams
 		supportTeams, err := dbclient.Client.PanelTeams.GetTeams(*ticket.PanelId)
 		if err != nil {
-			return false, err
+			return false, api.NewDatabaseError(err)
 		}
 
 		if len(supportTeams) > 0 {
@@ -158,7 +160,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 			// Check if user is added to support team directly
 			isSupport, err := dbclient.Client.SupportTeamMembers.IsSupportSubset(guildId, userId, supportTeamIds)
 			if err != nil {
-				return false, err
+				return false, api.NewDatabaseError(err)
 			}
 
 			if isSupport {
@@ -168,7 +170,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 			// Check if user is added to support team via a role
 			isSupport, err = dbclient.Client.SupportTeamRoles.IsSupportAnySubset(guildId, member.Roles, supportTeamIds)
 			if err != nil {
-				return false, err
+				return false, api.NewDatabaseError(err)
 			}
 
 			if isSupport {
@@ -180,7 +182,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	}
 }
 
-func isOnDefaultTeam(guildId, userId uint64, ctx botcontext.BotContext, member member.Member) (bool, error) {
+func isOnDefaultTeam(guildId uint64, member member.Member) (bool, *api.RequestError) {
 	// Admin perms are already checked straight away, so we don't need to check for them here
 	// Check user perms for support
 	if isSupport, err := dbclient.Client.Permissions.IsSupport(guildId, member.User.Id); err == nil {
@@ -188,13 +190,13 @@ func isOnDefaultTeam(guildId, userId uint64, ctx botcontext.BotContext, member m
 			return true, nil
 		}
 	} else {
-		return false, err
+		return false, api.NewDatabaseError(err)
 	}
 
 	// Check DB for support roles
 	supportRoles, err := dbclient.Client.RolePermissions.GetSupportRoles(guildId)
 	if err != nil {
-		return false, err
+		return false, api.NewDatabaseError(err)
 	}
 
 	for _, supportRoleId := range supportRoles {

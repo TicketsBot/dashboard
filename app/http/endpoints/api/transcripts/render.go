@@ -42,7 +42,7 @@ func GetTranscriptRenderHandler(ctx *gin.Context) {
 	if ticket.UserId != userId {
 		hasPermission, err := utils.HasPermissionToViewTicket(guildId, userId, ticket)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			ctx.JSON(err.StatusCode, utils.ErrorJson(err))
 			return
 		}
 

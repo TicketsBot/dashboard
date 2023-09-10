@@ -23,7 +23,7 @@ func GetTicket(ctx *gin.Context) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"success": false,
-			"error": err.Error(),
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -50,7 +50,7 @@ func GetTicket(ctx *gin.Context) {
 	if ticket.GuildId != guildId {
 		ctx.AbortWithStatusJSON(403, gin.H{
 			"success": false,
-			"error": "Guild ID doesn't match",
+			"error":   "Guild ID doesn't match",
 		})
 		return
 	}
@@ -58,14 +58,14 @@ func GetTicket(ctx *gin.Context) {
 	if !ticket.Open {
 		ctx.AbortWithStatusJSON(404, gin.H{
 			"success": false,
-			"error": "Ticket does not exist",
+			"error":   "Ticket does not exist",
 		})
 		return
 	}
 
-	hasPermission, err := utils.HasPermissionToViewTicket(guildId, userId, ticket)
+	hasPermission, requestErr := utils.HasPermissionToViewTicket(guildId, userId, ticket)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		ctx.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
 		return
 	}
 
@@ -98,15 +98,15 @@ func GetTicket(ctx *gin.Context) {
 			}
 
 			messagesFormatted = append(messagesFormatted, map[string]interface{}{
-				"author": message.Author,
-				"content":  content,
+				"author":  message.Author,
+				"content": content,
 			})
 		}
 	}
 
 	ctx.JSON(200, gin.H{
-		"success": true,
-		"ticket": ticket,
+		"success":  true,
+		"ticket":   ticket,
 		"messages": messagesFormatted,
 	})
 }
