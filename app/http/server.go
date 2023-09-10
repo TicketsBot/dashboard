@@ -41,7 +41,7 @@ func StartServer() {
 
 	router.Use(gin.Recovery())
 	router.Use(middleware.MultiReadBody, middleware.ReadResponse)
-	router.Use(middleware.Logging(middleware.LevelError))
+	//router.Use(middleware.Logging(middleware.LevelError))
 	router.Use(sentrygin.New(sentrygin.Options{})) // Defaults are ok
 
 	router.Use(rl(middleware.RateLimitTypeIp, 60, time.Minute))

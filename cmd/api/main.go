@@ -31,6 +31,8 @@ func main() {
 		Dsn:              config.Conf.SentryDsn,
 		Debug:            config.Conf.Debug,
 		AttachStacktrace: true,
+		EnableTracing:    true,
+		TracesSampleRate: 0.1,
 	}
 
 	if err := sentry.Init(sentryOpts); err != nil {
