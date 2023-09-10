@@ -55,7 +55,7 @@ func GetTranscriptRenderHandler(ctx *gin.Context) {
 	// retrieve ticket messages from bucket
 	transcript, err := utils.ArchiverClient.Get(guildId, ticketId)
 	if err != nil {
-		if errors.Is(err, archiverclient.ErrExpired) {
+		if errors.Is(err, archiverclient.ErrNotFound) {
 			ctx.JSON(404, utils.ErrorStr("Transcript not found"))
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))
