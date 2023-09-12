@@ -14,7 +14,7 @@
               <i class="fa-solid fa-arrow-down position-arrow" class:disabled={i>=acl.length-1}
                  on:click={() => moveDown(i)}></i>
             </div>
-            <span>{role.name}</span>
+            <span>{role ? role.name : 'Deleted Role'}</span>
           </div>
           {#key rerender}
             <Toggle on="Allow" off="Deny"
