@@ -21,7 +21,7 @@ var (
 		Subsystem: "api",
 		Name:      "livechat_websocket_messages",
 		Help:      "The number of messages relayed over live-chat websockets",
-	}, []string{"guild_id", "message_id"})
+	}, []string{"guild_id"})
 )
 
 type (
@@ -93,10 +93,7 @@ func (sm *SocketManager) Run() {
 					continue
 				}
 
-				websocketMessages.WithLabelValues(
-					strconv.FormatUint(client.GuildId, 10),
-					strconv.FormatUint(msg.Message.Id, 10),
-				).Inc()
+				websocketMessages.WithLabelValues(strconv.FormatUint(client.GuildId, 10)).Inc()
 
 				client.Write(Event{
 					Type: EventTypeMessage,
