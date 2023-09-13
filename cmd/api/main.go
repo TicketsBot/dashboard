@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	app "github.com/TicketsBot/GoPanel/app/http"
-	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket/livechat"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
@@ -59,7 +59,11 @@ func main() {
 
 	fmt.Println("Connecting to Redis...")
 	redis.Client = redis.NewRedisClient()
-	go ListenChat(redis.Client)
+
+	socketManager := livechat.NewSocketManager()
+	go socketManager.Run()
+
+	go ListenChat(redis.Client, socketManager)
 
 	if !config.Conf.Debug {
 		rpc.PremiumClient = premium.NewPremiumLookupClient(
@@ -74,23 +78,15 @@ func main() {
 	}
 
 	fmt.Println("Starting server...")
-	app.StartServer()
+	app.StartServer(socketManager)
 }
 
-func ListenChat(client redis.RedisClient) {
+func ListenChat(client redis.RedisClient, sm *livechat.SocketManager) {
 	ch := make(chan chatrelay.MessageData)
 	go chatrelay.Listen(client.Client, ch)
 
 	for event := range ch {
-		root.SocketsLock.RLock()
-		for _, socket := range root.Sockets {
-			if socket.GuildId == event.Ticket.GuildId && socket.TicketId == event.Ticket.Id {
-				if err := socket.Ws.WriteJSON(event.Message); err != nil {
-					fmt.Println(err.Error())
-				}
-			}
-		}
-		root.SocketsLock.RUnlock()
+		sm.BroadcastMessage(event)
 	}
 }
 

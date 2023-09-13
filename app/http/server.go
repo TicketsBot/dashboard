@@ -12,6 +12,7 @@ import (
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
 	api_team "github.com/TicketsBot/GoPanel/app/http/endpoints/api/team"
 	api_ticket "github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket"
+	"github.com/TicketsBot/GoPanel/app/http/endpoints/api/ticket/livechat"
 	api_transcripts "github.com/TicketsBot/GoPanel/app/http/endpoints/api/transcripts"
 	api_whitelabel "github.com/TicketsBot/GoPanel/app/http/endpoints/api/whitelabel"
 	"github.com/TicketsBot/GoPanel/app/http/endpoints/root"
@@ -25,7 +26,7 @@ import (
 	"time"
 )
 
-func StartServer() {
+func StartServer(sm *livechat.SocketManager) {
 	log.Println("Starting HTTP server")
 
 	router := gin.Default()
@@ -70,8 +71,6 @@ func StartServer() {
 	router.GET("/robots.txt", func(ctx *gin.Context) {
 		ctx.String(200, "Disallow: /")
 	})
-
-	router.GET("/webchat", root.WebChatWs)
 
 	router.POST("/callback", middleware.VerifyXTicketsHeader, root.CallbackHandler)
 	router.POST("/logout", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, root.LogoutHandler)
@@ -154,6 +153,9 @@ func StartServer() {
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)
 		guildAuthApiSupport.POST("/tickets/:ticketId", rl(middleware.RateLimitTypeGuild, 5, time.Second*5), api_ticket.SendMessage)
 		guildAuthApiSupport.DELETE("/tickets/:ticketId", api_ticket.CloseTicket)
+
+		// Websockets do not support headers: so we must implement authentication over the WS connection
+		router.GET("/api/:id/tickets/:ticketId/live-chat", livechat.GetLiveChatHandler(sm))
 
 		guildAuthApiSupport.GET("/tags", api_tags.TagsListHandler)
 		guildAuthApiSupport.PUT("/tags", api_tags.CreateTag)

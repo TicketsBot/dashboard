@@ -55,7 +55,7 @@ func CloseTicket(ctx *gin.Context) {
 	}
 
 	hasPermission, requestErr := utils.HasPermissionToViewTicket(guildId, userId, ticket)
-	if err != nil {
+	if requestErr != nil {
 		ctx.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
 		return
 	}

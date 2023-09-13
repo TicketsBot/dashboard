@@ -48,7 +48,7 @@
     let isPremium = false;
     let container;
 
-    let WS_URL = env.WS_URL || 'ws://172.26.50.75:3000';
+    let WS_URL = env.WS_URL || 'ws://localhost:3000';
 
     function scrollContainer() {
         container.scrollTop = container.scrollHeight;
@@ -84,23 +84,23 @@
     }
 
     function connectWebsocket() {
-        const ws = new WebSocket(`${WS_URL}/webchat`);
+        const ws = new WebSocket(`${WS_URL}/api/${guildId}/tickets/${ticketId}/live-chat`);
 
         ws.onopen = () => {
             ws.send(JSON.stringify({
                 "type": "auth",
                 "data": {
-                    "guild_id": guildId,
-                    "ticket_id": ticketId,
                     "token": getToken(),
                 }
             }));
         };
 
         ws.onmessage = (evt) => {
-            const data = JSON.parse(evt.data);
-            messages = [...messages, data];
-            scrollContainer();
+            const payload = JSON.parse(evt.data);
+            if (payload.type === "message") {
+                messages = [...messages, payload.data];
+                scrollContainer();
+            }
         };
     }
 
