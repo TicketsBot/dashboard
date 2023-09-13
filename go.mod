@@ -6,9 +6,9 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot/archiverclient v0.0.0-20220326163414-558fd52746dc
 	github.com/TicketsBot/common v0.0.0-20230819234541-7678a70af5f1
-	github.com/TicketsBot/database v0.0.0-20230912230123-6e05ad6a515c
+	github.com/TicketsBot/database v0.0.0-20230913010851-15cd49b12133
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20230912230235-11b0d81ce899
+	github.com/TicketsBot/worker v0.0.0-20230913011504-268527c33489
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.24.0
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607

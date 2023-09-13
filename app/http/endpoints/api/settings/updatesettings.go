@@ -29,9 +29,13 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	}
 
 	// Get a list of all channel IDs
-	channels := cache.Instance.GetGuildChannels(guildId)
-
 	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	channels, err := botContext.GetGuildChannels(guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -73,19 +77,16 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		errStr = utils.Ptr(err.Error())
 	}
 
-	validPrefix := settings.updatePrefix(guildId)
 	validWelcomeMessage := settings.updateWelcomeMessage(guildId)
 	validTicketLimit := settings.updateTicketLimit(guildId)
 	validArchiveChannel := settings.updateArchiveChannel(channels, guildId)
 	validCategory := settings.updateCategory(channels, guildId)
 	validNamingScheme := settings.updateNamingScheme(guildId)
-	settings.updatePingEveryone(guildId)
 	settings.updateUsersCanClose(guildId)
 	settings.updateCloseConfirmation(guildId)
 	settings.updateFeedbackEnabled(guildId)
 
 	ctx.JSON(200, gin.H{
-		"prefix":          validPrefix,
 		"welcome_message": validWelcomeMessage,
 		"ticket_limit":    validTicketLimit,
 		"archive_channel": validArchiveChannel,
@@ -254,15 +255,6 @@ func addToWaitGroup(group *errgroup.Group, guildId uint64, f func(uint64) error)
 	})
 }
 
-func (s *Settings) updatePrefix(guildId uint64) bool {
-	if s.Prefix == "" || len(s.Prefix) > 8 {
-		return false
-	}
-
-	go dbclient.Client.Prefix.Set(guildId, s.Prefix)
-	return true
-}
-
 func (s *Settings) updateWelcomeMessage(guildId uint64) bool {
 	if s.WelcomeMessage == "" || len(s.WelcomeMessage) > 4096 {
 		return false
@@ -337,10 +329,6 @@ func (s *Settings) updateNamingScheme(guildId uint64) bool {
 
 	go dbclient.Client.NamingScheme.Set(guildId, s.NamingScheme)
 	return true
-}
-
-func (s *Settings) updatePingEveryone(guildId uint64) {
-	go dbclient.Client.PingEveryone.Set(guildId, s.PingEveryone)
 }
 
 func (s *Settings) updateUsersCanClose(guildId uint64) {

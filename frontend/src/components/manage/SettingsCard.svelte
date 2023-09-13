@@ -10,7 +10,6 @@
           <span slot="header">General</span>
           <div slot="content" class="col-1">
             <div class="row">
-              <Input label="prefix (max len. 8)" placeholder="t!" col4 bind:value={data.prefix}/>
               <Number label="per user simultaneous ticket limit" min=1 max=10 bind:value={data.ticket_limit}/>
               <Dropdown label="Language" bind:value={data.language}>
                 <option value=null selected="selected">Server Default</option>
@@ -323,11 +322,6 @@
         if (data.error !== null) {
             success = false;
             notify("Warning", data.error);
-        }
-
-        if (!data.prefix) {
-            success = false;
-            notify("Warning", "Your prefix has not been saved.\nPrefixes must be between 1 - 8 characters in length.")
         }
 
         if (!data.welcome_message) {

@@ -20,13 +20,11 @@ type (
 		TicketPermissions database.TicketPermissions `json:"ticket_permissions"`
 		Colours           ColourMap                  `json:"colours"`
 
-		Prefix            string                `json:"prefix"`
 		WelcomeMessage    string                `json:"welcome_message"`
 		TicketLimit       uint8                 `json:"ticket_limit"`
 		Category          uint64                `json:"category,string"`
 		ArchiveChannel    *uint64               `json:"archive_channel,string"`
 		NamingScheme      database.NamingScheme `json:"naming_scheme"`
-		PingEveryone      bool                  `json:"ping_everyone"`
 		UsersCanClose     bool                  `json:"users_can_close"`
 		CloseConfirmation bool                  `json:"close_confirmation"`
 		FeedbackEnabled   bool                  `json:"feedback_enabled"`
@@ -85,16 +83,6 @@ func GetSettingsHandler(ctx *gin.Context) {
 		return
 	})
 
-	// prefix
-	group.Go(func() (err error) {
-		settings.Prefix, err = dbclient.Client.Prefix.Get(guildId)
-		if err == nil && settings.Prefix == "" {
-			settings.Prefix = "t!"
-		}
-
-		return
-	})
-
 	// welcome message
 	group.Go(func() (err error) {
 		settings.WelcomeMessage, err = dbclient.Client.WelcomeMessages.Get(guildId)
@@ -130,12 +118,6 @@ func GetSettingsHandler(ctx *gin.Context) {
 	// allow users to close
 	group.Go(func() (err error) {
 		settings.UsersCanClose, err = dbclient.Client.UsersCanClose.Get(guildId)
-		return
-	})
-
-	// ping everyone
-	group.Go(func() (err error) {
-		settings.PingEveryone, err = dbclient.Client.PingEveryone.Get(guildId)
 		return
 	})
 
