@@ -3,6 +3,25 @@ package livechat
 import (
 	"encoding/json"
 	"github.com/TicketsBot/common/chatrelay"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"strconv"
+)
+
+var (
+	activeWebsockets = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: "tickets",
+		Subsystem: "api",
+		Name:      "active_livechat_websockets",
+		Help:      "The number of open live-chat websockets",
+	})
+
+	websocketMessages = promauto.NewCounterVec(prometheus.CounterOpts{
+		Namespace: "tickets",
+		Subsystem: "api",
+		Name:      "livechat_websocket_messages",
+		Help:      "The number of messages relayed over live-chat websockets",
+	}, []string{"guild_id", "message_id"})
 )
 
 type (
@@ -30,6 +49,8 @@ func (sm *SocketManager) Run() {
 			guildClients := sm.clients[client.GuildId]
 			guildClients = append(guildClients, client)
 			sm.clients[client.GuildId] = guildClients
+
+			activeWebsockets.Inc()
 		case client := <-sm.unregister:
 			guildClients := sm.clients[client.GuildId]
 			if len(guildClients) == 0 {
@@ -49,6 +70,8 @@ func (sm *SocketManager) Run() {
 			}
 
 			sm.clients[client.GuildId] = guildClients
+
+			activeWebsockets.Dec()
 		case msg := <-sm.messages:
 			guildClients, ok := sm.clients[msg.Ticket.GuildId]
 			if !ok || len(guildClients) == 0 { // No clients connected to this API server for this guild
@@ -69,6 +92,11 @@ func (sm *SocketManager) Run() {
 				if client.GuildId != msg.Ticket.GuildId || client.TicketId != msg.Ticket.Id {
 					continue
 				}
+
+				websocketMessages.WithLabelValues(
+					strconv.FormatUint(client.GuildId, 10),
+					strconv.FormatUint(msg.Message.Id, 10),
+				).Inc()
 
 				client.Write(Event{
 					Type: EventTypeMessage,
