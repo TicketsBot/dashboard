@@ -19,7 +19,8 @@ func DeleteTag(ctx *gin.Context) {
 		return
 	}
 
-	if body.TagId == "" || len(body.TagId) > 16 {
+	// Increase max length for characters from other alphabets
+	if body.TagId == "" || len(body.TagId) > 100 {
 		ctx.JSON(400, utils.ErrorStr("Invalid tag"))
 		return
 	}
