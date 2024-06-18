@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -63,10 +64,11 @@ func GetGuilds(ctx *gin.Context) {
 			if g.Owner {
 				permLevel = permission.Admin
 			} else {
-				permLevel, err = utils.GetPermissionLevel(g.GuildId, userId)
+				permLevel, err = utils.GetPermissionLevel(context.Background(), g.GuildId, userId)
 				if err != nil {
 					// If a Discord error occurs, just skip the server
-					if _, ok := err.(request.RestError); !ok {
+					var restError request.RestError
+					if !errors.As(err, &restError) {
 						return err
 					}
 				}

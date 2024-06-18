@@ -1,12 +1,12 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/premium"
 	"github.com/gin-gonic/gin"
@@ -95,8 +95,6 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	user, _ := cache.Instance.GetUser(userId)
-
 	if len(body.Message) > 2000 {
 		body.Message = body.Message[0:1999]
 	}
@@ -111,13 +109,42 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
+	settings, err := database.Client.Settings.Get(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorStr("Failed to fetch settings"))
+		return
+	}
+
 	if webhook.Id != 0 {
+		var webhookData rest.WebhookBody
+		if settings.AnonymiseDashboardResponses {
+			guild, err := botContext.GetGuild(context.Background(), guildId)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorStr("Failed to fetch guild"))
+				return
+			}
+
+			webhookData = rest.WebhookBody{
+				Content:   body.Message,
+				Username:  guild.Name,
+				AvatarUrl: guild.IconUrl(),
+			}
+		} else {
+			user, err := botContext.GetUser(context.Background(), userId)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorStr("Failed to fetch user"))
+				return
+			}
+
+			webhookData = rest.WebhookBody{
+				Content:   body.Message,
+				Username:  user.EffectiveName(),
+				AvatarUrl: user.AvatarUrl(256),
+			}
+		}
+
 		// TODO: Ratelimit
-		_, err = rest.ExecuteWebhook(webhook.Token, nil, webhook.Id, true, rest.WebhookBody{
-			Content:   body.Message,
-			Username:  user.Username,
-			AvatarUrl: user.AvatarUrl(256),
-		})
+		_, err = rest.ExecuteWebhook(ctx, webhook.Token, nil, webhook.Id, true, webhookData)
 
 		if err != nil {
 			// We can delete the webhook in this case
@@ -133,9 +160,19 @@ func SendMessage(ctx *gin.Context) {
 		}
 	}
 
-	body.Message = fmt.Sprintf("**%s**: %s", user.Username, body.Message)
-	if len(body.Message) > 2000 {
-		body.Message = body.Message[0:1999]
+	message := body.Message
+	if !settings.AnonymiseDashboardResponses {
+		user, err := botContext.GetUser(context.Background(), userId)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorStr("Failed to fetch user"))
+			return
+		}
+
+		message = fmt.Sprintf("**%s**: %s", user.EffectiveName(), message)
+	}
+
+	if len(message) > 2000 {
+		message = message[0:1999]
 	}
 
 	if ticket.ChannelId == nil {
@@ -146,7 +183,7 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	if _, err = rest.CreateMessage(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.CreateMessageData{Content: body.Message}); err != nil {
+	if _, err = rest.CreateMessage(ctx, botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.CreateMessageData{Content: message}); err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
 			"error":   err.Error(),

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/database"
@@ -68,7 +69,7 @@ func usernameToIds(guildId uint64, username string) ([]uint64, error) {
 		return nil, err
 	}
 
-	members, err := botContext.SearchMembers(guildId, username)
+	members, err := botContext.SearchMembers(context.Background(), guildId, username)
 	if err != nil {
 		return nil, err
 	}

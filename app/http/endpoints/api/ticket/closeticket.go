@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -54,7 +55,7 @@ func CloseTicket(ctx *gin.Context) {
 		return
 	}
 
-	hasPermission, requestErr := utils.HasPermissionToViewTicket(guildId, userId, ticket)
+	hasPermission, requestErr := utils.HasPermissionToViewTicket(context.Background(), guildId, userId, ticket)
 	if requestErr != nil {
 		ctx.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
 		return

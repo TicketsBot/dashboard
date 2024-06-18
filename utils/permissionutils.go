@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/internal/api"
@@ -10,7 +11,7 @@ import (
 	"net/http"
 )
 
-func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, error) {
+func GetPermissionLevel(ctx context.Context, guildId, userId uint64) (permission.PermissionLevel, error) {
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
 		return permission.Everyone, err
@@ -40,7 +41,7 @@ func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, err
 	}
 
 	// get member
-	member, err := botContext.GetGuildMember(guildId, userId)
+	member, err := botContext.GetGuildMember(ctx, guildId, userId)
 	if err != nil {
 		return permission.Everyone, err
 	}
@@ -49,7 +50,7 @@ func GetPermissionLevel(guildId, userId uint64) (permission.PermissionLevel, err
 }
 
 // TODO: Use this on the ticket list
-func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (bool, *api.RequestError) {
+func HasPermissionToViewTicket(ctx context.Context, guildId, userId uint64, ticket database.Ticket) (bool, *api.RequestError) {
 	// If user opened the ticket, they will always have permission
 	if ticket.UserId == userId && ticket.GuildId == guildId {
 		return true, nil
@@ -84,7 +85,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 	}
 
 	// Check if server owner
-	guild, err := botContext.GetGuild(guildId)
+	guild, err := botContext.GetGuild(ctx, guildId)
 	if err != nil {
 		return false, api.NewInternalServerError(err, "Error retrieving guild object")
 	}
@@ -93,7 +94,7 @@ func HasPermissionToViewTicket(guildId, userId uint64, ticket database.Ticket) (
 		return true, nil
 	}
 
-	member, err := botContext.GetGuildMember(guildId, userId)
+	member, err := botContext.GetGuildMember(ctx, guildId, userId)
 	if err != nil {
 		return false, api.NewErrorWithMessage(http.StatusForbidden, err, "User not in server: are you logged into the correct account?")
 	}

@@ -74,7 +74,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 	}
 
 	messageData := data.IntoMessageData(premiumTier > premium.None)
-	messageId, err := messageData.send(&botContext, panels)
+	messageId, err := messageData.send(botContext, panels)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 {
@@ -158,8 +158,12 @@ func (d *multiPanelCreateData) validateContent() (err error) {
 }
 
 func (d *multiPanelCreateData) validateChannel(guildId uint64) func() error {
-	return func() (err error) {
-		channels := cache.Instance.GetGuildChannels(guildId)
+	return func() error {
+		// TODO: Use proper context
+		channels, err := cache.Instance.GetGuildChannels(context.Background(), guildId)
+		if err != nil {
+			return err
+		}
 
 		var valid bool
 		for _, ch := range channels {
@@ -170,10 +174,10 @@ func (d *multiPanelCreateData) validateChannel(guildId uint64) func() error {
 		}
 
 		if !valid {
-			err = errors.New("channel does not exist")
+			return errors.New("channel does not exist")
 		}
 
-		return
+		return nil
 	}
 }
 

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
@@ -24,9 +25,11 @@ func SearchMembers(ctx *gin.Context) {
 
 	var members []member.Member
 	if query == "" {
-		members, err = botCtx.ListMembers(guildId)
+		// TODO: Use proper context
+		members, err = botCtx.ListMembers(context.Background(), guildId)
 	} else {
-		members, err = botCtx.SearchMembers(guildId, query)
+		// TODO: Use proper context
+		members, err = botCtx.SearchMembers(context.Background(), guildId, query)
 	}
 
 	if err != nil {

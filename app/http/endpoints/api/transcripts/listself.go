@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"errors"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	cache2 "github.com/rxdn/gdl/cache"
 	gdlutils "github.com/rxdn/gdl/utils"
 	"golang.org/x/sync/errgroup"
 	"strconv"
@@ -55,11 +57,13 @@ func ListSelfTranscripts(ctx *gin.Context) {
 		group.Go(func() error {
 			var guildName string
 			{
-				guild, ok := cache.Instance.GetGuild(ticket.GuildId)
-				if ok {
+				guild, err := cache.Instance.GetGuild(context.Background(), ticket.GuildId)
+				if err == nil {
 					guildName = guild.Name
-				} else {
+				} else if errors.Is(err, cache2.ErrNotFound) {
 					guildName = "Unknown server"
+				} else {
+					return err
 				}
 			}
 

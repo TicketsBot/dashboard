@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/botcontext"
@@ -66,13 +67,15 @@ func UpdatePanel(ctx *gin.Context) {
 		return
 	}
 
-	channels, err := botContext.GetGuildChannels(guildId)
+	// TODO: Use proper context
+	channels, err := botContext.GetGuildChannels(context.Background(), guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	roles, err := botContext.GetGuildRoles(guildId)
+	// TODO: Use proper context
+	roles, err := botContext.GetGuildRoles(context.Background(), guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -142,10 +145,11 @@ func UpdatePanel(ctx *gin.Context) {
 
 	if shouldUpdateMessage {
 		// delete old message, ignoring error
-		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
+		// TODO: Use proper context
+		_ = rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
 		messageData := data.IntoPanelMessageData(existing.CustomId, premiumTier > premium.None)
-		newMessageId, err = messageData.send(&botContext)
+		newMessageId, err = messageData.send(botContext)
 		if err != nil {
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped) {
@@ -313,7 +317,7 @@ func UpdatePanel(ctx *gin.Context) {
 			ThumbnailUrl: multiPanel.ThumbnailUrl,
 		}
 
-		messageId, err := messageData.send(&botContext, panels)
+		messageId, err := messageData.send(botContext, panels)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -325,7 +329,8 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 
 		// Delete old panel
-		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
+		// TODO: Use proper context
+		_ = rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
 	ctx.JSON(200, utils.SuccessResponse)

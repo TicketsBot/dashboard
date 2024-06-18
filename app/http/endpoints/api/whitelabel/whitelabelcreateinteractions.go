@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
@@ -67,7 +68,8 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 
 		commands, _ := cm.BuildCreatePayload(true, nil)
 
-		if _, err = rest.ModifyGlobalCommands(bot.Token, botContext.RateLimiter, bot.BotId, commands); err == nil {
+		// TODO: Use proper context
+		if _, err = rest.ModifyGlobalCommands(context.Background(), bot.Token, botContext.RateLimiter, bot.BotId, commands); err == nil {
 			ctx.JSON(200, utils.SuccessResponse)
 		} else {
 			ctx.JSON(500, utils.ErrorJson(err))

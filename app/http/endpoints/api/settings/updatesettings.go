@@ -35,7 +35,8 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 		return
 	}
 
-	channels, err := botContext.GetGuildChannels(guildId)
+	// TODO: Use proper context
+	channels, err := botContext.GetGuildChannels(context.Background(), guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -210,8 +211,11 @@ func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) err
 
 	group.Go(func() error {
 		if s.Settings.OverflowCategoryId != nil {
-			ch, ok := cache.Instance.GetChannel(*s.Settings.OverflowCategoryId)
-			if !ok {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
+
+			ch, err := cache.Instance.GetChannel(ctx, *s.Settings.OverflowCategoryId)
+			if err != nil {
 				return fmt.Errorf("Invalid overflow category")
 			}
 
@@ -229,8 +233,11 @@ func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) err
 
 	group.Go(func() error {
 		if s.Settings.TicketNotificationChannel != nil {
-			ch, ok := cache.Instance.GetChannel(*s.Settings.TicketNotificationChannel)
-			if !ok {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
+
+			ch, err := cache.Instance.GetChannel(ctx, *s.Settings.TicketNotificationChannel)
+			if err != nil {
 				return fmt.Errorf("Invalid ticket notification channel")
 			}
 

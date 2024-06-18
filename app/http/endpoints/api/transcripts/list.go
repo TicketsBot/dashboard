@@ -1,11 +1,14 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	cache2 "github.com/rxdn/gdl/cache"
 )
 
 const pageLimit = 15
@@ -57,16 +60,19 @@ func ListTranscripts(ctx *gin.Context) {
 		}
 
 		// check cache, for some reason botContext.GetUser doesn't do this
-		user, ok := cache.Instance.GetUser(ticket.UserId)
-		if ok {
+		user, err := cache.Instance.GetUser(context.Background(), ticket.UserId)
+		if err == nil {
 			usernames[ticket.UserId] = user.Username
-		} else {
-			user, err = botContext.GetUser(ticket.UserId)
+		} else if errors.Is(err, cache2.ErrNotFound) {
+			user, err = botContext.GetUser(context.Background(), ticket.UserId)
 			if err != nil { // TODO: Log
 				usernames[ticket.UserId] = "Unknown User"
 			} else {
 				usernames[ticket.UserId] = user.Username
 			}
+		} else {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
 		}
 	}
 

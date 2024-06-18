@@ -22,6 +22,7 @@
               <Checkbox label="allow users to close tickets" bind:value={data.users_can_close}/>
               <Checkbox label="ticket close confirmation" bind:value={data.close_confirmation}/>
               <Checkbox label="Enable User Feedback" bind:value={data.feedback_enabled}/>
+              <Checkbox label="Anonymise Dashboard Responses" bind:value={data.anonymise_dashboard_responses} />
             </div>
           </div>
         </Collapsible>

@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"context"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/rest"
@@ -14,7 +16,10 @@ func LoadGuilds(accessToken string, userId uint64) error {
 		Limit: 200,
 	}
 
-	guilds, err := rest.GetCurrentUserGuilds(authHeader, nil, data)
+	ctx, cancel := context.WithTimeout(context.Background(), app.DefaultTimeout)
+	defer cancel()
+
+	guilds, err := rest.GetCurrentUserGuilds(ctx, authHeader, nil, data)
 	if err != nil {
 		return err
 	}

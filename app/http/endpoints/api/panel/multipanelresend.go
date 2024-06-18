@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -50,7 +51,8 @@ func MultiPanelResend(ctx *gin.Context) {
 	}
 
 	// delete old message
-	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId); err != nil {
+	// TODO: Use proper context
+	if err := rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId); err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && !unwrapped.IsClientError() {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -73,7 +75,7 @@ func MultiPanelResend(ctx *gin.Context) {
 
 	// send new message
 	messageData := multiPanelIntoMessageData(multiPanel, premiumTier > premium.None)
-	messageId, err := messageData.send(&botContext, panels)
+	messageId, err := messageData.send(botContext, panels)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {

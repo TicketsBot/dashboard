@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
@@ -65,7 +66,8 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
+	// TODO: Use proper context
+	if err := rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
 		var unwrapped request.RestError
 		if !errors.As(err, &unwrapped) || unwrapped.StatusCode != 404 {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -102,7 +104,7 @@ func DeletePanel(ctx *gin.Context) {
 			IsPremium:  premiumTier > premium.None,
 		}
 
-		messageId, err := messageData.send(&botContext, panels)
+		messageId, err := messageData.send(botContext, panels)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -114,7 +116,8 @@ func DeletePanel(ctx *gin.Context) {
 		}
 
 		// Delete old panel
-		_ = rest.DeleteMessage(botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
+		// TODO: Use proper context
+		_ = rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
 	ctx.JSON(200, utils.SuccessResponse)

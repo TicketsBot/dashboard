@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -41,7 +42,8 @@ func GetBlacklistHandler(ctx *gin.Context) {
 		return
 	}
 
-	userObjects, err := cache.Instance.GetUsers(blacklistedUsers)
+	// TODO: Use proper context
+	userObjects, err := cache.Instance.GetUsers(context.Background(), blacklistedUsers)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

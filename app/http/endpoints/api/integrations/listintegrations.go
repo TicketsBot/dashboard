@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -86,7 +87,8 @@ func ListIntegrationsHandler(ctx *gin.Context) {
 	}
 
 	// Get author data for the integrations
-	authors, err := cache.Instance.GetUsers(authorIds)
+	// TODO: Use proper context
+	authors, err := cache.Instance.GetUsers(context.Background(), authorIds)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

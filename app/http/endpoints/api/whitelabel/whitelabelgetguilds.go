@@ -1,10 +1,13 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	cache2 "github.com/rxdn/gdl/cache"
 	"strconv"
 )
 
@@ -35,9 +38,18 @@ func WhitelabelGetGuilds(ctx *gin.Context) {
 
 	for _, id := range ids {
 		// get guild name
-		if guild, found := cache.Instance.GetGuild(id); found {
-			guilds[strconv.FormatUint(id, 10)] = guild.Name
+		// TODO: Use proper context
+		guild, err := cache.Instance.GetGuild(context.Background(), id)
+		if err != nil {
+			if errors.Is(err, cache2.ErrNotFound) {
+				continue
+			} else {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
 		}
+
+		guilds[strconv.FormatUint(id, 10)] = guild.Name
 	}
 
 	ctx.JSON(200, gin.H{

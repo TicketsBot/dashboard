@@ -1,6 +1,7 @@
 package root
 
 import (
+	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
@@ -46,7 +47,7 @@ func CallbackHandler(ctx *gin.Context) {
 	}
 
 	// Get ID + name
-	currentUser, err := rest.GetCurrentUser(fmt.Sprintf("Bearer %s", res.AccessToken), nil)
+	currentUser, err := rest.GetCurrentUser(context.Background(), fmt.Sprintf("Bearer %s", res.AccessToken), nil)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -54,7 +55,7 @@ func CallbackHandler(ctx *gin.Context) {
 
 	store := session.SessionData{
 		AccessToken:  res.AccessToken,
-		Expiry:       (time.Now().UnixNano()/int64(time.Second))+int64(res.ExpiresIn),
+		Expiry:       (time.Now().UnixNano() / int64(time.Second)) + int64(res.ExpiresIn),
 		RefreshToken: res.RefreshToken,
 		Name:         currentUser.Username,
 		Avatar:       currentUser.AvatarUrl(256),
@@ -69,7 +70,7 @@ func CallbackHandler(ctx *gin.Context) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userid": strconv.FormatUint(currentUser.Id, 10),
+		"userid":    strconv.FormatUint(currentUser.Id, 10),
 		"timestamp": time.Now(),
 	})
 
@@ -86,6 +87,6 @@ func CallbackHandler(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success": true,
-		"token": str,
+		"token":   str,
 	})
 }

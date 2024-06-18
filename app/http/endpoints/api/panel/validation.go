@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/app/http/validation/defaults"
 	"github.com/TicketsBot/GoPanel/botcontext"
@@ -42,7 +43,7 @@ type PanelValidationContext struct {
 	Data       panelBody
 	GuildId    uint64
 	IsPremium  bool
-	BotContext botcontext.BotContext
+	BotContext *botcontext.BotContext
 	Channels   []channel.Channel
 	Roles      []guild.Role
 }
@@ -118,16 +119,19 @@ func validateCategory(ctx PanelValidationContext) validation.ValidationFunc {
 	}
 }
 
-func validateEmoji(ctx PanelValidationContext) validation.ValidationFunc {
+func validateEmoji(c PanelValidationContext) validation.ValidationFunc {
 	return func() error {
-		emoji := ctx.Data.Emoji
+		emoji := c.Data.Emoji
 
 		if emoji.IsCustomEmoji {
 			if emoji.Id == nil {
 				return validation.NewInvalidInputError("Custom emoji was missing ID")
 			}
 
-			resolvedEmoji, err := ctx.BotContext.GetGuildEmoji(ctx.GuildId, *emoji.Id)
+			ctx, cancel := context.WithTimeout(context.Background(), app.DefaultTimeout)
+			defer cancel()
+
+			resolvedEmoji, err := c.BotContext.GetGuildEmoji(ctx, c.GuildId, *emoji.Id)
 			if err != nil {
 				return err
 			}

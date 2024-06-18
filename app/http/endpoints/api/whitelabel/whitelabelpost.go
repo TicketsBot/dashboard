@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/base64"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
@@ -38,7 +39,8 @@ func WhitelabelPost(ctx *gin.Context) {
 	}
 
 	// Validate token + get bot ID
-	bot, err := rest.GetCurrentUser(token, nil)
+	// TODO: Use proper context
+	bot, err := rest.GetCurrentUser(context.Background(), token, nil)
 	if err != nil {
 		ctx.JSON(400, utils.ErrorJson(err))
 		return

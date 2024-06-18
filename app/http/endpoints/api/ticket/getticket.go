@@ -1,12 +1,15 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	cache2 "github.com/rxdn/gdl/cache"
 	"github.com/rxdn/gdl/rest"
 	"regexp"
 	"strconv"
@@ -63,7 +66,7 @@ func GetTicket(ctx *gin.Context) {
 		return
 	}
 
-	hasPermission, requestErr := utils.HasPermissionToViewTicket(guildId, userId, ticket)
+	hasPermission, requestErr := utils.HasPermissionToViewTicket(context.Background(), guildId, userId, ticket)
 	if requestErr != nil {
 		ctx.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
 		return
@@ -77,7 +80,11 @@ func GetTicket(ctx *gin.Context) {
 	messagesFormatted := make([]map[string]interface{}, 0)
 	if ticket.ChannelId != nil {
 		// Get messages
-		messages, _ := rest.GetChannelMessages(botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
+		messages, err := rest.GetChannelMessages(context.Background(), botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
 
 		// Format messages, exclude unneeded data
 		for _, message := range utils.Reverse(messages) {
@@ -92,8 +99,15 @@ func GetTicket(ctx *gin.Context) {
 						continue
 					}
 
-					user, _ := cache.Instance.GetUser(mentionedId)
-					content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", user.Username))
+					user, err := cache.Instance.GetUser(context.Background(), mentionedId)
+					if err == nil {
+						content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", user.Username))
+					} else if errors.Is(err, cache2.ErrNotFound) {
+						content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), "@Unknown User")
+					} else {
+						ctx.JSON(500, utils.ErrorJson(err))
+						return
+					}
 				}
 			}
 

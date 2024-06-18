@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects"
@@ -54,7 +55,7 @@ func panelIntoMessageData(panel database.Panel, isPremium bool) panelMessageData
 	}
 }
 
-func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
+func (p *panelMessageData) send(c *botcontext.BotContext) (uint64, error) {
 	e := embed.NewEmbed().
 		SetTitle(p.Title).
 		SetDescription(p.Content).
@@ -86,7 +87,10 @@ func (p *panelMessageData) send(ctx *botcontext.BotContext) (uint64, error) {
 		},
 	}
 
-	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, p.ChannelId, data)
+	ctx, cancel := app.DefaultContext()
+	defer cancel()
+
+	msg, err := rest.CreateMessage(ctx, c.Token, c.RateLimiter, p.ChannelId, data)
 	if err != nil {
 		return 0, err
 	}

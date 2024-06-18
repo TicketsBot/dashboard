@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -72,7 +74,8 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 			return
 		}
 
-		guild, err := botCtx.GetGuild(guildId)
+		// TODO: Use proper context
+		guild, err := botCtx.GetGuild(context.Background(), guildId)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -112,11 +115,13 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 
 		if entityType == entityTypeUser {
 			// If the member  is not in the guild we do not have to worry
-			member, err := botContext.GetGuildMember(guildId, snowflake)
+			// TODO: Use proper context
+			member, err := botContext.GetGuildMember(context.Background(), guildId, snowflake)
 			if err == nil {
 				if member.HasRole(*metadata.OnCallRole) {
 					// Attempt to remove role but ignore failure
-					_ = botContext.RemoveGuildMemberRole(guildId, snowflake, *metadata.OnCallRole)
+					// TODO: Use proper context
+					_ = botContext.RemoveGuildMemberRole(context.Background(), guildId, snowflake, *metadata.OnCallRole)
 				}
 			} else {
 				if err, ok := err.(request.RestError); !ok || err.StatusCode != 404 {
@@ -131,7 +136,8 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 				return
 			}
 
-			if err := botContext.DeleteGuildRole(guildId, *metadata.OnCallRole); err != nil && !isUnknownRoleError(err) {
+			// TODO: Use proper context
+			if err := botContext.DeleteGuildRole(context.Background(), guildId, *metadata.OnCallRole); err != nil && !isUnknownRoleError(err) {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -184,19 +190,24 @@ func removeTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, e
 
 		if entityType == entityTypeUser {
 			// If the member  is not in the guild we do not have to worry
-			member, err := botContext.GetGuildMember(guildId, snowflake)
+			// TODO: Use proper context
+			member, err := botContext.GetGuildMember(context.Background(), guildId, snowflake)
 			if err == nil {
 				if member.HasRole(*team.OnCallRole) {
 					// Attempt to remove role but ignore failure
-					_ = botContext.RemoveGuildMemberRole(guildId, snowflake, *team.OnCallRole)
+					// TODO: Use proper context
+					_ = botContext.RemoveGuildMemberRole(context.Background(), guildId, snowflake, *team.OnCallRole)
 				}
 			} else {
-				if err, ok := err.(request.RestError); !ok || err.StatusCode != 404 {
+				var err request.RestError
+				if !errors.As(err, &err) || err.StatusCode != 404 {
 					ctx.JSON(500, utils.ErrorJson(err))
 					return
 				}
 			}
-			_ = botContext.RemoveGuildMemberRole(guildId, snowflake, *team.OnCallRole)
+
+			// TODO: Use proper context
+			_ = botContext.RemoveGuildMemberRole(context.Background(), guildId, snowflake, *team.OnCallRole)
 		} else if entityType == entityTypeRole {
 			// Recreate role
 			if err := dbclient.Client.SupportTeam.SetOnCallRole(teamId, nil); err != nil {
@@ -204,7 +215,8 @@ func removeTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, e
 				return
 			}
 
-			if err := botContext.DeleteGuildRole(guildId, *team.OnCallRole); err != nil && !isUnknownRoleError(err) {
+			// TODO: Use proper context
+			if err := botContext.DeleteGuildRole(context.Background(), guildId, *team.OnCallRole); err != nil && !isUnknownRoleError(err) {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -221,7 +233,7 @@ func removeTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, e
 	ctx.JSON(200, utils.SuccessResponse)
 }
 
-func createOnCallRole(botContext botcontext.BotContext, guildId uint64, team *database.SupportTeam) (uint64, error) {
+func createOnCallRole(botContext *botcontext.BotContext, guildId uint64, team *database.SupportTeam) (uint64, error) {
 	var roleName string
 	if team == nil {
 		roleName = "On Call" // TODO: Translate
@@ -235,7 +247,8 @@ func createOnCallRole(botContext botcontext.BotContext, guildId uint64, team *da
 		Mentionable: utils.Ptr(false),
 	}
 
-	role, err := botContext.CreateGuildRole(guildId, data)
+	// TODO: Use proper context
+	role, err := botContext.CreateGuildRole(context.Background(), guildId, data)
 	if err != nil {
 		return 0, err
 	}
@@ -254,7 +267,8 @@ func createOnCallRole(botContext botcontext.BotContext, guildId uint64, team *da
 }
 
 func isUnknownRoleError(err error) bool {
-	if err, ok := err.(request.RestError); ok && err.ApiError.Message == "Unknown Role" {
+	var restErr request.RestError
+	if errors.As(err, &restErr) && restErr.ApiError.Message == "Unknown Role" {
 		return true
 	}
 

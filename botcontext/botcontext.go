@@ -1,13 +1,16 @@
 package botcontext
 
 import (
+	"context"
+	"errors"
 	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
+	cacheclient "github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/common/permission"
 	"github.com/TicketsBot/common/restcache"
 	"github.com/TicketsBot/database"
+	cache "github.com/rxdn/gdl/cache"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
 	"github.com/rxdn/gdl/objects/guild/emoji"
@@ -25,15 +28,15 @@ type BotContext struct {
 	RestCache   restcache.RestCache
 }
 
-func (ctx BotContext) Db() *database.Database {
+func (c *BotContext) Db() *database.Database {
 	return dbclient.Client
 }
 
-func (ctx BotContext) Cache() permission.PermissionCache {
+func (c *BotContext) Cache() permission.PermissionCache {
 	return permission.NewRedisCache(redis.Client.Client)
 }
 
-func (ctx BotContext) IsBotAdmin(userId uint64) bool {
+func (c *BotContext) IsBotAdmin(userId uint64) bool {
 	for _, id := range config.Conf.Admins {
 		if id == userId {
 			return true
@@ -43,150 +46,219 @@ func (ctx BotContext) IsBotAdmin(userId uint64) bool {
 	return false
 }
 
-func (ctx BotContext) GetGuild(guildId uint64) (g guild.Guild, err error) {
-	if guild, found := cache.Instance.GetGuild(guildId); found {
-		return guild, nil
-	}
+func (c *BotContext) GetGuild(ctx context.Context, guildId uint64) (guild.Guild, error) {
+	g, err := cacheclient.Instance.GetGuild(ctx, guildId)
+	switch {
+	case err == nil:
+		return g, nil
+	case errors.Is(err, cache.ErrNotFound):
+		g, err := rest.GetGuild(ctx, c.Token, c.RateLimiter, guildId)
+		if err == nil {
+			if err := cacheclient.Instance.StoreGuild(ctx, g); err != nil {
+				return guild.Guild{}, err
+			}
+		}
 
-	g, err = rest.GetGuild(ctx.Token, ctx.RateLimiter, guildId)
-	if err == nil {
-		go cache.Instance.StoreGuild(g)
+		return g, err
+	default:
+		return guild.Guild{}, err
 	}
-
-	return
 }
 
-func (ctx BotContext) GetGuildOwner(guildId uint64) (uint64, error) {
-	cachedOwner, exists := cache.Instance.GetGuildOwner(guildId)
-	if exists {
+func (c *BotContext) GetGuildOwner(guildId uint64) (uint64, error) {
+	cachedOwner, err := cacheclient.Instance.GetGuildOwner(context.Background(), guildId)
+	switch {
+	case err == nil:
 		return cachedOwner, nil
-	}
+	case errors.Is(err, cache.ErrNotFound):
+		guild, err := c.GetGuild(context.Background(), guildId)
+		if err != nil {
+			return 0, err
+		}
 
-	guild, err := ctx.GetGuild(guildId)
-	if err != nil {
+		if err := cacheclient.Instance.StoreGuild(context.Background(), guild); err != nil {
+			return 0, err
+		}
+
+		return guild.OwnerId, nil
+	default:
 		return 0, err
 	}
-
-	go cache.Instance.StoreGuild(guild)
-	return guild.OwnerId, nil
 }
 
-func (ctx BotContext) GetGuildMember(guildId, userId uint64) (m member.Member, err error) {
-	if guild, found := cache.Instance.GetMember(guildId, userId); found {
-		return guild, nil
+func (c *BotContext) GetGuildMember(ctx context.Context, guildId, userId uint64) (member.Member, error) {
+	m, err := cacheclient.Instance.GetMember(ctx, guildId, userId)
+	switch {
+	case err == nil:
+		return m, nil
+	case errors.Is(err, cache.ErrNotFound):
+		m, err := rest.GetGuildMember(ctx, c.Token, c.RateLimiter, guildId, userId)
+		if err != nil {
+			return member.Member{}, nil
+		}
+
+		if err := cacheclient.Instance.StoreMember(ctx, m, guildId); err != nil {
+			return member.Member{}, err
+		}
+
+		return m, nil
+	default:
+		return member.Member{}, err
+	}
+}
+
+func (c *BotContext) RemoveGuildMemberRole(ctx context.Context, guildId, userId, roleId uint64) error {
+	return rest.RemoveGuildMemberRole(ctx, c.Token, c.RateLimiter, guildId, userId, roleId)
+}
+
+func (c *BotContext) CreateGuildRole(ctx context.Context, guildId uint64, data rest.GuildRoleData) (guild.Role, error) {
+	return rest.CreateGuildRole(ctx, c.Token, c.RateLimiter, guildId, data)
+}
+
+func (c *BotContext) DeleteGuildRole(ctx context.Context, guildId, roleId uint64) error {
+	return rest.DeleteGuildRole(ctx, c.Token, c.RateLimiter, guildId, roleId)
+}
+
+func (c *BotContext) GetUser(ctx context.Context, userId uint64) (user.User, error) {
+	u, err := cacheclient.Instance.GetUser(ctx, userId)
+	switch {
+	case err == nil:
+		return u, nil
+	case errors.Is(err, cache.ErrNotFound):
+		u, err := rest.GetUser(ctx, c.Token, c.RateLimiter, userId)
+		if err != nil {
+			return user.User{}, err
+		}
+
+		if err := cacheclient.Instance.StoreUser(ctx, u); err != nil {
+			return user.User{}, err
+		}
+
+		return u, nil
+	default:
+		return user.User{}, err
+	}
+}
+
+func (c *BotContext) GetGuildRoles(ctx context.Context, guildId uint64) ([]guild.Role, error) {
+	return c.RestCache.GetGuildRoles(guildId)
+}
+
+func (c *BotContext) GetGuildChannels(ctx context.Context, guildId uint64) ([]channel.Channel, error) {
+	cachedChannels, err := cacheclient.Instance.GetGuildChannels(ctx, guildId)
+	if err != nil {
+		return nil, err
 	}
 
-	m, err = rest.GetGuildMember(ctx.Token, ctx.RateLimiter, guildId, userId)
-	if err == nil {
-		go cache.Instance.StoreMember(m, guildId)
-	}
-
-	return
-}
-
-func (ctx BotContext) RemoveGuildMemberRole(guildId, userId, roleId uint64) (err error) {
-	err = rest.RemoveGuildMemberRole(ctx.Token, ctx.RateLimiter, guildId, userId, roleId)
-	return
-}
-
-func (ctx BotContext) CreateGuildRole(guildId uint64, data rest.GuildRoleData) (role guild.Role, err error) {
-	role, err = rest.CreateGuildRole(ctx.Token, ctx.RateLimiter, guildId, data)
-	return
-}
-
-func (ctx BotContext) DeleteGuildRole(guildId, roleId uint64) (err error) {
-	err = rest.DeleteGuildRole(ctx.Token, ctx.RateLimiter, guildId, roleId)
-	return
-}
-
-func (ctx BotContext) GetUser(userId uint64) (u user.User, err error) {
-	u, err = rest.GetUser(ctx.Token, ctx.RateLimiter, userId)
-	if err == nil {
-		go cache.Instance.StoreUser(u)
-	}
-
-	return
-}
-
-func (ctx BotContext) GetGuildRoles(guildId uint64) (roles []guild.Role, err error) {
-	return ctx.RestCache.GetGuildRoles(guildId)
-}
-
-func (ctx BotContext) GetGuildChannels(guildId uint64) ([]channel.Channel, error) {
-	cachedChannels := cache.Instance.GetGuildChannels(guildId)
-	if len(cachedChannels) == 0 {
-		// If guild is cached but not any channels, likely that it does truly have 0 channels, so don't fetch from REST
-		_, ok := cache.Instance.GetGuild(guildId)
-		if ok {
+	if len(cachedChannels) > 0 {
+		return cachedChannels, nil
+	} else {
+		// If guild is cached but not any channels, likely that it does truly have 0 channels,
+		// so don't fetch from REST.
+		_, err := cacheclient.Instance.GetGuild(ctx, guildId)
+		switch {
+		case err == nil:
 			return []channel.Channel{}, nil
+		case errors.Is(err, cache.ErrNotFound):
+			// If guild isn't cached, fetch from REST
+			channels, err := rest.GetGuildChannels(ctx, c.Token, c.RateLimiter, guildId)
+			if err != nil {
+				return nil, err
+			}
+
+			if err := cacheclient.Instance.StoreChannels(ctx, channels); err != nil {
+				return nil, err
+			}
+
+			return channels, nil
+		default:
+			return nil, err
 		}
 	}
-
-	channels, err := rest.GetGuildChannels(ctx.Token, ctx.RateLimiter, guildId)
-	if err == nil {
-		go cache.Instance.StoreChannels(channels)
-	}
-
-	return channels, err
 }
 
-func (ctx BotContext) GetGuildEmoji(guildId, emojiId uint64) (emoji.Emoji, error) {
-	if emoji, ok := cache.Instance.GetEmoji(guildId); ok {
-		return emoji, nil
-	}
+func (c *BotContext) GetGuildEmoji(ctx context.Context, guildId, emojiId uint64) (emoji.Emoji, error) {
+	e, err := cacheclient.Instance.GetEmoji(ctx, guildId)
+	switch {
+	case err == nil:
+		return e, nil
+	case errors.Is(err, cache.ErrNotFound):
+		e, err := rest.GetGuildEmoji(ctx, c.Token, c.RateLimiter, guildId, emojiId)
+		if err != nil {
+			return emoji.Emoji{}, err
+		}
 
-	emoji, err := rest.GetGuildEmoji(ctx.Token, ctx.RateLimiter, guildId, emojiId)
-	if err == nil {
-		go cache.Instance.StoreEmoji(emoji, guildId)
-	}
+		if err := cacheclient.Instance.StoreEmoji(ctx, e, guildId); err != nil {
+			return emoji.Emoji{}, err
+		}
 
-	return emoji, err
+		return e, nil
+	default:
+		return emoji.Emoji{}, err
+	}
 }
 
-func (ctx BotContext) GetGuildEmojis(guildId uint64) (emojis []emoji.Emoji, err error) {
-	if emojis := cache.Instance.GetGuildEmojis(guildId); len(emojis) > 0 {
-		return emojis, nil
+func (c *BotContext) GetGuildEmojis(ctx context.Context, guildId uint64) ([]emoji.Emoji, error) {
+	emojis, err := cacheclient.Instance.GetGuildEmojis(ctx, guildId)
+	if err != nil {
+		return nil, err
 	}
 
-	emojis, err = rest.ListGuildEmojis(ctx.Token, ctx.RateLimiter, guildId)
-	if err == nil {
-		go cache.Instance.StoreEmojis(emojis, guildId)
+	if len(emojis) == 0 {
+		emojis, err := rest.ListGuildEmojis(ctx, c.Token, c.RateLimiter, guildId)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := cacheclient.Instance.StoreEmojis(ctx, emojis, guildId); err != nil {
+			return nil, err
+		}
+
+		return emojis, err
 	}
 
-	return
+	return emojis, nil
 }
 
-func (ctx BotContext) SearchMembers(guildId uint64, query string) (members []member.Member, err error) {
+func (c *BotContext) SearchMembers(ctx context.Context, guildId uint64, query string) ([]member.Member, error) {
 	data := rest.SearchGuildMembersData{
 		Query: query,
 		Limit: 100,
 	}
 
-	members, err = rest.SearchGuildMembers(ctx.Token, ctx.RateLimiter, guildId, data)
-	if err == nil {
-		go cache.Instance.StoreMembers(members, guildId)
+	members, err := rest.SearchGuildMembers(ctx, c.Token, c.RateLimiter, guildId, data)
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	if err := cacheclient.Instance.StoreMembers(ctx, members, guildId); err != nil {
+		return nil, err
+	}
+
+	return members, nil
 }
 
-func (ctx BotContext) ListMembers(guildId uint64) (members []member.Member, err error) {
+func (c *BotContext) ListMembers(ctx context.Context, guildId uint64) ([]member.Member, error) {
 	data := rest.ListGuildMembersData{
 		Limit: 100,
 	}
 
-	members, err = rest.ListGuildMembers(ctx.Token, ctx.RateLimiter, guildId, data)
-	if err == nil {
-		go cache.Instance.StoreMembers(members, guildId)
+	members, err := rest.ListGuildMembers(ctx, c.Token, c.RateLimiter, guildId, data)
+	if err != nil {
+		return nil, err
 	}
 
-	return
+	if err := cacheclient.Instance.StoreMembers(ctx, members, guildId); err != nil {
+		return nil, err
+	}
+
+	return members, nil
 }
 
-func (ctx BotContext) CreateGuildCommand(guildId uint64, data rest.CreateCommandData) (interaction.ApplicationCommand, error) {
-	return rest.CreateGuildCommand(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, data)
+func (c *BotContext) CreateGuildCommand(ctx context.Context, guildId uint64, data rest.CreateCommandData) (interaction.ApplicationCommand, error) {
+	return rest.CreateGuildCommand(ctx, c.Token, c.RateLimiter, c.BotId, guildId, data)
 }
 
-func (ctx BotContext) DeleteGuildCommand(guildId, commandId uint64) error {
-	return rest.DeleteGuildCommand(ctx.Token, ctx.RateLimiter, ctx.BotId, guildId, commandId)
+func (c *BotContext) DeleteGuildCommand(ctx context.Context, guildId, commandId uint64) error {
+	return rest.DeleteGuildCommand(ctx, c.Token, c.RateLimiter, c.BotId, guildId, commandId)
 }

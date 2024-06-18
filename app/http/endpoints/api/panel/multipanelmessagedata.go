@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
@@ -119,7 +120,8 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 		Components: components,
 	}
 
-	msg, err := rest.CreateMessage(ctx.Token, ctx.RateLimiter, d.ChannelId, data)
+	// TODO: Use proper context
+	msg, err := rest.CreateMessage(context.Background(), ctx.Token, ctx.RateLimiter, d.ChannelId, data)
 	if err != nil {
 		return 0, err
 	}

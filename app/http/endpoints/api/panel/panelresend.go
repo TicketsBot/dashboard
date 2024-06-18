@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -52,7 +53,8 @@ func ResendPanel(ctx *gin.Context) {
 	}
 
 	// delete old message
-	if err := rest.DeleteMessage(botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.GuildId); err != nil {
+	// TODO: Use proper context
+	if err := rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.GuildId); err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && !unwrapped.IsClientError() {
 			ctx.JSON(500, utils.ErrorJson(err))
@@ -67,7 +69,7 @@ func ResendPanel(ctx *gin.Context) {
 	}
 
 	messageData := panelIntoMessageData(panel, premiumTier > premium.None)
-	msgId, err := messageData.send(&botContext)
+	msgId, err := messageData.send(botContext)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {

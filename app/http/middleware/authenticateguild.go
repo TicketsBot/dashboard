@@ -1,10 +1,13 @@
 package middleware
 
 import (
+	"context"
+	"errors"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
+	cache2 "github.com/rxdn/gdl/cache"
 	"strconv"
 )
 
@@ -22,17 +25,24 @@ func AuthenticateGuild(requiredPermissionLevel permission.PermissionLevel) gin.H
 			ctx.Keys["guildid"] = parsed
 
 			// TODO: Do we need this? Only really serves as a check whether the bot is in the server
-			_, found := cache.Instance.GetGuildOwner(parsed)
-			if !found {
-				ctx.JSON(404, utils.ErrorStr("Guild not found"))
-				ctx.Abort()
+			// TODO: Use proper context
+			if _, err := cache.Instance.GetGuildOwner(context.Background(), parsed); err != nil {
+				if errors.Is(err, cache2.ErrNotFound) {
+					ctx.JSON(404, utils.ErrorStr("Guild not found"))
+					ctx.Abort()
+				} else {
+					ctx.JSON(500, utils.ErrorJson(err))
+					ctx.Abort()
+				}
+
 				return
 			}
 
 			// Verify the user has permissions to be here
 			userId := ctx.Keys["userid"].(uint64)
 
-			permLevel, err := utils.GetPermissionLevel(parsed, userId)
+			// TODO: Use proper context
+			permLevel, err := utils.GetPermissionLevel(context.Background(), parsed, userId)
 			if err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				ctx.Abort()

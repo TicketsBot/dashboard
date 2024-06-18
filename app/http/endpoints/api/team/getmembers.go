@@ -129,7 +129,8 @@ func formatMembers(guildId uint64, userIds, roleIds []uint64) ([]entity, error) 
 		group.Go(func() error {
 			defer wg.Done()
 
-			user, err := ctx.GetUser(userId)
+			// TODO: Use proper context
+			user, err := ctx.GetUser(context.Background(), userId)
 			if err != nil {
 				// TODO: Log w sentry
 				return nil // We should skip the error, since it's probably 403 / 404 etc

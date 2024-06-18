@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/config"
@@ -52,7 +53,10 @@ func SetIntegrationPublicHandler(ctx *gin.Context) {
 		AddField("Integration Description", integration.Description, false)
 
 	botCtx := botcontext.PublicContext()
+
+	// TODO: Use proper context
 	_, err = rest.ExecuteWebhook(
+		context.Background(),
 		config.Conf.Bot.PublicIntegrationRequestWebhookToken,
 		botCtx.RateLimiter,
 		config.Conf.Bot.PublicIntegrationRequestWebhookId,

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"strconv"
@@ -15,7 +16,8 @@ func GetPermissionLevel(ctx *gin.Context) {
 		return
 	}
 
-	permissionLevel, err := utils.GetPermissionLevel(guildId, userId)
+	// TODO: Use proper context
+	permissionLevel, err := utils.GetPermissionLevel(context.Background(), guildId, userId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

@@ -40,7 +40,7 @@ func GetTranscriptRenderHandler(ctx *gin.Context) {
 	// Verify the user has permissions to be here
 	// ticket.UserId cannot be 0
 	if ticket.UserId != userId {
-		hasPermission, err := utils.HasPermissionToViewTicket(guildId, userId, ticket)
+		hasPermission, err := utils.HasPermissionToViewTicket(ctx, guildId, userId, ticket)
 		if err != nil {
 			ctx.JSON(err.StatusCode, utils.ErrorJson(err))
 			return

@@ -1,6 +1,7 @@
 package livechat
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -77,7 +78,7 @@ func (c *Client) handleAuthEvent(data AuthData) error {
 	}
 
 	// Verify the user has permissions to be here
-	hasPermission, requestErr := utils.HasPermissionToViewTicket(c.GuildId, userId, ticket)
+	hasPermission, requestErr := utils.HasPermissionToViewTicket(context.Background(), c.GuildId, userId, ticket)
 	if requestErr != nil {
 		return api.NewErrorWithMessage(http.StatusInternalServerError, err, "Error retrieving permission data")
 	}

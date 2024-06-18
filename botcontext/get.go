@@ -9,21 +9,21 @@ import (
 	"github.com/rxdn/gdl/rest/ratelimit"
 )
 
-func ContextForGuild(guildId uint64) (ctx BotContext, err error) {
+func ContextForGuild(guildId uint64) (*BotContext, error) {
 	whitelabelBotId, isWhitelabel, err := dbclient.Client.WhitelabelGuilds.GetBotByGuild(guildId)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	if isWhitelabel {
 		res, err := dbclient.Client.Whitelabel.GetByBotId(whitelabelBotId)
 		if err != nil {
-			return ctx, err
+			return nil, err
 		}
 
 		rateLimiter := ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, fmt.Sprintf("ratelimiter:%d", whitelabelBotId)), 1)
 
-		return BotContext{
+		return &BotContext{
 			BotId:       res.BotId,
 			Token:       res.Token,
 			RateLimiter: rateLimiter,
@@ -34,10 +34,10 @@ func ContextForGuild(guildId uint64) (ctx BotContext, err error) {
 	}
 }
 
-func PublicContext() BotContext {
+func PublicContext() *BotContext {
 	rateLimiter := ratelimit.NewRateLimiter(ratelimit.NewRedisStore(redis.Client.Client, "ratelimiter:public"), 1)
 
-	return BotContext{
+	return &BotContext{
 		BotId:       config.Conf.Bot.Id,
 		Token:       config.Conf.Bot.Token,
 		RateLimiter: rateLimiter,

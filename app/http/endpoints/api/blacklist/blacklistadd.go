@@ -1,11 +1,14 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	cache2 "github.com/rxdn/gdl/cache"
 )
 
 type (
@@ -51,7 +54,8 @@ func AddBlacklistHandler(ctx *gin.Context) {
 			return
 		}
 
-		permLevel, err := utils.GetPermissionLevel(guildId, body.Snowflake)
+		// TODO: Use proper context
+		permLevel, err := utils.GetPermissionLevel(context.Background(), guildId, body.Snowflake)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -68,21 +72,28 @@ func AddBlacklistHandler(ctx *gin.Context) {
 		}
 
 		// Resolve user
-		user, ok := cache.Instance.GetUser(body.Snowflake)
-		if ok {
-			ctx.JSON(200, blacklistAddResponse{
-				Success:  true,
-				Resolved: true,
-				Id:       body.Snowflake,
-				Username: user.Username,
-			})
-		} else {
-			ctx.JSON(200, blacklistAddResponse{
-				Success:  true,
-				Resolved: false,
-				Id:       body.Snowflake,
-			})
+		// TODO: Use proper context
+		user, err := cache.Instance.GetUser(context.Background(), body.Snowflake)
+		if err != nil {
+			if errors.Is(err, cache2.ErrNotFound) {
+				ctx.JSON(200, blacklistAddResponse{
+					Success:  true,
+					Resolved: false,
+					Id:       body.Snowflake,
+				})
+				return
+			} else {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
 		}
+
+		ctx.JSON(200, blacklistAddResponse{
+			Success:  true,
+			Resolved: true,
+			Id:       body.Snowflake,
+			Username: user.Username,
+		})
 	} else if body.EntityType == entityTypeRole {
 		// Max of 50 blacklisted roles
 		count, err := database.Client.RoleBlacklist.GetBlacklistedCount(guildId)

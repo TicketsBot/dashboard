@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -64,19 +65,19 @@ func (p *panelBody) IntoPanelMessageData(customId string, isPremium bool) panelM
 
 var validate = validator.New()
 
-func CreatePanel(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func CreatePanel(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	var data panelBody
 
-	if err := ctx.BindJSON(&data); err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
@@ -85,19 +86,19 @@ func CreatePanel(ctx *gin.Context) {
 	// Check panel quota
 	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, false, botContext.Token, botContext.RateLimiter)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	if premiumTier == premium.None {
 		panels, err := dbclient.Client.Panel.GetByGuild(guildId)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			c.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
 		if len(panels) >= freePanelLimit {
-			ctx.JSON(402, utils.ErrorStr("You have exceeded your panel quota. Purchase premium to unlock more panels."))
+			c.JSON(402, utils.ErrorStr("You have exceeded your panel quota. Purchase premium to unlock more panels."))
 			return
 		}
 	}
@@ -105,15 +106,18 @@ func CreatePanel(ctx *gin.Context) {
 	// Apply defaults
 	ApplyPanelDefaults(&data)
 
-	channels, err := botContext.GetGuildChannels(guildId)
+	ctx, cancel := app.DefaultContext()
+	defer cancel()
+
+	channels, err := botContext.GetGuildChannels(ctx, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	roles, err := botContext.GetGuildRoles(guildId)
+	roles, err := botContext.GetGuildRoles(ctx, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -130,9 +134,9 @@ func CreatePanel(ctx *gin.Context) {
 	if err := ValidatePanelBody(validationContext); err != nil {
 		var validationError *validation.InvalidInputError
 		if errors.As(err, &validationError) {
-			ctx.JSON(400, utils.ErrorStr(validationError.Error()))
+			c.JSON(400, utils.ErrorStr(validationError.Error()))
 		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
+			c.JSON(500, utils.ErrorJson(err))
 		}
 
 		return
@@ -140,32 +144,32 @@ func CreatePanel(ctx *gin.Context) {
 
 	// Do tag validation
 	if err := validate.Struct(data); err != nil {
-		validationErrors, ok := err.(validator.ValidationErrors)
-		if !ok {
-			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+		var validationErrors validator.ValidationErrors
+		if ok := errors.As(err, &validationErrors); !ok {
+			c.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
 			return
 		}
 
 		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
-		ctx.JSON(400, utils.ErrorStr(formatted))
+		c.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
 	customId, err := utils.RandString(30)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	messageData := data.IntoPanelMessageData(customId, premiumTier > premium.None)
-	msgId, err := messageData.send(&botContext)
+	msgId, err := messageData.send(botContext)
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-			ctx.JSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+			c.JSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
 		} else {
 			// TODO: Most appropriate error?
-			ctx.JSON(500, utils.ErrorJson(err))
+			c.JSON(500, utils.ErrorJson(err))
 		}
 
 		return
@@ -192,7 +196,7 @@ func CreatePanel(ctx *gin.Context) {
 
 		id, err := dbclient.Client.Embeds.CreateWithFields(embed, fields)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			c.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
@@ -240,7 +244,7 @@ func CreatePanel(ctx *gin.Context) {
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
-				ctx.JSON(400, utils.ErrorStr("Invalid role ID"))
+				c.JSON(400, utils.ErrorStr("Invalid role ID"))
 				return
 			}
 
@@ -250,13 +254,13 @@ func CreatePanel(ctx *gin.Context) {
 		}
 	}
 
-	panelId, err := storePanel(ctx, panel, createOptions)
+	panelId, err := storePanel(c, panel, createOptions)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	c.JSON(200, gin.H{
 		"success":  true,
 		"panel_id": panelId,
 	})

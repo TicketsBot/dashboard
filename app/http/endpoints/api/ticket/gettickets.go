@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -40,7 +41,7 @@ func GetTickets(ctx *gin.Context) {
 		userIds[i] = ticket.UserId
 	}
 
-	users, err := cache.Instance.GetUsers(userIds)
+	users, err := cache.Instance.GetUsers(context.Background(), userIds)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

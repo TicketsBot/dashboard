@@ -2,10 +2,12 @@ package botstaff
 
 import (
 	"context"
+	"errors"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	cache2 "github.com/rxdn/gdl/cache"
 	"github.com/rxdn/gdl/objects/user"
 	"golang.org/x/sync/errgroup"
 )
@@ -32,17 +34,18 @@ func ListBotStaffHandler(ctx *gin.Context) {
 		userId := userId
 
 		group.Go(func() error {
-			user, ok := cache.Instance.GetUser(userId)
-
 			data := userData{
 				Id: userId,
 			}
 
-			if ok {
+			user, err := cache.Instance.GetUser(context.Background(), userId)
+			if err == nil {
 				data.Username = user.Username
 				data.Discriminator = user.Discriminator
-			} else {
+			} else if errors.Is(err, cache2.ErrNotFound) {
 				data.Username = "Unknown User"
+			} else {
+				return err
 			}
 
 			users[i] = data
