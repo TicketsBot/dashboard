@@ -42,6 +42,11 @@
 
     async function loadData() {
         const res = await axios.get(`${API_URL}/user/guilds`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
         guilds = res.data;
 
         permissionLevelCache.update(cache => {

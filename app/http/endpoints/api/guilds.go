@@ -64,14 +64,18 @@ func GetGuilds(ctx *gin.Context) {
 			if g.Owner {
 				permLevel = permission.Admin
 			} else {
-				permLevel, err = utils.GetPermissionLevel(context.Background(), g.GuildId, userId)
+				tmp, err := utils.GetPermissionLevel(context.Background(), g.GuildId, userId)
 				if err != nil {
 					// If a Discord error occurs, just skip the server
 					var restError request.RestError
-					if !errors.As(err, &restError) {
+					if errors.As(err, &restError) {
+						return nil
+					} else {
 						return err
 					}
 				}
+
+				permLevel = tmp
 			}
 
 			if permLevel >= permission.Support {
