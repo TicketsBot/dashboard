@@ -16,7 +16,6 @@ import (
 	"github.com/rxdn/gdl/rest"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func WhitelabelPost() func(*gin.Context) {
@@ -74,9 +73,6 @@ func WhitelabelPost() func(*gin.Context) {
 			return
 		}
 
-		// Allow some time for the database change to be propagated
-		time.Sleep(time.Millisecond * 500)
-
 		// Set intents
 		var currentFlags application.Flag = 0
 		if bot.Flags != nil {
@@ -90,7 +86,7 @@ func WhitelabelPost() func(*gin.Context) {
 				application.FlagGatewayMessageContentLimited,
 			)),
 			// TODO: Don't hardcode URL
-			InteractionsEndpointUrl: utils.Ptr(fmt.Sprintf("https://gateway.ticketsbot.net/handle/%d", bot.InteractionsEndpointUrl)),
+			InteractionsEndpointUrl: utils.Ptr(fmt.Sprintf("https://gateway.ticketsbot.net/handle/%d", bot.Id)),
 		}
 
 		if _, err := rest.EditCurrentApplication(context.Background(), data.Token, nil, editData); err != nil {
