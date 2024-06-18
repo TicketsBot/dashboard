@@ -16,6 +16,7 @@ import (
 	"github.com/rxdn/gdl/rest"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func WhitelabelPost() func(*gin.Context) {
@@ -72,6 +73,9 @@ func WhitelabelPost() func(*gin.Context) {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
+
+		// Allow some time for the database change to be propagated
+		time.Sleep(time.Millisecond * 500)
 
 		// Set intents
 		var currentFlags application.Flag = 0
