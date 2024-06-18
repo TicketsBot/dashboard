@@ -6,7 +6,7 @@
 
   <div class="radio-row">
     <input class="radio-input" type=radio bind:group={value} value="username">
-    <label class="radio-label">#ticket-ryan</label>
+    <label class="radio-label">#ticket-username</label>
   </div>
 </Radio>
 
