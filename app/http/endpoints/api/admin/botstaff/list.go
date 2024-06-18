@@ -54,7 +54,10 @@ func ListBotStaffHandler(ctx *gin.Context) {
 		})
 	}
 
-	_ = group.Wait() // error not possible
+	if err := group.Wait(); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	ctx.JSON(200, users)
 }
