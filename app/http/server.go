@@ -197,11 +197,10 @@ func StartServer(sm *livechat.SocketManager) {
 			whitelabelGroup.GET("/", api_whitelabel.WhitelabelGet)
 			whitelabelGroup.GET("/errors", api_whitelabel.WhitelabelGetErrors)
 			whitelabelGroup.GET("/guilds", api_whitelabel.WhitelabelGetGuilds)
-			whitelabelGroup.GET("/public-key", api_whitelabel.WhitelabelGetPublicKey)
-			whitelabelGroup.POST("/public-key", api_whitelabel.WhitelabelPostPublicKey)
 			whitelabelGroup.POST("/create-interactions", api_whitelabel.GetWhitelabelCreateInteractions())
+			whitelabelGroup.DELETE("/", api_whitelabel.WhitelabelDelete)
 
-			whitelabelGroup.POST("/", rl(middleware.RateLimitTypeUser, 10, time.Minute), api_whitelabel.WhitelabelPost)
+			whitelabelGroup.POST("/", rl(middleware.RateLimitTypeUser, 5, time.Minute), api_whitelabel.WhitelabelPost())
 			whitelabelGroup.POST("/status", rl(middleware.RateLimitTypeUser, 1, time.Second*5), api_whitelabel.WhitelabelStatusPost)
 		}
 	}

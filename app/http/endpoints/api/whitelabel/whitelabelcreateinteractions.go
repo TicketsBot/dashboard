@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
@@ -34,45 +35,50 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 			return
 		}
 
-		// Cooldown
-		key := fmt.Sprintf("tickets:interaction-create-cooldown:%d", bot.BotId)
-
-		// try to set first, prevent race condition
-		wasSet, err := redis.Client.SetNX(redis.DefaultContext(), key, 1, time.Minute).Result()
-		if err != nil {
-			ctx.JSON(500, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
-			return
-		}
-
-		// on cooldown, tell user how long left
-		if !wasSet {
-			expiration, err := redis.Client.TTL(redis.DefaultContext(), key).Result()
-			if err != nil {
+		if err := createInteractions(cm, bot.BotId, bot.Token); err != nil {
+			if errors.Is(err, ErrInteractionCreateCooldown) {
+				ctx.JSON(400, utils.ErrorJson(err))
+			} else {
 				ctx.JSON(500, utils.ErrorJson(err))
-				return
 			}
 
-			ctx.JSON(400, utils.ErrorStr(fmt.Sprintf("Interaction creation on cooldown, please wait another %d seconds", int64(expiration.Seconds()))))
-
 			return
 		}
 
-		botContext, err := botcontext.ContextForGuild(0)
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
-
-		commands, _ := cm.BuildCreatePayload(true, nil)
-
-		// TODO: Use proper context
-		if _, err = rest.ModifyGlobalCommands(context.Background(), bot.Token, botContext.RateLimiter, bot.BotId, commands); err == nil {
-			ctx.JSON(200, utils.SuccessResponse)
-		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
-		}
+		ctx.JSON(200, utils.SuccessResponse)
 	}
+}
+
+var ErrInteractionCreateCooldown = errors.New("Interaction creation on cooldown")
+
+func createInteractions(cm *manager.CommandManager, botId uint64, token string) error {
+	// Cooldown
+	key := fmt.Sprintf("tickets:interaction-create-cooldown:%d", botId)
+
+	// try to set first, prevent race condition
+	wasSet, err := redis.Client.SetNX(redis.DefaultContext(), key, 1, time.Minute).Result()
+	if err != nil {
+		return err
+	}
+
+	// on cooldown, tell user how long left
+	if !wasSet {
+		expiration, err := redis.Client.TTL(redis.DefaultContext(), key).Result()
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("%w, please wait another %d seconds", ErrInteractionCreateCooldown, int64(expiration.Seconds()))
+	}
+
+	botContext, err := botcontext.ContextForGuild(0)
+	if err != nil {
+		return err
+	}
+
+	commands, _ := cm.BuildCreatePayload(true, nil)
+
+	// TODO: Use proper context
+	_, err = rest.ModifyGlobalCommands(context.Background(), token, botContext.RateLimiter, botId, commands)
+	return err
 }

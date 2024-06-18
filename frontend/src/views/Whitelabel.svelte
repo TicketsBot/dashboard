@@ -1,62 +1,27 @@
 <div class="wrapper">
-    <div class="content">
-        <div class="content-col">
+    <div class="col">
+        {#if active}
             <Card footer="{false}" fill="{false}">
-                <h4 slot="title">Bot Token</h4>
+                <h4 slot="title">Manage Bot</h4>
                 <div slot="body" class="full-width">
-                    <form class="full-width" onsubmit="return false;">
-                        <label class="form-label">Bot Token</label>
-                        <input name="token" type="text" bind:value={token} class="form-input full-width"
-                               placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx">
-                        <p>Note: You will not be able to view the token after submitting it</p>
+                    <p>Your whitelabel bot <b>{bot.username}</b> is active.</p>
 
-                        <div class="buttons">
-                            <div class="col">
-                                <Button icon="fas fa-paper-plane" on:click={submitToken} fullWidth="{true}">Submit
-                                </Button>
-                            </div>
-                            <div class="col">
-                                <Button icon="fas fa-plus" on:click={invite} fullWidth="{true}"
-                                        disabled="{bot.id === undefined}">
-                                    Generate Invite Link
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
+                    <div class="buttons">
+                        <Button icon="fas fa-plus" on:click={invite}>
+                            Generate Invite Link
+                        </Button>
+
+                        <Button icon="fas fa-paper-plane" on:click={createSlashCommands}>
+                            Re-create Slash Commands
+                        </Button>
+
+                        <Button icon="fas fa-trash-can" on:click={disable} danger>
+                            Disable Whitelabel
+                        </Button>
+                    </div>
                 </div>
             </Card>
-        </div>
-        <div class="content-col">
-            <Card footer="{false}" fill="{false}">
-                <h4 slot="title">Slash Commands</h4>
-                <div slot="body" class="full-width">
-                    <form class="full-width" onsubmit="return false;">
-                        <label class="form-label">Interactions Endpoint URL</label>
-                        <input name="token" type="text" bind:value={interactionUrl} class="form-input full-width"
-                               readonly>
 
-                        <label class="form-label">Public Key</label>
-                        <input name="token" type="text" bind:value={publicKey} class="form-input full-width">
-
-                        <div class="buttons">
-                            <div class="col">
-                                <Button icon="fas fa-paper-plane" on:click={updatePublicKey} fullWidth="{true}"
-                                        disabled="{bot.id === undefined}">Submit Key
-                                </Button>
-                            </div>
-                            <div class="col">
-                                <Button icon="fas fa-paper-plane" on:click={createSlashCommands} fullWidth="{true}"
-                                        disabled="{!publicKeyOk}">Create Slash Commands
-                                </Button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </Card>
-        </div>
-    </div>
-    <div class="content">
-        <div class="content-col">
             <Card footer="{false}" fill="{false}">
                 <h4 slot="title">Custom Status</h4>
                 <div slot="body" class="full-width">
@@ -69,81 +34,87 @@
                             </Dropdown>
 
                             <div class="col-2-3">
-                                <Input col1 label="Status Text" placeholder="/help" bind:value={bot.status} />
+                                <Input col1 label="Status Text" placeholder="/help" bind:value={bot.status}/>
                             </div>
                         </div>
 
                         <div class="buttons">
-                            <Button icon="fas fa-paper-plane" on:click={updateStatus} fullWidth="{true}"
-                                    disabled="{bot.id === undefined}">Submit
+                            <Button icon="fas fa-paper-plane" on:click={updateStatus} fullWidth="{true}">
+                                Submit
                             </Button>
                         </div>
                     </form>
                 </div>
             </Card>
-        </div>
-        <div class="content-col">
+        {:else}
             <Card footer="{false}" fill="{false}">
-                <h4 slot="title">Error Log</h4>
+                <h4 slot="title">Bot Token</h4>
                 <div slot="body" class="full-width">
-                    <table class="error-log">
-                        <thead>
-                        <tr style="border-bottom: 1px solid #dee2e6;">
-                            <th class="table-col">Error</th>
-                            <th class="table-col">Time</th>
-                        </tr>
-                        </thead>
-                        <tbody id="error_body">
-                        {#each errors as error}
-                            <tr class="table-row table-border">
-                                <td class="table-col">{error.message}</td>
-                                <td class="table-col">{error.time.toLocaleString()}</td>
-                            </tr>
-                        {/each}
-                        </tbody>
-                    </table>
+                    <form class="full-width" onsubmit="return false;">
+                        <label class="form-label">Bot Token</label>
+
+                        <input name="token" type="text" bind:value={token} class="form-input full-width"
+                               placeholder="xxxxxxxxxxxxxxxxxxxxxxxx.xxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                        <p>Note: You will not be able to view the token after submitting it</p>
+
+                        <div class="buttons">
+                            <Button icon="fas fa-paper-plane" on:click={submitToken} fullWidth="{true}">Submit
+                            </Button>
+                        </div>
+                    </form>
                 </div>
             </Card>
-        </div>
+        {/if}
+    </div>
+    <div class="col">
+        <Card footer="{false}" fill="{false}">
+            <h4 slot="title">Error Log</h4>
+            <div slot="body" class="full-width">
+                <table class="error-log">
+                    <thead>
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <th class="table-col">Error</th>
+                        <th class="table-col">Time</th>
+                    </tr>
+                    </thead>
+                    <tbody id="error_body">
+                    {#each errors as error}
+                        <tr class="table-row table-border">
+                            <td class="table-col">{error.message}</td>
+                            <td class="table-col">{error.time.toLocaleString()}</td>
+                        </tr>
+                    {/each}
+                    </tbody>
+                </table>
+            </div>
+        </Card>
     </div>
 </div>
 
 <style>
     .wrapper {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         height: 100%;
         width: 100%;
-        align-items: center;
-    }
-
-    .content {
-        display: flex;
-        justify-content: space-around;
-        flex-direction: row;
-        width: 95%;
-
-        margin-top: 2%;
+        padding: 2%;
+        gap: 2%;
     }
 
     .col {
-        width: 48%;
-        height: 100%;
-    }
-
-    .content-col {
-        width: 48%;
-        height: 100%;
+        display: flex;
+        flex-direction: column;
+        width: 50%;
+        gap: 2%;
     }
 
     @media only screen and (max-width: 900px) {
-        .content {
+        .wrapper {
             flex-direction: column;
         }
 
-        .content-col {
+        .col {
             width: 100%;
-            margin-top: 2%;
         }
     }
 
@@ -173,8 +144,14 @@
     .buttons {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        gap: 12px;
         margin-top: 12px;
+    }
+
+    @media only screen and (max-width: 576px) {
+        .buttons {
+            flex-direction: column;
+        }
     }
 
     .error-log {
@@ -216,15 +193,13 @@
     import Button from '../components/Button.svelte'
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
-    import Input from "../components/form/Input.svelte";
     import Dropdown from "../components/form/Dropdown.svelte";
+    import Input from "../components/form/Input.svelte";
 
     setDefaultHeaders()
 
+    let active = false;
     let token;
-    let publicKey;
-    let publicKeyOk = false;
-    let interactionUrl;
     let bot = {};
     let errors = [];
 
@@ -252,25 +227,8 @@
 
         $: token = '';
 
-        await loadInteractionUrl();
         await loadBot();
-        notifySuccess(`Started tickets whitelabel on ${res.data.bot.username}#${res.data.bot.discriminator}`);
-    }
-
-    async function updatePublicKey() {
-        const data = {
-            public_key: publicKey,
-        };
-
-        const res = await axios.post(`${API_URL}/user/whitelabel/public-key`, data);
-        if (res.status !== 200 || !res.data.success) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        $: publicKeyOk = true;
-
-        notifySuccess('Updated slash command settings successfully')
+        notifySuccess(`Started tickets whitelabel on ${res.data.bot.username}`);
     }
 
     async function updateStatus() {
@@ -309,6 +267,8 @@
         }
 
         bot = res.data;
+        active = true;
+
         return true;
     }
 
@@ -325,35 +285,6 @@
         }
     }
 
-    async function loadPublicKey() {
-        const res = await axios.get(`${API_URL}/user/whitelabel/public-key`);
-        if (res.status === 404) {
-            return;
-        }
-
-        if ((res.status !== 200 || !res.data.success)) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        publicKey = res.data.key;
-        $: publicKeyOk = true;
-    }
-
-    async function loadInteractionUrl() {
-        const res = await axios.get(`${API_URL}/user/whitelabel/`);
-        if (res.status === 404) {
-            return;
-        }
-
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        interactionUrl = 'https://gateway.ticketsbot.net/handle/' + res.data.id;
-    }
-
     async function createSlashCommands() {
         const opts = {
             timeout: 20 * 1000
@@ -365,15 +296,24 @@
             return;
         }
 
-        notifySuccess('Slash commands have been created. Please note, Discord may take up to an hour to show them in your client');
+        notifySuccess('Slash commands have been created. Please note, they may take a few minutes before they are visible.');
+    }
+
+    async function disable() {
+        const res = await axios.delete(`${API_URL}/user/whitelabel/`);
+        if (res.status !== 204) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        active = false;
+        notifySuccess('Whitelabel has been disabled');
     }
 
     withLoadingScreen(async () => {
         if (await loadBot()) {
             await Promise.all([
-                loadErrors(),
-                loadInteractionUrl(),
-                loadPublicKey()
+                loadErrors()
             ]);
         }
     });
