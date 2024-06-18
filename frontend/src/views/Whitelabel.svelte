@@ -108,7 +108,7 @@
         gap: 2%;
     }
 
-    @media only screen and (max-width: 900px) {
+    @media only screen and (max-width: 1180px) {
         .wrapper {
             flex-direction: column;
         }
@@ -228,7 +228,7 @@
         $: token = '';
 
         await loadBot();
-        notifySuccess(`Started tickets whitelabel on ${res.data.bot.username}`);
+        notifySuccess(`Started tickets whitelabel on ${res.data.bot.name}`);
     }
 
     async function updateStatus() {
@@ -267,6 +267,7 @@
         }
 
         bot = res.data;
+
         active = true;
 
         return true;

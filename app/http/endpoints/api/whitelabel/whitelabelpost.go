@@ -117,8 +117,9 @@ func WhitelabelPost() func(*gin.Context) {
 		}
 
 		ctx.JSON(200, gin.H{
-			"success": true,
-			"bot":     bot,
+			"success":  true,
+			"bot":      bot,
+			"username": bot.Bot.Username,
 		})
 	}
 }
