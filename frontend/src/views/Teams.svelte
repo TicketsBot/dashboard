@@ -18,19 +18,17 @@
         <div class="section">
           <h2 class="section-title">Manage Teams</h2>
 
-          <div class="col-1" style="flex-direction: row">
-            <div class="col-4" style="margin-right: 12px">
-              <div class="col-1">
-                <WrappedSelect isSearchable={false} isClearable={false} optionIdentifier="id" items={teams} placeholder="Select a team..."
-                        bind:selectedValue={activeTeam} nameMapper={labelMapper}
-                        on:input={updateActiveTeam}/>
-              </div>
-            </div>
+          <div class="col-1" style="flex-direction: row; gap: 12px">
+            <Dropdown col3 label="Team" bind:value={activeTeam} on:change={(e) => updateActiveTeam(e.target.value)}>
+              {#each teams as team}
+                <option value={team.id}>{team.name}</option>
+              {/each}
+            </Dropdown>
 
-            {#if activeTeam.id !== 'default'}
-              <div class="col-1">
+            {#if activeTeam !== 'default'}
+              <div style="margin-top: auto; margin-bottom: 0.5em">
                 <Button danger={true} type="button"
-                        on:click={() => deleteTeam(activeTeam.id)}>Delete {activeTeam.name}</Button>
+                    on:click={() => deleteTeam(activeTeam)}>Delete {getTeam(activeTeam)?.name}</Button>
               </div>
             {/if}
           </div>
@@ -50,7 +48,7 @@
                       <td>{role === undefined ? "Unknown Role" : role.name}</td>
                     {/if}
                     <td style="display: flex; flex-direction: row-reverse">
-                      <Button type="button" danger={true} on:click={() => removeMember(activeTeam.id, member)}>Delete
+                      <Button type="button" danger={true} on:click={() => removeMember(activeTeam, member)}>Delete
                       </Button>
                     </td>
                   </tr>
@@ -105,6 +103,7 @@
     import UserSelect from "../components/form/UserSelect.svelte";
     import RoleSelect from "../components/form/RoleSelect.svelte";
     import WrappedSelect from "../components/WrappedSelect.svelte";
+    import Dropdown from "../components/form/Dropdown.svelte";
 
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
@@ -115,20 +114,20 @@
     let defaultTeam = {id: 'default', name: 'Default'};
 
     let createName;
-    let teams = [];
+    let teams = [defaultTeam];
     let roles = [];
-    let activeTeam = defaultTeam;
+    let activeTeam = defaultTeam.id;
     let members = [];
 
     let selectedUser;
     let selectedRole;
 
-    function labelMapper(team) {
-        return team.name;
+    function getTeam(id) {
+        return teams.find((team) => team.id === id);
     }
 
-    async function updateActiveTeam() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/team/${activeTeam.id}`);
+    async function updateActiveTeam(teamId) {
+        const res = await axios.get(`${API_URL}/api/${guildId}/team/${teamId}`);
         if (res.status !== 200) {
             if (res.status === 429) {
                 notifyRatelimit();
@@ -142,13 +141,13 @@
     }
 
     async function addUser() {
-        const res = await axios.put(`${API_URL}/api/${guildId}/team/${activeTeam.id}/${selectedUser.id}?type=0`);
+        const res = await axios.put(`${API_URL}/api/${guildId}/team/${activeTeam}/${selectedUser.id}?type=0`);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
         }
 
-        notifySuccess(`${selectedUser.username} has been added to the support team ${activeTeam.name}`);
+        notifySuccess(`${selectedUser.username} has been added to the support team ${getTeam(activeTeam).name}`);
 
         let entity = {
             id: selectedUser.id,
@@ -160,13 +159,13 @@
     }
 
     async function addRole() {
-        const res = await axios.put(`${API_URL}/api/${guildId}/team/${activeTeam.id}/${selectedRole.id}?type=1`);
+        const res = await axios.put(`${API_URL}/api/${guildId}/team/${activeTeam}/${selectedRole.id}?type=1`);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
         }
 
-        notifySuccess(`${selectedRole.name} has been added to the support team ${activeTeam.name}`);
+        notifySuccess(`${selectedRole.name} has been added to the support team ${getTeam(activeTeam).name}`);
 
         let entity = {
             id: selectedRole.id,
@@ -218,8 +217,11 @@
         }
 
         notifySuccess(`Team deleted successfully`);
-        activeTeam = defaultTeam;
+
+        activeTeam = defaultTeam.id;
         teams = teams.filter((team) => team.id !== id);
+
+        await updateActiveTeam(defaultTeam.id);
     }
 
     async function loadTeams() {
@@ -250,7 +252,7 @@
             loadRoles()
         ]);
 
-        await updateActiveTeam(); // Depends on teams
+        await updateActiveTeam(defaultTeam.id); // Depends on teams
     });
 </script>
 
