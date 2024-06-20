@@ -26,17 +26,18 @@
     </div>
   </div>
   <div class="row settings-row">
-    <Textarea col3_4={true} label="Placeholder" bind:value={data.placeholder} minHeight="120px"
+    <Textarea col2={true} label="Placeholder" bind:value={data.placeholder} minHeight="120px"
            placeholder="Placeholder text for the field, just like this text" />
-    <div class="col-4">
+    <div class="col-2 properties-group">
       <div class="row">
-        <Dropdown col1={true} label="Style" bind:value={data.style}>
+        <Dropdown col2={true} label="Style" bind:value={data.style}>
           <option value=1 selected>Short</option>
-          <option value=2>Paragraph</option>
+          <option value=2>Multi-line</option>
         </Dropdown>
       </div>
-      <div class="row">
+      <div class="row" style="gap: 10px">
         <Checkbox label="Required" bind:value={data.required}/>
+        <DoubleRangeSlider label="Answer Length Range" bind:start={data.min_length} bind:end={data.max_length} min={0} max={1024} />
       </div>
     </div>
   </div>
@@ -91,6 +92,7 @@
   import Button from "../Button.svelte";
   import Textarea from "../form/Textarea.svelte";
   import Checkbox from "../form/Checkbox.svelte";
+  import DoubleRangeSlider from "../form/DoubleRangeSlider.svelte";
 
   export let withCreateButton = false;
   export let withDeleteButton = false;
@@ -157,6 +159,12 @@
 
         .button-form {
             width: 100%;
+        }
+    }
+
+    @media only screen and (max-width: 576px) {
+        .properties-group > div:nth-child(2) {
+            flex-direction: column;
         }
     }
 </style>

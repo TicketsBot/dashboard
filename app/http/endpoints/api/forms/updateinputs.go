@@ -26,6 +26,8 @@ type (
 		Position    int                      `json:"position" validate:"required,min=1,max=5"`
 		Style       component.TextStyleTypes `json:"style" validate:"required,min=1,max=2"`
 		Required    bool                     `json:"required"`
+		MinLength   uint16                   `json:"min_length" validate:"min=0,max=1024"` // validator interprets 0 as not set
+		MaxLength   uint16                   `json:"max_length" validate:"min=0,max=1024"`
 	}
 
 	inputUpdateBody struct {
@@ -212,6 +214,8 @@ func saveInputs(formId int, data updateInputsBody, existingInputs []database.For
 			Label:       input.Label,
 			Placeholder: input.Placeholder,
 			Required:    input.Required,
+			MinLength:   &input.MinLength,
+			MaxLength:   &input.MaxLength,
 		}
 
 		if err := dbclient.Client.FormInput.UpdateTx(tx, wrapped); err != nil {
@@ -234,6 +238,8 @@ func saveInputs(formId int, data updateInputsBody, existingInputs []database.For
 			input.Label,
 			input.Placeholder,
 			input.Required,
+			&input.MinLength,
+			&input.MaxLength,
 		); err != nil {
 			return err
 		}

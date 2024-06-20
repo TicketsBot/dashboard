@@ -62,7 +62,7 @@
                 <hr class="fill">
                 <div class="row add-input-container" class:add-input-disabled={formLength >= 5}>
                   <i class="fas fa-plus"></i>
-                  <a on:click={addInput}>Add Input</a>
+                  <a on:click={addInput}>New Field</a>
                 </div>
                 <hr class="fill">
               </div>
@@ -187,27 +187,13 @@
             label: "",
             placeholder: "",
             required: true,
+            min_length: 0,
+            max_length: 1024,
             is_new: true,
         };
 
         form.inputs = [...form.inputs, input];
         forms = forms;
-    }
-
-    async function editInput(formId, inputId, data) {
-        let mapped = {...data, style: parseInt(data.style)};
-
-        const res = await axios.patch(`${API_URL}/api/${guildId}/forms/${formId}/${inputId}`, mapped);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        let form = getForm(formId);
-        form.inputs = form.inputs.filter(input => input.id !== inputId);
-        form.inputs = [...form.inputs, res.data];
-
-        notifySuccess('Form input updated successfully');
     }
 
     async function deleteInput(formId, input) {
