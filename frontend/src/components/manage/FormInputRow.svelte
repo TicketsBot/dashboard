@@ -30,14 +30,18 @@
            placeholder="Placeholder text for the field, just like this text" />
     <div class="col-2 properties-group">
       <div class="row">
-        <Dropdown col2={true} label="Style" bind:value={data.style}>
+        <Dropdown col2={true} label="Style" bind:value={data.style} on:change={updateStyle}>
           <option value=1 selected>Short</option>
           <option value=2>Multi-line</option>
         </Dropdown>
       </div>
       <div class="row" style="gap: 10px">
         <Checkbox label="Required" bind:value={data.required}/>
-        <DoubleRangeSlider label="Answer Length Range" bind:start={data.min_length} bind:end={data.max_length} min={0} max={1024} />
+        {#if data.style == 1}
+          <DoubleRangeSlider label="Answer Length Range" bind:start={data.min_length} bind:end={data.max_length} min={0} max={255} />
+        {:else}
+          <DoubleRangeSlider label="Answer Length Range" bind:start={data.min_length} bind:end={data.max_length} min={0} max={1024} />
+        {/if}
       </div>
     </div>
   </div>
@@ -116,6 +120,14 @@
 
   function forwardMove(direction) {
     dispatch('move', {direction: direction});
+  }
+
+  function updateStyle(e) {
+      if (e.target.value == 1) { // Short
+          if (data.max_length > 255) {
+              data.max_length = 255
+          }
+      }
   }
 </script>
 
