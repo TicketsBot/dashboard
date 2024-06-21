@@ -89,8 +89,6 @@
     let rightOffset = 0;
 
     $: {
-        console.log(end)
-
         if (prevWidth !== width) {
             leftOffset = (width - (sliderDiameter / 2)) * ((start - min) / (max - min));
             rightOffset = (width - (sliderDiameter / 2)) * ((end - min) / (max - min));
