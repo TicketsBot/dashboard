@@ -3,7 +3,7 @@
     <i class="fas fa-plus fa-2x guild-icon-fa"></i>
   </div>
 
-  <div>
+  <div style="padding-left: 10px">
     <span class="guild-name">Invite to your server</span>
   </div>
 </div>

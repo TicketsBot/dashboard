@@ -1,23 +1,30 @@
-<div class="guild-badge" on:click={goto(guild.id)}>
-  <div class="guild-icon-bg">
-    {#if guild.icon === undefined || guild.icon === ""}
-      <i class="fas fa-question guild-icon-fa"></i>
-    {:else}
-      <img class="guild-icon" src="{getIconUrl()}" alt="Guild Icon"/>
-    {/if}
-  </div>
+<div class="guild-badge" on:click={goto(guild.id)} class:disabled={guild.permission_level === 0}>
+    <div class="guild-icon-bg">
+        {#if guild.icon === undefined || guild.icon === ""}
+            <i class="fas fa-question guild-icon-fa" class:disabled={guild.permission_level === 0}></i>
+        {:else}
+            <img class="guild-icon" src="{getIconUrl()}" alt="Guild Icon"
+                 class:disabled={guild.permission_level === 0}/>
+        {/if}
+    </div>
 
-  <div>
-    <span class="guild-name">
-      {guild.name}
+    <div class="text-wrapper" class:disabled={guild.permission_level === 0}>
+        <span class="guild-name">
+          {guild.name}
+        </span>
+        <span class="no-permission" class:disabled={guild.permission_level > 0}>
+        No permission
+        <Tooltip tip="You do not have permission to manage this server." top color="#121212">
+            <a href="https://docs.ticketsbot.net/miscellaneous/dashboard-no-permission" target="_blank">
+                <i class="fas fa-circle-question form-label tooltip-icon"></i>
+            </a>
+        </Tooltip>
     </span>
-  </div>
+    </div>
 </div>
 
 <script>
-    import axios from 'axios';
-    import {API_URL} from "../js/constants";
-    import {notifyError} from "../js/util";
+    import Tooltip from "svelte-tooltip";
 
     export let guild;
 
@@ -40,19 +47,11 @@
     async function goto(guildId) {
         if (guild.permission_level === 2) {
             window.location.href = `/manage/${guildId}/settings`;
-        } else {
+        } else if (guild.permission_level === 1) {
             window.location.href = `/manage/${guildId}/transcripts`;
-        }
-    }
-
-    async function getPermissionLevel(guildId) {
-        const res = await axios.get(`${API_URL}/user/permissionlevel?guild=${guildId}`);
-        if (res.status !== 200 || !res.data.success) {
-            notifyError(res.data.error);
+        } else {
             return;
         }
-
-        return res.data.permission_level;
     }
 </script>
 
@@ -68,6 +67,10 @@
         margin-bottom: 10px;
         border-radius: 10px;
         cursor: pointer;
+    }
+
+    .guild-badge.disabled {
+        cursor: default;
     }
 
     @media (max-width: 950px) {
@@ -102,6 +105,27 @@
 
     :global(.guild-name) {
         color: white !important;
+    }
+
+    .text-wrapper.disabled > .guild-name {
+        opacity: 45%;
+    }
+
+    .guild-icon-bg > *.disabled {
+        opacity: 25%;
+    }
+
+    .text-wrapper {
+        display: flex;
+        flex-direction: column;
         padding-left: 10px;
+    }
+
+    .text-wrapper > .no-permission {
+        opacity: 75%;
+    }
+
+    .text-wrapper > .no-permission.disabled {
+        visibility: hidden;
     }
 </style>
