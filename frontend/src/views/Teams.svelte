@@ -58,19 +58,6 @@
             </div>
 
             <div class="col">
-              <h3>Add Member</h3>
-              <div class="user-select">
-                <div style="display: flex; flex: 1">
-                  <UserSelect {guildId} bind:value={selectedUser}/>
-                </div>
-
-                <div style="margin-left: 10px">
-                  <Button type="button" icon="fas fa-plus" disabled={selectedUser === null || selectedUser === undefined}
-                          on:click={addUser}>Add To Team
-                  </Button>
-                </div>
-              </div>
-
               <h3>Add Role</h3>
               <div class="user-select">
                 <div class="col-1" style="display: flex; flex: 1">
@@ -138,24 +125,6 @@
         }
 
         members = res.data;
-    }
-
-    async function addUser() {
-        const res = await axios.put(`${API_URL}/api/${guildId}/team/${activeTeam}/${selectedUser.id}?type=0`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        notifySuccess(`${selectedUser.username} has been added to the support team ${getTeam(activeTeam).name}`);
-
-        let entity = {
-            id: selectedUser.id,
-            type: 0,
-            name: `${selectedUser.username}`
-        }
-        members = [...members, entity];
-        selectedUser = undefined;
     }
 
     async function addRole() {

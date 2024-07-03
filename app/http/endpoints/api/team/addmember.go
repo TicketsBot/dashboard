@@ -29,6 +29,11 @@ func AddMember(ctx *gin.Context) {
 		return
 	}
 
+	if entityType == entityTypeUser {
+		ctx.JSON(400, utils.ErrorStr("Only roles may be added as support representatives"))
+		return
+	}
+
 	if entityType == entityTypeRole && snowflake == guildId {
 		ctx.JSON(400, utils.ErrorStr("You cannot add the @everyone role as staff"))
 		return
