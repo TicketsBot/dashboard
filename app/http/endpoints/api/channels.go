@@ -1,29 +1,58 @@
 package api
 
 import (
-	"context"
-	"errors"
+	"github.com/TicketsBot/GoPanel/botcontext"
+	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
-	cache2 "github.com/rxdn/gdl/cache"
 	"github.com/rxdn/gdl/objects/channel"
+	"github.com/rxdn/gdl/rest"
 	"sort"
 )
 
 func ChannelsHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	// TODO: Use proper context
-	channels, err := cache.Instance.GetGuildChannels(context.Background(), guildId)
+	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		if errors.Is(err, cache2.ErrNotFound) {
-			ctx.JSON(200, make([]channel.Channel, 0))
-		} else {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	var channels []channel.Channel
+	if ctx.Query("refresh") == "true" {
+		hasToken, err := redis.Client.TakeChannelRefreshToken(ctx, guildId)
+		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
+			return
 		}
 
-		return
+		if hasToken {
+			channels, err = rest.GetGuildChannels(ctx, botContext.Token, botContext.RateLimiter, guildId)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+
+			if err := cache.Instance.StoreChannels(ctx, channels); err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+		} else {
+			channels, err = cache.Instance.GetGuildChannels(ctx, guildId)
+			if err != nil {
+				ctx.JSON(500, utils.ErrorJson(err))
+				return
+			}
+		}
+	} else {
+		var err error
+		channels, err = botContext.GetGuildChannels(ctx, guildId)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
 	}
 
 	filtered := make([]channel.Channel, 0, len(channels))

@@ -81,7 +81,7 @@ func main() {
 	app.StartServer(socketManager)
 }
 
-func ListenChat(client redis.RedisClient, sm *livechat.SocketManager) {
+func ListenChat(client *redis.RedisClient, sm *livechat.SocketManager) {
 	ch := make(chan chatrelay.MessageData)
 	go chatrelay.Listen(client.Client, ch)
 

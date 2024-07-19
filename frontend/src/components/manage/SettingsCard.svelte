@@ -245,8 +245,13 @@
         panels = res.data;
     }
 
-    async function loadChannels() {
-        const res = await axios.get(`${API_URL}/api/${guildId}/channels`);
+    async function loadChannels(refresh) {
+        let uri = `${API_URL}/api/${guildId}/channels`;
+        if (refresh === true) {
+            uri += "?refresh=true";
+        }
+
+        const res = await axios.get(uri);
         if (res.status !== 200) {
             notifyError(res.data.error);
             return;
@@ -403,6 +408,17 @@
             loadPremium(),
             loadSettings()
         ]);
+
+        if (data.archive_channel && !channels.some(c => c.id === data.archive_channel)) {
+            await loadChannels(true);
+
+            const tmp = data.archive_channel;
+            data.archive_channel = null;
+
+            setTimeout(() => {
+                data.archive_channel = tmp;
+            }, 100);
+        }
 
         doOverrides(); // Depends on channels
     });
