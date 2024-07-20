@@ -210,7 +210,7 @@ func validatedNullableFormId(guildId uint64, formId *int) validation.ValidationF
 			return nil
 		}
 
-		form, ok, err := dbclient.Client.Forms.Get(*formId)
+		form, ok, err := dbclient.Client.Forms.Get(context.Background(), *formId)
 		if err != nil {
 			return err
 		}
@@ -244,7 +244,7 @@ func validateTeams(ctx PanelValidationContext) validation.ValidationFunc {
 			return nil
 		}
 
-		ok, err := dbclient.Client.SupportTeam.AllTeamsExistForGuild(ctx.GuildId, ctx.Data.Teams)
+		ok, err := dbclient.Client.SupportTeam.AllTeamsExistForGuild(context.Background(), ctx.GuildId, ctx.Data.Teams)
 		if err != nil {
 			return err
 		}

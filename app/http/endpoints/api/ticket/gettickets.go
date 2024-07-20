@@ -18,13 +18,13 @@ type ticketResponse struct {
 func GetTickets(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	tickets, err := database.Client.Tickets.GetGuildOpenTickets(guildId)
+	tickets, err := database.Client.Tickets.GetGuildOpenTickets(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	panels, err := database.Client.Panel.GetByGuild(guildId)
+	panels, err := database.Client.Panel.GetByGuild(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

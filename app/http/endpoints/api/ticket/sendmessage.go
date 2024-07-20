@@ -60,7 +60,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Verify guild is premium
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -75,7 +75,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Get ticket
-	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
+	ticket, err := database.Client.Tickets.Get(ctx, ticketId, guildId)
 
 	// Verify the ticket exists
 	if ticket.UserId == 0 {
@@ -100,7 +100,7 @@ func SendMessage(ctx *gin.Context) {
 	}
 
 	// Preferably send via a webhook
-	webhook, err := database.Client.Webhooks.Get(guildId, ticketId)
+	webhook, err := database.Client.Webhooks.Get(ctx, guildId, ticketId)
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,
@@ -109,7 +109,7 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	settings, err := database.Client.Settings.Get(guildId)
+	settings, err := database.Client.Settings.Get(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorStr("Failed to fetch settings"))
 		return
@@ -150,7 +150,7 @@ func SendMessage(ctx *gin.Context) {
 			// We can delete the webhook in this case
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 || unwrapped.StatusCode == 404 {
-				go database.Client.Webhooks.Delete(guildId, ticketId)
+				go database.Client.Webhooks.Delete(ctx, guildId, ticketId)
 			}
 		} else {
 			ctx.JSON(200, gin.H{

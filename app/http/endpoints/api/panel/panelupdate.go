@@ -41,7 +41,7 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	// get existing
-	existing, err := dbclient.Client.Panel.GetById(panelId)
+	existing, err := dbclient.Client.Panel.GetById(ctx, panelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -61,7 +61,7 @@ func UpdatePanel(ctx *gin.Context) {
 	// Apply defaults
 	ApplyPanelDefaults(&data)
 
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -173,7 +173,7 @@ func UpdatePanel(ctx *gin.Context) {
 	var welcomeMessageEmbed *int
 	if data.WelcomeMessage == nil {
 		if existing.WelcomeMessageEmbed != nil { // If welcome message wasn't null, but now is, delete the embed
-			if err := dbclient.Client.Embeds.Delete(*existing.WelcomeMessageEmbed); err != nil {
+			if err := dbclient.Client.Embeds.Delete(ctx, *existing.WelcomeMessageEmbed); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -184,7 +184,7 @@ func UpdatePanel(ctx *gin.Context) {
 			embed, fields := data.WelcomeMessage.IntoDatabaseStruct()
 			embed.GuildId = guildId
 
-			id, err := dbclient.Client.Embeds.CreateWithFields(embed, fields)
+			id, err := dbclient.Client.Embeds.CreateWithFields(ctx, embed, fields)
 			if err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
@@ -198,7 +198,7 @@ func UpdatePanel(ctx *gin.Context) {
 			embed.Id = *existing.WelcomeMessageEmbed
 			embed.GuildId = guildId
 
-			if err := dbclient.Client.Embeds.UpdateWithFields(embed, fields); err != nil {
+			if err := dbclient.Client.Embeds.UpdateWithFields(ctx, embed, fields); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -254,20 +254,20 @@ func UpdatePanel(ctx *gin.Context) {
 	}
 
 	err = dbclient.Client.Panel.BeginFunc(ctx, func(tx pgx.Tx) error {
-		if err := dbclient.Client.Panel.UpdateWithTx(tx, panel); err != nil {
+		if err := dbclient.Client.Panel.UpdateWithTx(ctx, tx, panel); err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelUserMention.SetWithTx(tx, panel.PanelId, shouldMentionUser); err != nil {
+		if err := dbclient.Client.PanelUserMention.SetWithTx(ctx, tx, panel.PanelId, shouldMentionUser); err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(tx, panel.PanelId, roleMentions); err != nil {
+		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(ctx, tx, panel.PanelId, roleMentions); err != nil {
 			return err
 		}
 
 		// We are safe to insert, team IDs already validated
-		if err := dbclient.Client.PanelTeams.ReplaceWithTx(tx, panel.PanelId, data.Teams); err != nil {
+		if err := dbclient.Client.PanelTeams.ReplaceWithTx(ctx, tx, panel.PanelId, data.Teams); err != nil {
 			return err
 		}
 
@@ -288,7 +288,7 @@ func UpdatePanel(ctx *gin.Context) {
 
 	// check if this will break a multi-panel;
 	// first, get any multipanels this panel belongs to
-	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(existing.PanelId)
+	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(ctx, existing.PanelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -300,7 +300,7 @@ func UpdatePanel(ctx *gin.Context) {
 			break
 		}
 
-		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
+		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(ctx, multiPanel.Id)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -323,7 +323,7 @@ func UpdatePanel(ctx *gin.Context) {
 			return
 		}
 
-		if err := dbclient.Client.MultiPanels.UpdateMessageId(multiPanel.Id, messageId); err != nil {
+		if err := dbclient.Client.MultiPanels.UpdateMessageId(ctx, multiPanel.Id, messageId); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}

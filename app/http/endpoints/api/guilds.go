@@ -90,7 +90,7 @@ func GetGuilds(c *gin.Context) {
 
 func getGuildIntersection(userId uint64) ([]database.UserGuild, error) {
 	// Get all the guilds that the user is in
-	userGuilds, err := dbclient.Client.UserGuilds.Get(userId)
+	userGuilds, err := dbclient.Client.UserGuilds.Get(context.Background(), userId)
 	if err != nil {
 		return nil, err
 	}

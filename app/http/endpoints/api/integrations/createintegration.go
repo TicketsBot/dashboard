@@ -41,7 +41,7 @@ var validate = newIntegrationValidator()
 func CreateIntegrationHandler(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
-	ownedCount, err := dbclient.Client.CustomIntegrations.GetOwnedCount(userId)
+	ownedCount, err := dbclient.Client.CustomIntegrations.GetOwnedCount(ctx, userId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -83,7 +83,7 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 		}
 	}
 
-	integration, err := dbclient.Client.CustomIntegrations.Create(userId, data.WebhookUrl, data.ValidationUrl, data.Method, data.Name, data.Description, data.ImageUrl, data.PrivacyPolicyUrl)
+	integration, err := dbclient.Client.CustomIntegrations.Create(ctx, userId, data.WebhookUrl, data.ValidationUrl, data.Method, data.Name, data.Description, data.ImageUrl, data.PrivacyPolicyUrl)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -99,7 +99,7 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 			}
 		}
 
-		if _, err := dbclient.Client.CustomIntegrationSecrets.CreateOrUpdate(integration.Id, secrets); err != nil {
+		if _, err := dbclient.Client.CustomIntegrationSecrets.CreateOrUpdate(ctx, integration.Id, secrets); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
@@ -115,7 +115,7 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 			}
 		}
 
-		if _, err := dbclient.Client.CustomIntegrationHeaders.CreateOrUpdate(integration.Id, headers); err != nil {
+		if _, err := dbclient.Client.CustomIntegrationHeaders.CreateOrUpdate(ctx, integration.Id, headers); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
@@ -131,7 +131,7 @@ func CreateIntegrationHandler(ctx *gin.Context) {
 			}
 		}
 
-		if _, err := dbclient.Client.CustomIntegrationPlaceholders.Set(integration.Id, placeholders); err != nil {
+		if _, err := dbclient.Client.CustomIntegrationPlaceholders.Set(ctx, integration.Id, placeholders); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}

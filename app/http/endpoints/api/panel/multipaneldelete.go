@@ -28,7 +28,7 @@ func MultiPanelDelete(ctx *gin.Context) {
 		return
 	}
 
-	panel, ok, err := dbclient.Client.MultiPanels.Get(multiPanelId)
+	panel, ok, err := dbclient.Client.MultiPanels.Get(ctx, multiPanelId)
 	if !ok {
 		ctx.JSON(404, utils.ErrorStr("No panel with matching ID found"))
 		return
@@ -46,7 +46,7 @@ func MultiPanelDelete(ctx *gin.Context) {
 		return
 	}
 
-	success, err := dbclient.Client.MultiPanels.Delete(guildId, multiPanelId)
+	success, err := dbclient.Client.MultiPanels.Delete(ctx, guildId, multiPanelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

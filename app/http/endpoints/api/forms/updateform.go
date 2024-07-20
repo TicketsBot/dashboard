@@ -27,7 +27,7 @@ func UpdateForm(ctx *gin.Context) {
 		return
 	}
 
-	form, ok, err := dbclient.Client.Forms.Get(formId)
+	form, ok, err := dbclient.Client.Forms.Get(ctx, formId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -43,7 +43,7 @@ func UpdateForm(ctx *gin.Context) {
 		return
 	}
 
-	if err := dbclient.Client.Forms.UpdateTitle(formId, data.Title); err != nil {
+	if err := dbclient.Client.Forms.UpdateTitle(ctx, formId, data.Title); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

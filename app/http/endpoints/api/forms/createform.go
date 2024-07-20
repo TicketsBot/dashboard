@@ -32,7 +32,7 @@ func CreateForm(ctx *gin.Context) {
 		return
 	}
 
-	id, err := dbclient.Client.Forms.Create(guildId, data.Title, customId)
+	id, err := dbclient.Client.Forms.Create(ctx, guildId, data.Title, customId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

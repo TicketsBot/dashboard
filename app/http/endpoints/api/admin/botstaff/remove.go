@@ -14,7 +14,7 @@ func RemoveBotStaffHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := database.Client.BotStaff.Delete(userId); err != nil {
+	if err := database.Client.BotStaff.Delete(ctx, userId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

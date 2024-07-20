@@ -25,13 +25,13 @@ func GetOwnedIntegrationsHandler(ctx *gin.Context) {
 
 	// Retrieve integrations
 	group.Go(func() (err error) {
-		integrations, err = dbclient.Client.CustomIntegrations.GetAllOwned(userId)
+		integrations, err = dbclient.Client.CustomIntegrations.GetAllOwned(ctx, userId)
 		return
 	})
 
 	// Retrieve placeholders
 	group.Go(func() (err error) {
-		placeholders, err = dbclient.Client.CustomIntegrationPlaceholders.GetAllForOwnedIntegrations(userId)
+		placeholders, err = dbclient.Client.CustomIntegrationPlaceholders.GetAllForOwnedIntegrations(ctx, userId)
 		return
 	})
 

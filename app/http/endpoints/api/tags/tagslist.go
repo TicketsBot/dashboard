@@ -10,7 +10,7 @@ import (
 func TagsListHandler(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	tags, err := database.Client.Tag.GetByGuild(guildId)
+	tags, err := database.Client.Tag.GetByGuild(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -25,7 +25,7 @@ func TagsListHandler(ctx *gin.Context) {
 
 		wrapped[id] = tag{
 			Id:              data.Id,
-			UseGuildCommand: data.UseGuildCommand,
+			UseGuildCommand: data.ApplicationCommandId != nil,
 			Content:         data.Content,
 			UseEmbed:        data.Embed != nil,
 			Embed:           embed,

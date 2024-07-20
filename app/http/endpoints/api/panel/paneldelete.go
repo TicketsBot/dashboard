@@ -29,7 +29,7 @@ func DeletePanel(ctx *gin.Context) {
 		return
 	}
 
-	panel, err := database.Client.Panel.GetById(panelId)
+	panel, err := database.Client.Panel.GetById(ctx, panelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -47,7 +47,7 @@ func DeletePanel(ctx *gin.Context) {
 	}
 
 	// Get any multi panels this panel is part of to use later
-	multiPanels, err := database.Client.MultiPanelTargets.GetMultiPanels(panelId)
+	multiPanels, err := database.Client.MultiPanelTargets.GetMultiPanels(ctx, panelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -55,13 +55,13 @@ func DeletePanel(ctx *gin.Context) {
 
 	// Delete welcome message embed
 	if panel.WelcomeMessageEmbed != nil {
-		if err := database.Client.Embeds.Delete(*panel.WelcomeMessageEmbed); err != nil {
+		if err := database.Client.Embeds.Delete(ctx, *panel.WelcomeMessageEmbed); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
 	}
 
-	if err := database.Client.Panel.Delete(panelId); err != nil {
+	if err := database.Client.Panel.Delete(ctx, panelId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
@@ -76,7 +76,7 @@ func DeletePanel(ctx *gin.Context) {
 	}
 
 	// Get premium tier
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -89,7 +89,7 @@ func DeletePanel(ctx *gin.Context) {
 			break
 		}
 
-		panels, err := database.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
+		panels, err := database.Client.MultiPanelTargets.GetPanels(ctx, multiPanel.Id)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -110,7 +110,7 @@ func DeletePanel(ctx *gin.Context) {
 			return
 		}
 
-		if err := database.Client.MultiPanels.UpdateMessageId(multiPanel.Id, messageId); err != nil {
+		if err := database.Client.MultiPanels.UpdateMessageId(ctx, multiPanel.Id, messageId); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}

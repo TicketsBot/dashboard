@@ -14,14 +14,14 @@ import (
 func WhitelabelGetGuilds(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
-	bot, err := database.Client.Whitelabel.GetByUserId(userId)
+	bot, err := database.Client.Whitelabel.GetByUserId(ctx, userId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// id -> name
-	guilds := make(map[string]string, 0)
+	guilds := make(map[string]string)
 	if bot.BotId == 0 {
 		ctx.JSON(404, gin.H{
 			"success": false,
@@ -30,7 +30,7 @@ func WhitelabelGetGuilds(ctx *gin.Context) {
 		return
 	}
 
-	ids, err := database.Client.WhitelabelGuilds.GetGuilds(bot.BotId)
+	ids, err := database.Client.WhitelabelGuilds.GetGuilds(ctx, bot.BotId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

@@ -1,19 +1,25 @@
 package api
 
 import (
+	"fmt"
+	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
+	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/types"
+	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/rxdn/gdl/objects/interaction"
+	"github.com/rxdn/gdl/rest"
 	"regexp"
 	"strings"
 )
 
 type tag struct {
 	Id              string             `json:"id" validate:"required,min=1,max=16"`
-	UseGuildCommand bool               `json:"use_guild_command"` // Not yet implemented
+	UseGuildCommand bool               `json:"use_guild_command"`
 	Content         *string            `json:"content" validate:"omitempty,min=1,max=4096"`
 	UseEmbed        bool               `json:"use_embed"`
 	Embed           *types.CustomEmbed `json:"embed" validate:"omitempty,dive"`
@@ -28,7 +34,7 @@ func CreateTag(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
 	// Max of 200 tags
-	count, err := dbclient.Client.Tag.GetTagCount(guildId)
+	count, err := dbclient.Client.Tag.GetTagCount(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -44,6 +50,8 @@ func CreateTag(ctx *gin.Context) {
 		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
+
+	data.Id = strings.ToLower(data.Id)
 
 	if !data.UseEmbed {
 		data.Embed = nil
@@ -62,9 +70,33 @@ func CreateTag(ctx *gin.Context) {
 		return
 	}
 
+	if !data.verifyId() {
+		ctx.JSON(400, utils.ErrorStr("Tag IDs must be alphanumeric (including hyphens and underscores), and be between 1 and 16 characters long"))
+		return
+	}
+
 	if !data.verifyContent() {
 		ctx.JSON(400, utils.ErrorStr("You have not provided any content for the tag"))
 		return
+	}
+
+	botContext, err := botcontext.ContextForGuild(guildId)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if data.UseGuildCommand {
+		premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		if premiumTier < premium.Premium {
+			ctx.JSON(400, utils.ErrorStr("Premium is required to use custom commands"))
+			return
+		}
 	}
 
 	var embed *database.CustomEmbedWithFields
@@ -76,15 +108,32 @@ func CreateTag(ctx *gin.Context) {
 		}
 	}
 
-	wrapped := database.Tag{
-		Id:              data.Id,
-		GuildId:         guildId,
-		UseGuildCommand: data.UseGuildCommand,
-		Content:         data.Content,
-		Embed:           embed,
+	var applicationCommandId *uint64
+	if data.UseGuildCommand {
+		cmd, err := botContext.CreateGuildCommand(ctx, guildId, rest.CreateCommandData{
+			Name:        data.Id,
+			Description: fmt.Sprintf("Alias for /tag %s", data.Id),
+			Options:     nil,
+			Type:        interaction.ApplicationCommandTypeChatInput,
+		})
+
+		if err != nil {
+			ctx.JSON(500, utils.ErrorJson(err))
+			return
+		}
+
+		applicationCommandId = &cmd.Id
 	}
 
-	if err := dbclient.Client.Tag.Set(wrapped); err != nil {
+	wrapped := database.Tag{
+		Id:                   data.Id,
+		GuildId:              guildId,
+		Content:              data.Content,
+		Embed:                embed,
+		ApplicationCommandId: applicationCommandId,
+	}
+
+	if err := dbclient.Client.Tag.Set(ctx, wrapped); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

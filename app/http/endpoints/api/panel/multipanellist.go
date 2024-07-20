@@ -17,7 +17,7 @@ func MultiPanelList(ctx *gin.Context) {
 
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	multiPanels, err := dbclient.Client.MultiPanels.GetByGuild(guildId)
+	multiPanels, err := dbclient.Client.MultiPanels.GetByGuild(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -35,7 +35,7 @@ func MultiPanelList(ctx *gin.Context) {
 
 		// TODO: Use a join
 		group.Go(func() error {
-			panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
+			panels, err := dbclient.Client.MultiPanelTargets.GetPanels(ctx, multiPanel.Id)
 			if err != nil {
 				return err
 			}

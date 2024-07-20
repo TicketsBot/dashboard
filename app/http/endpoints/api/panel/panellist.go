@@ -25,7 +25,7 @@ func ListPanels(ctx *gin.Context) {
 
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	panels, err := dbclient.Client.Panel.GetByGuildWithWelcomeMessage(guildId)
+	panels, err := dbclient.Client.Panel.GetByGuildWithWelcomeMessage(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -37,7 +37,7 @@ func ListPanels(ctx *gin.Context) {
 		return
 	}
 
-	allFields, err := dbclient.Client.EmbedFields.GetAllFieldsForPanels(guildId)
+	allFields, err := dbclient.Client.EmbedFields.GetAllFieldsForPanels(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -56,7 +56,7 @@ func ListPanels(ctx *gin.Context) {
 			var mentions []string
 
 			// get if we should mention the ticket opener
-			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(p.PanelId)
+			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(ctx, p.PanelId)
 			if err != nil {
 				return err
 			}
@@ -66,7 +66,7 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			// get role mentions
-			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(p.PanelId)
+			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(ctx, p.PanelId)
 			if err != nil {
 				return err
 			}
@@ -76,7 +76,7 @@ func ListPanels(ctx *gin.Context) {
 				mentions = append(mentions, strconv.FormatUint(roleId, 10))
 			}
 
-			teamIds, err := dbclient.Client.PanelTeams.GetTeamIds(p.PanelId)
+			teamIds, err := dbclient.Client.PanelTeams.GetTeamIds(ctx, p.PanelId)
 			if err != nil {
 				return err
 			}

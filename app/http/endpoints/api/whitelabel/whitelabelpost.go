@@ -46,7 +46,7 @@ func WhitelabelPost() func(*gin.Context) {
 		}
 
 		// Check if this is a different token
-		existing, err := dbclient.Client.Whitelabel.GetByUserId(userId)
+		existing, err := dbclient.Client.Whitelabel.GetByUserId(ctx, userId)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -59,7 +59,7 @@ func WhitelabelPost() func(*gin.Context) {
 
 		// Set token in DB so that http-gateway can use it when Discord validates the interactions endpoint
 		// TODO: Use a transaction
-		if err := dbclient.Client.Whitelabel.Set(database.WhitelabelBot{
+		if err := dbclient.Client.Whitelabel.Set(ctx, database.WhitelabelBot{
 			UserId: userId,
 			BotId:  bot.Id,
 			Token:  data.Token,
@@ -68,7 +68,7 @@ func WhitelabelPost() func(*gin.Context) {
 			return
 		}
 
-		if err := dbclient.Client.WhitelabelKeys.Set(bot.Id, bot.VerifyKey); err != nil {
+		if err := dbclient.Client.WhitelabelKeys.Set(ctx, bot.Id, bot.VerifyKey); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
@@ -91,7 +91,7 @@ func WhitelabelPost() func(*gin.Context) {
 
 		if _, err := rest.EditCurrentApplication(context.Background(), data.Token, nil, editData); err != nil {
 			// TODO: Use a transaction
-			if err := dbclient.Client.Whitelabel.Delete(bot.Id); err != nil {
+			if err := dbclient.Client.Whitelabel.Delete(ctx, bot.Id); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}

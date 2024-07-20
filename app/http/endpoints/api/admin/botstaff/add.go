@@ -14,7 +14,7 @@ func AddBotStaffHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := database.Client.BotStaff.Add(userId); err != nil {
+	if err := database.Client.BotStaff.Add(ctx, userId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

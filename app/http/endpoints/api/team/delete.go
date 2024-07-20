@@ -17,7 +17,7 @@ func DeleteTeam(ctx *gin.Context) {
 	}
 
 	// check team belongs to guild
-	exists, err := dbclient.Client.SupportTeam.Exists(teamId, guildId)
+	exists, err := dbclient.Client.SupportTeam.Exists(ctx, teamId, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -28,7 +28,7 @@ func DeleteTeam(ctx *gin.Context) {
 		return
 	}
 
-	if err := dbclient.Client.SupportTeam.Delete(teamId); err != nil {
+	if err := dbclient.Client.SupportTeam.Delete(ctx, teamId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

@@ -23,7 +23,7 @@ func CreateOverrideHandler(ctx *gin.Context) {
 	}
 
 	expires := time.Now().Add(time.Hour * time.Duration(body.TimePeriod))
-	if err := database.Client.StaffOverride.Set(guildId, expires); err != nil {
+	if err := database.Client.StaffOverride.Set(ctx, guildId, expires); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

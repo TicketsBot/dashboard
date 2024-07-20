@@ -43,7 +43,7 @@ func AddBlacklistHandler(ctx *gin.Context) {
 
 	if body.EntityType == entityTypeUser {
 		// Max of 250 blacklisted users
-		count, err := database.Client.Blacklist.GetBlacklistedCount(guildId)
+		count, err := database.Client.Blacklist.GetBlacklistedCount(ctx, guildId)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -66,7 +66,7 @@ func AddBlacklistHandler(ctx *gin.Context) {
 			return
 		}
 
-		if err := database.Client.Blacklist.Add(guildId, body.Snowflake); err != nil {
+		if err := database.Client.Blacklist.Add(ctx, guildId, body.Snowflake); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}
@@ -96,7 +96,7 @@ func AddBlacklistHandler(ctx *gin.Context) {
 		})
 	} else if body.EntityType == entityTypeRole {
 		// Max of 50 blacklisted roles
-		count, err := database.Client.RoleBlacklist.GetBlacklistedCount(guildId)
+		count, err := database.Client.RoleBlacklist.GetBlacklistedCount(ctx, guildId)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -107,7 +107,7 @@ func AddBlacklistHandler(ctx *gin.Context) {
 			return
 		}
 
-		if err := database.Client.RoleBlacklist.Add(guildId, body.Snowflake); err != nil {
+		if err := database.Client.RoleBlacklist.Add(ctx, guildId, body.Snowflake); err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
 		}

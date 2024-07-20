@@ -36,7 +36,7 @@ func (c *BotContext) Cache() permission.PermissionCache {
 	return permission.NewRedisCache(redis.Client.Client)
 }
 
-func (c *BotContext) IsBotAdmin(userId uint64) bool {
+func (c *BotContext) IsBotAdmin(_ context.Context, userId uint64) bool {
 	for _, id := range config.Conf.Admins {
 		if id == userId {
 			return true
@@ -65,18 +65,18 @@ func (c *BotContext) GetGuild(ctx context.Context, guildId uint64) (guild.Guild,
 	}
 }
 
-func (c *BotContext) GetGuildOwner(guildId uint64) (uint64, error) {
-	cachedOwner, err := cacheclient.Instance.GetGuildOwner(context.Background(), guildId)
+func (c *BotContext) GetGuildOwner(ctx context.Context, guildId uint64) (uint64, error) {
+	cachedOwner, err := cacheclient.Instance.GetGuildOwner(ctx, guildId)
 	switch {
 	case err == nil:
 		return cachedOwner, nil
 	case errors.Is(err, cache.ErrNotFound):
-		guild, err := c.GetGuild(context.Background(), guildId)
+		guild, err := c.GetGuild(ctx, guildId)
 		if err != nil {
 			return 0, err
 		}
 
-		if err := cacheclient.Instance.StoreGuild(context.Background(), guild); err != nil {
+		if err := cacheclient.Instance.StoreGuild(ctx, guild); err != nil {
 			return 0, err
 		}
 

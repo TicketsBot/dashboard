@@ -16,7 +16,7 @@ func DeleteIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok, err := dbclient.Client.CustomIntegrations.Get(integrationId)
+	integration, ok, err := dbclient.Client.CustomIntegrations.Get(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -33,7 +33,7 @@ func DeleteIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := dbclient.Client.CustomIntegrations.Delete(integration.Id); err != nil {
+	if err := dbclient.Client.CustomIntegrations.Delete(ctx, integration.Id); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

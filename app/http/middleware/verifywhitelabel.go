@@ -13,7 +13,7 @@ func VerifyWhitelabel(isApi bool) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		userId := ctx.Keys["userid"].(uint64)
 
-		tier, err := rpc.PremiumClient.GetTierByUser(userId, false)
+		tier, err := rpc.PremiumClient.GetTierByUser(ctx, userId, false)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return

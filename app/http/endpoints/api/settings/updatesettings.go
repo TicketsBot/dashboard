@@ -43,13 +43,13 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	}
 
 	// Includes voting
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	if err := settings.Validate(guildId, premiumTier); err != nil {
+	if err := settings.Validate(ctx, guildId, premiumTier); err != nil {
 		ctx.JSON(400, utils.ErrorJson(err))
 		return
 	}
@@ -57,11 +57,11 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	group, _ := errgroup.WithContext(context.Background())
 
 	group.Go(func() error {
-		return settings.updateSettings(guildId)
+		return settings.updateSettings(ctx, guildId)
 	})
 
 	group.Go(func() error {
-		return settings.updateClaimSettings(guildId)
+		return settings.updateClaimSettings(ctx, guildId)
 	})
 
 	addToWaitGroup(group, guildId, settings.updateTicketPermissions)
@@ -97,12 +97,12 @@ func UpdateSettingsHandler(ctx *gin.Context) {
 	})
 }
 
-func (s *Settings) updateSettings(guildId uint64) error {
-	return dbclient.Client.Settings.Set(guildId, s.Settings)
+func (s *Settings) updateSettings(ctx context.Context, guildId uint64) error {
+	return dbclient.Client.Settings.Set(ctx, guildId, s.Settings)
 }
 
-func (s *Settings) updateClaimSettings(guildId uint64) error {
-	return dbclient.Client.ClaimSettings.Set(guildId, s.ClaimSettings)
+func (s *Settings) updateClaimSettings(ctx context.Context, guildId uint64) error {
+	return dbclient.Client.ClaimSettings.Set(ctx, guildId, s.ClaimSettings)
 }
 
 var (
@@ -110,7 +110,7 @@ var (
 	activeColours    = []customisation.Colour{customisation.Green, customisation.Red}
 )
 
-func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) error {
+func (s *Settings) Validate(ctx context.Context, guildId uint64, premiumTier premium.PremiumTier) error {
 	// Sync checks
 	if s.ClaimSettings.SupportCanType && !s.ClaimSettings.SupportCanView {
 		return errors.New("Must be able to view channel to type")
@@ -180,7 +180,7 @@ func (s *Settings) Validate(guildId uint64, premiumTier premium.PremiumTier) err
 		if s.ContextMenuPanel != nil {
 			panelId := *s.ContextMenuPanel
 
-			panel, err := dbclient.Client.Panel.GetById(panelId)
+			panel, err := dbclient.Client.Panel.GetById(ctx, panelId)
 			if err != nil {
 				return err
 			}
@@ -267,7 +267,7 @@ func (s *Settings) updateWelcomeMessage(guildId uint64) bool {
 		return false
 	}
 
-	go dbclient.Client.WelcomeMessages.Set(guildId, s.WelcomeMessage)
+	go dbclient.Client.WelcomeMessages.Set(context.Background(), guildId, s.WelcomeMessage)
 	return true
 }
 
@@ -276,7 +276,7 @@ func (s *Settings) updateTicketLimit(guildId uint64) bool {
 		return false
 	}
 
-	go dbclient.Client.TicketLimit.Set(guildId, s.TicketLimit)
+	go dbclient.Client.TicketLimit.Set(context.Background(), guildId, s.TicketLimit)
 	return true
 }
 
@@ -293,13 +293,13 @@ func (s *Settings) updateCategory(channels []channel.Channel, guildId uint64) bo
 		return false
 	}
 
-	go dbclient.Client.ChannelCategory.Set(guildId, s.Category)
+	go dbclient.Client.ChannelCategory.Set(context.Background(), guildId, s.Category)
 	return true
 }
 
 func (s *Settings) updateArchiveChannel(channels []channel.Channel, guildId uint64) bool {
 	if s.ArchiveChannel == nil {
-		go dbclient.Client.ArchiveChannel.Set(guildId, nil)
+		go dbclient.Client.ArchiveChannel.Set(context.Background(), guildId, nil)
 		return true
 	}
 
@@ -315,7 +315,7 @@ func (s *Settings) updateArchiveChannel(channels []channel.Channel, guildId uint
 		return false
 	}
 
-	go dbclient.Client.ArchiveChannel.Set(guildId, s.ArchiveChannel)
+	go dbclient.Client.ArchiveChannel.Set(context.Background(), guildId, s.ArchiveChannel)
 	return true
 }
 
@@ -334,32 +334,32 @@ func (s *Settings) updateNamingScheme(guildId uint64) bool {
 		return false
 	}
 
-	go dbclient.Client.NamingScheme.Set(guildId, s.NamingScheme)
+	go dbclient.Client.NamingScheme.Set(context.Background(), guildId, s.NamingScheme)
 	return true
 }
 
 func (s *Settings) updateUsersCanClose(guildId uint64) {
-	go dbclient.Client.UsersCanClose.Set(guildId, s.UsersCanClose)
+	go dbclient.Client.UsersCanClose.Set(context.Background(), guildId, s.UsersCanClose)
 }
 
 func (s *Settings) updateCloseConfirmation(guildId uint64) {
-	go dbclient.Client.CloseConfirmation.Set(guildId, s.CloseConfirmation)
+	go dbclient.Client.CloseConfirmation.Set(context.Background(), guildId, s.CloseConfirmation)
 }
 
 func (s *Settings) updateFeedbackEnabled(guildId uint64) {
-	go dbclient.Client.FeedbackEnabled.Set(guildId, s.FeedbackEnabled)
+	go dbclient.Client.FeedbackEnabled.Set(context.Background(), guildId, s.FeedbackEnabled)
 }
 
 func (s *Settings) updateLanguage(guildId uint64) error {
 	if s.Language == nil {
-		return dbclient.Client.ActiveLanguage.Delete(guildId)
+		return dbclient.Client.ActiveLanguage.Delete(context.Background(), guildId)
 	} else {
-		return dbclient.Client.ActiveLanguage.Set(guildId, string(*s.Language))
+		return dbclient.Client.ActiveLanguage.Set(context.Background(), guildId, string(*s.Language))
 	}
 }
 
 func (s *Settings) updateTicketPermissions(guildId uint64) error {
-	return dbclient.Client.TicketPermissions.Set(guildId, s.TicketPermissions) // No validation required
+	return dbclient.Client.TicketPermissions.Set(context.Background(), guildId, s.TicketPermissions) // No validation required
 }
 
 func (s *Settings) updateColours(guildId uint64) error {
@@ -369,12 +369,12 @@ func (s *Settings) updateColours(guildId uint64) error {
 		converted[int16(colour)] = int(hex)
 	}
 
-	return dbclient.Client.CustomColours.BatchSet(guildId, converted)
+	return dbclient.Client.CustomColours.BatchSet(context.Background(), guildId, converted)
 }
 
 func (s *Settings) updateAutoClose(guildId uint64) error {
 	data := s.AutoCloseSettings.ConvertToDatabase() // Already validated
-	return dbclient.Client.AutoClose.Set(guildId, data)
+	return dbclient.Client.AutoClose.Set(context.Background(), guildId, data)
 }
 
 func (d AutoCloseData) ConvertToDatabase() (settings database.AutoCloseSettings) {

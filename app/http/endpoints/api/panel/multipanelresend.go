@@ -25,7 +25,7 @@ func MultiPanelResend(ctx *gin.Context) {
 	}
 
 	// retrieve panel from DB
-	multiPanel, ok, err := dbclient.Client.MultiPanels.Get(panelId)
+	multiPanel, ok, err := dbclient.Client.MultiPanels.Get(ctx, panelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -61,13 +61,13 @@ func MultiPanelResend(ctx *gin.Context) {
 	}
 
 	// get premium status
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	panels, err := dbclient.Client.MultiPanelTargets.GetPanels(multiPanel.Id)
+	panels, err := dbclient.Client.MultiPanelTargets.GetPanels(ctx, multiPanel.Id)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -87,7 +87,7 @@ func MultiPanelResend(ctx *gin.Context) {
 		return
 	}
 
-	if err = dbclient.Client.MultiPanels.UpdateMessageId(multiPanel.Id, messageId); err != nil {
+	if err = dbclient.Client.MultiPanels.UpdateMessageId(ctx, multiPanel.Id, messageId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

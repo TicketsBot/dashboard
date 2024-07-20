@@ -35,7 +35,7 @@ func MultiPanelUpdate(c *gin.Context) {
 	}
 
 	// retrieve panel from DB
-	multiPanel, ok, err := dbclient.Client.MultiPanels.Get(panelId)
+	multiPanel, ok, err := dbclient.Client.MultiPanels.Get(c, panelId)
 	if err != nil {
 		c.JSON(500, utils.ErrorJson(err))
 		return
@@ -68,7 +68,7 @@ func MultiPanelUpdate(c *gin.Context) {
 				return
 			}
 
-			if err := dbclient.Client.Panel.Update(panel); err != nil {
+			if err := dbclient.Client.Panel.Update(c, panel); err != nil {
 				c.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -94,7 +94,7 @@ func MultiPanelUpdate(c *gin.Context) {
 	cancel()
 
 	// get premium status
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		c.JSON(500, utils.ErrorJson(err))
 		return
@@ -128,14 +128,14 @@ func MultiPanelUpdate(c *gin.Context) {
 		ThumbnailUrl: data.ThumbnailUrl,
 	}
 
-	if err = dbclient.Client.MultiPanels.Update(multiPanel.Id, updated); err != nil {
+	if err = dbclient.Client.MultiPanels.Update(c, multiPanel.Id, updated); err != nil {
 		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// TODO: one query for ACID purposes
 	// delete old targets
-	if err := dbclient.Client.MultiPanelTargets.DeleteAll(multiPanel.Id); err != nil {
+	if err := dbclient.Client.MultiPanelTargets.DeleteAll(c, multiPanel.Id); err != nil {
 		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
@@ -146,7 +146,7 @@ func MultiPanelUpdate(c *gin.Context) {
 		panel := panel
 
 		group.Go(func() error {
-			return dbclient.Client.MultiPanelTargets.Insert(multiPanel.Id, panel.PanelId)
+			return dbclient.Client.MultiPanelTargets.Insert(c, multiPanel.Id, panel.PanelId)
 		})
 	}
 

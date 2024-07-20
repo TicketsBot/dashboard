@@ -24,7 +24,7 @@ func PremiumHandler(ctx *gin.Context) {
 	// If error, will default to false
 	includeVoting, _ := strconv.ParseBool(ctx.Query("include_voting"))
 
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, includeVoting, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, includeVoting, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

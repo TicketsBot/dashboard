@@ -19,7 +19,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	activeCount, err := dbclient.Client.CustomIntegrationGuilds.GetGuildIntegrationCount(guildId)
+	activeCount, err := dbclient.Client.CustomIntegrationGuilds.GetGuildIntegrationCount(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -42,7 +42,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok, err := dbclient.Client.CustomIntegrations.Get(integrationId)
+	integration, ok, err := dbclient.Client.CustomIntegrations.Get(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -54,7 +54,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 	}
 
 	// Check the integration is public or the user created it
-	canActivate, err := dbclient.Client.CustomIntegrationGuilds.CanActivate(integrationId, userId)
+	canActivate, err := dbclient.Client.CustomIntegrationGuilds.CanActivate(ctx, integrationId, userId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -66,7 +66,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 	}
 
 	// Check the secret values are valid
-	secrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(integrationId)
+	secrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -77,7 +77,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	// Since we've checked the length, we can just iterate over the secrets and they're guaranteed to be correct
+	// Since we've checked the length, we can just iterate over the secrets, and they're guaranteed to be correct
 	secretMap := make(map[int]string)
 	secretValues := make(map[string]string)
 	for secretName, value := range data.Secrets {
@@ -106,7 +106,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 
 	// Validate secrets
 	if integration.Public && integration.Approved && integration.ValidationUrl != nil {
-		integrationHeaders, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(integrationId)
+		integrationHeaders, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(ctx, integrationId)
 		if err != nil {
 			ctx.JSON(500, utils.ErrorJson(err))
 			return
@@ -162,7 +162,7 @@ func ActivateIntegrationHandler(ctx *gin.Context) {
 		}
 	}
 
-	if err := dbclient.Client.CustomIntegrationGuilds.AddToGuildWithSecrets(integrationId, guildId, secretMap); err != nil {
+	if err := dbclient.Client.CustomIntegrationGuilds.AddToGuildWithSecrets(ctx, integrationId, guildId, secretMap); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

@@ -16,7 +16,7 @@ func IsIntegrationActiveHandler(ctx *gin.Context) {
 		return
 	}
 
-	active, err := dbclient.Client.CustomIntegrationGuilds.IsActive(integrationId, guildId)
+	active, err := dbclient.Client.CustomIntegrationGuilds.IsActive(ctx, integrationId, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

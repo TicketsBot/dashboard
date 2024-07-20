@@ -84,14 +84,14 @@ func CreatePanel(c *gin.Context) {
 	data.MessageId = 0
 
 	// Check panel quota
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, false, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c, guildId, false, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	if premiumTier == premium.None {
-		panels, err := dbclient.Client.Panel.GetByGuild(guildId)
+		panels, err := dbclient.Client.Panel.GetByGuild(c, guildId)
 		if err != nil {
 			c.JSON(500, utils.ErrorJson(err))
 			return
@@ -194,7 +194,7 @@ func CreatePanel(c *gin.Context) {
 		embed, fields := data.WelcomeMessage.IntoDatabaseStruct()
 		embed.GuildId = guildId
 
-		id, err := dbclient.Client.Embeds.CreateWithFields(embed, fields)
+		id, err := dbclient.Client.Embeds.CreateWithFields(c, embed, fields)
 		if err != nil {
 			c.JSON(500, utils.ErrorJson(err))
 			return
@@ -279,21 +279,21 @@ func storePanel(ctx context.Context, panel database.Panel, options panelCreateOp
 	var panelId int
 	err := dbclient.Client.Panel.BeginFunc(ctx, func(tx pgx.Tx) error {
 		var err error
-		panelId, err = dbclient.Client.Panel.CreateWithTx(tx, panel)
+		panelId, err = dbclient.Client.Panel.CreateWithTx(ctx, tx, panel)
 		if err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelUserMention.SetWithTx(tx, panelId, options.ShouldMentionUser); err != nil {
+		if err := dbclient.Client.PanelUserMention.SetWithTx(ctx, tx, panelId, options.ShouldMentionUser); err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(tx, panelId, options.RoleMentions); err != nil {
+		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(ctx, tx, panelId, options.RoleMentions); err != nil {
 			return err
 		}
 
 		// Already validated, we are safe to insert
-		if err := dbclient.Client.PanelTeams.ReplaceWithTx(tx, panelId, options.TeamIds); err != nil {
+		if err := dbclient.Client.PanelTeams.ReplaceWithTx(ctx, tx, panelId, options.TeamIds); err != nil {
 			return err
 		}
 

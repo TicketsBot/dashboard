@@ -37,7 +37,7 @@ func ListSelfTranscripts(ctx *gin.Context) {
 		Offset:  offset,
 	}
 
-	tickets, err := dbclient.Client.Tickets.GetByOptions(opts)
+	tickets, err := dbclient.Client.Tickets.GetByOptions(ctx, opts)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

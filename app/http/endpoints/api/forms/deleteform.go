@@ -16,11 +16,11 @@ func DeleteForm(ctx *gin.Context) {
 		return
 	}
 
-	form, ok, err := dbclient.Client.Forms.Get(formId)
+	form, ok, err := dbclient.Client.Forms.Get(ctx, formId)
 	if err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	if !ok {
 		ctx.JSON(404, utils.ErrorStr("Form not found"))
@@ -29,13 +29,13 @@ func DeleteForm(ctx *gin.Context) {
 
 	if form.GuildId != guildId {
 		ctx.JSON(403, utils.ErrorStr("Form does not belong to this guild"))
-        return
+		return
 	}
 
-	if err := dbclient.Client.Forms.Delete(formId); err != nil {
-        ctx.JSON(500, utils.ErrorJson(err))
-        return
-    }
+	if err := dbclient.Client.Forms.Delete(ctx, formId); err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
 
 	ctx.JSON(200, utils.SuccessResponse)
 }

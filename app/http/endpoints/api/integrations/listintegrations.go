@@ -46,7 +46,7 @@ func ListIntegrationsHandler(ctx *gin.Context) {
 		limit -= builtInCount
 	}
 
-	availableIntegrations, err := dbclient.Client.CustomIntegrationGuilds.GetAvailableIntegrationsWithActive(guildId, userId, limit, page*pageLimit)
+	availableIntegrations, err := dbclient.Client.CustomIntegrationGuilds.GetAvailableIntegrationsWithActive(ctx, guildId, userId, limit, page*pageLimit)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

@@ -16,7 +16,7 @@ func RemoveRoleBlacklistHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := database.Client.RoleBlacklist.Remove(guildId, roleId); err != nil {
+	if err := database.Client.RoleBlacklist.Remove(ctx, guildId, roleId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

@@ -30,7 +30,7 @@ func ResendPanel(ctx *gin.Context) {
 	}
 
 	// get existing
-	panel, err := dbclient.Client.Panel.GetById(panelId)
+	panel, err := dbclient.Client.Panel.GetById(ctx, panelId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -62,7 +62,7 @@ func ResendPanel(ctx *gin.Context) {
 		}
 	}
 
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -81,7 +81,7 @@ func ResendPanel(ctx *gin.Context) {
 		return
 	}
 
-	if err = dbclient.Client.Panel.UpdateMessageId(panel.PanelId, msgId); err != nil {
+	if err = dbclient.Client.Panel.UpdateMessageId(ctx, panel.PanelId, msgId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

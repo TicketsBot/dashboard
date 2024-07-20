@@ -16,7 +16,7 @@ func RemoveUserBlacklistHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := database.Client.Blacklist.Remove(guildId, userId); err != nil {
+	if err := database.Client.Blacklist.Remove(ctx, guildId, userId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

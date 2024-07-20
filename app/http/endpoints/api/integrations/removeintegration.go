@@ -16,7 +16,7 @@ func RemoveIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := dbclient.Client.CustomIntegrationGuilds.RemoveFromGuild(integrationId, guildId); err != nil {
+	if err := dbclient.Client.CustomIntegrationGuilds.RemoveFromGuild(ctx, integrationId, guildId); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

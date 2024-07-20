@@ -7,10 +7,10 @@ toolchain go1.22.4
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot/archiverclient v0.0.0-20240613013458-accc062facc2
-	github.com/TicketsBot/common v0.0.0-20240613013221-1e27eb8bfe37
-	github.com/TicketsBot/database v0.0.0-20240622123318-f2e43bd962cb
+	github.com/TicketsBot/common v0.0.0-20240710005307-9cc26f78d8e3
+	github.com/TicketsBot/database v0.0.0-20240720222825-35466fd5fc96
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20240709182730-429809492f5e
+	github.com/TicketsBot/worker v0.0.0-20240720223640-84817ecc3309
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.24.0
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607

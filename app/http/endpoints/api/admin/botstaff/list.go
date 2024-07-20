@@ -19,7 +19,7 @@ type userData struct {
 }
 
 func ListBotStaffHandler(ctx *gin.Context) {
-	staff, err := database.Client.BotStaff.GetAll()
+	staff, err := database.Client.BotStaff.GetAll(ctx)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -38,7 +38,7 @@ func ListBotStaffHandler(ctx *gin.Context) {
 				Id: userId,
 			}
 
-			user, err := cache.Instance.GetUser(context.Background(), userId)
+			user, err := cache.Instance.GetUser(ctx, userId)
 			if err == nil {
 				data.Username = user.Username
 				data.Discriminator = user.Discriminator

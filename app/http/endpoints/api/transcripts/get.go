@@ -22,7 +22,7 @@ func GetTranscriptHandler(ctx *gin.Context) {
 	}
 
 	// get ticket object
-	ticket, err := dbclient.Client.Tickets.Get(ticketId, guildId)
+	ticket, err := dbclient.Client.Tickets.Get(ctx, ticketId, guildId)
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": false,

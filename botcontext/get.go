@@ -1,6 +1,7 @@
 package botcontext
 
 import (
+	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/config"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -10,13 +11,13 @@ import (
 )
 
 func ContextForGuild(guildId uint64) (*BotContext, error) {
-	whitelabelBotId, isWhitelabel, err := dbclient.Client.WhitelabelGuilds.GetBotByGuild(guildId)
+	whitelabelBotId, isWhitelabel, err := dbclient.Client.WhitelabelGuilds.GetBotByGuild(context.Background(), guildId)
 	if err != nil {
 		return nil, err
 	}
 
 	if isWhitelabel {
-		res, err := dbclient.Client.Whitelabel.GetByBotId(whitelabelBotId)
+		res, err := dbclient.Client.Whitelabel.GetByBotId(context.Background(), whitelabelBotId)
 		if err != nil {
 			return nil, err
 		}

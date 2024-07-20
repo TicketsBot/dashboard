@@ -72,7 +72,7 @@ func UpdateInputs(ctx *gin.Context) {
 	}
 
 	// Verify form exists and is from the right guild
-	form, ok, err := dbclient.Client.Forms.Get(formId)
+	form, ok, err := dbclient.Client.Forms.Get(ctx, formId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -88,7 +88,7 @@ func UpdateInputs(ctx *gin.Context) {
 		return
 	}
 
-	existingInputs, err := dbclient.Client.FormInput.GetInputs(formId)
+	existingInputs, err := dbclient.Client.FormInput.GetInputs(ctx, formId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -145,7 +145,7 @@ func UpdateInputs(ctx *gin.Context) {
 		return
 	}
 
-	if err := saveInputs(formId, data, existingInputs); err != nil {
+	if err := saveInputs(ctx, formId, data, existingInputs); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
@@ -184,9 +184,9 @@ func arePositionsCorrect(body updateInputsBody) bool {
 	return true
 }
 
-func saveInputs(formId int, data updateInputsBody, existingInputs []database.FormInput) error {
+func saveInputs(ctx context.Context, formId int, data updateInputsBody, existingInputs []database.FormInput) error {
 	// We can now update in the database
-	tx, err := dbclient.Client.BeginTx()
+	tx, err := dbclient.Client.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func saveInputs(formId int, data updateInputsBody, existingInputs []database.For
 	defer tx.Rollback(context.Background())
 
 	for _, id := range data.Delete {
-		if err := dbclient.Client.FormInput.DeleteTx(tx, id, formId); err != nil {
+		if err := dbclient.Client.FormInput.DeleteTx(ctx, tx, id, formId); err != nil {
 			return err
 		}
 	}
@@ -218,7 +218,7 @@ func saveInputs(formId int, data updateInputsBody, existingInputs []database.For
 			MaxLength:   &input.MaxLength,
 		}
 
-		if err := dbclient.Client.FormInput.UpdateTx(tx, wrapped); err != nil {
+		if err := dbclient.Client.FormInput.UpdateTx(ctx, tx, wrapped); err != nil {
 			return err
 		}
 	}
@@ -229,7 +229,7 @@ func saveInputs(formId int, data updateInputsBody, existingInputs []database.For
 			return err
 		}
 
-		if _, err := dbclient.Client.FormInput.CreateTx(
+		if _, err := dbclient.Client.FormInput.CreateTx(ctx,
 			tx,
 			formId,
 			customId,

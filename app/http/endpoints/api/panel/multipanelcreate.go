@@ -67,7 +67,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 	}
 
 	// get premium status
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -96,7 +96,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 		SelectMenu: data.SelectMenu,
 	}
 
-	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(multiPanel)
+	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(ctx, multiPanel)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -107,7 +107,7 @@ func MultiPanelCreate(ctx *gin.Context) {
 		panel := panel
 
 		group.Go(func() error {
-			return dbclient.Client.MultiPanelTargets.Insert(multiPanel.Id, panel.PanelId)
+			return dbclient.Client.MultiPanelTargets.Insert(ctx, multiPanel.Id, panel.PanelId)
 		})
 	}
 
@@ -192,7 +192,7 @@ func (d *multiPanelCreateData) validatePanels(guildId uint64) (panels []database
 		return
 	}
 
-	existingPanels, err := dbclient.Client.Panel.GetByGuild(guildId)
+	existingPanels, err := dbclient.Client.Panel.GetByGuild(context.Background(), guildId)
 	if err != nil {
 		return nil, err
 	}

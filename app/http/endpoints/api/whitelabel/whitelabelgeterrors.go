@@ -9,7 +9,7 @@ import (
 func WhitelabelGetErrors(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
-	errors, err := database.Client.WhitelabelErrors.GetRecent(userId, 10)
+	errors, err := database.Client.WhitelabelErrors.GetRecent(ctx, userId, 10)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

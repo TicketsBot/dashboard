@@ -37,7 +37,7 @@ func ListTranscripts(ctx *gin.Context) {
 		return
 	}
 
-	tickets, err := dbclient.Client.Tickets.GetByOptions(opts)
+	tickets, err := dbclient.Client.Tickets.GetByOptions(ctx, opts)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -82,14 +82,14 @@ func ListTranscripts(ctx *gin.Context) {
 		ticketIds[i] = ticket.Id
 	}
 
-	ratings, err := dbclient.Client.ServiceRatings.GetMulti(guildId, ticketIds)
+	ratings, err := dbclient.Client.ServiceRatings.GetMulti(ctx, guildId, ticketIds)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// Get close reasons
-	closeReasons, err := dbclient.Client.CloseReason.GetMulti(guildId, ticketIds)
+	closeReasons, err := dbclient.Client.CloseReason.GetMulti(ctx, guildId, ticketIds)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

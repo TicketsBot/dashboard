@@ -15,13 +15,13 @@ type embeddedForm struct {
 func GetForms(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	forms, err := dbclient.Client.Forms.GetForms(guildId)
+	forms, err := dbclient.Client.Forms.GetForms(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
-	inputs, err := dbclient.Client.FormInput.GetInputsForGuild(guildId)
+	inputs, err := dbclient.Client.FormInput.GetInputsForGuild(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

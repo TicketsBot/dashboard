@@ -20,7 +20,7 @@ func WhitelabelGet(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
 	// Check if this is a different token
-	bot, err := database.Client.Whitelabel.GetByUserId(userId)
+	bot, err := database.Client.Whitelabel.GetByUserId(ctx, userId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -32,14 +32,14 @@ func WhitelabelGet(ctx *gin.Context) {
 	}
 
 	// Get public key
-	publicKey, err := database.Client.WhitelabelKeys.Get(bot.BotId)
+	publicKey, err := database.Client.WhitelabelKeys.Get(ctx, bot.BotId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
 	// Get status
-	status, statusType, _, err := database.Client.WhitelabelStatuses.Get(bot.BotId)
+	status, statusType, _, err := database.Client.WhitelabelStatuses.Get(ctx, bot.BotId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

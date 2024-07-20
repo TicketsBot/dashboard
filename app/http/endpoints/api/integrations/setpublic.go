@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/config"
@@ -22,7 +21,7 @@ func SetIntegrationPublicHandler(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok, err := dbclient.Client.CustomIntegrations.Get(integrationId)
+	integration, ok, err := dbclient.Client.CustomIntegrations.Get(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -56,7 +55,7 @@ func SetIntegrationPublicHandler(ctx *gin.Context) {
 
 	// TODO: Use proper context
 	_, err = rest.ExecuteWebhook(
-		context.Background(),
+		ctx,
 		config.Conf.Bot.PublicIntegrationRequestWebhookToken,
 		botCtx.RateLimiter,
 		config.Conf.Bot.PublicIntegrationRequestWebhookId,
@@ -71,7 +70,7 @@ func SetIntegrationPublicHandler(ctx *gin.Context) {
 		return
 	}
 
-	if err := dbclient.Client.CustomIntegrations.SetPublic(integration.Id); err != nil {
+	if err := dbclient.Client.CustomIntegrations.SetPublic(ctx, integration.Id); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

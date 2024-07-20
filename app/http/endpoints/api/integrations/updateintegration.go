@@ -72,7 +72,7 @@ func UpdateIntegrationHandler(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok, err := dbclient.Client.CustomIntegrations.Get(integrationId)
+	integration, ok, err := dbclient.Client.CustomIntegrations.Get(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -102,7 +102,7 @@ func UpdateIntegrationHandler(ctx *gin.Context) {
 	}
 
 	// Update integration metadata
-	err = dbclient.Client.CustomIntegrations.Update(database.CustomIntegration{
+	err = dbclient.Client.CustomIntegrations.Update(ctx, database.CustomIntegration{
 		Id:               integration.Id,
 		OwnerId:          integration.OwnerId,
 		HttpMethod:       data.Method,
@@ -141,7 +141,7 @@ func UpdateIntegrationHandler(ctx *gin.Context) {
 
 func (b *integrationUpdateBody) updatePlaceholders(ctx *gin.Context, integrationId int) bool {
 	// Verify IDs are valid for the integration
-	existingPlaceholders, err := dbclient.Client.CustomIntegrationPlaceholders.GetByIntegration(integrationId)
+	existingPlaceholders, err := dbclient.Client.CustomIntegrationPlaceholders.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return false
@@ -179,7 +179,7 @@ func (b *integrationUpdateBody) updatePlaceholders(ctx *gin.Context, integration
 		}
 	}
 
-	if _, err := dbclient.Client.CustomIntegrationPlaceholders.Set(integrationId, placeholders); err != nil {
+	if _, err := dbclient.Client.CustomIntegrationPlaceholders.Set(ctx, integrationId, placeholders); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return false
 	}
@@ -189,7 +189,7 @@ func (b *integrationUpdateBody) updatePlaceholders(ctx *gin.Context, integration
 
 func (b *integrationUpdateBody) updateHeaders(ctx *gin.Context, integrationId int) bool {
 	// Verify IDs are valid for the integration
-	existingHeaders, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(integrationId)
+	existingHeaders, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return false
@@ -228,7 +228,7 @@ func (b *integrationUpdateBody) updateHeaders(ctx *gin.Context, integrationId in
 		}
 	}
 
-	if _, err := dbclient.Client.CustomIntegrationHeaders.CreateOrUpdate(integrationId, headers); err != nil {
+	if _, err := dbclient.Client.CustomIntegrationHeaders.CreateOrUpdate(ctx, integrationId, headers); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return false
 	}
@@ -238,7 +238,7 @@ func (b *integrationUpdateBody) updateHeaders(ctx *gin.Context, integrationId in
 
 func (b *integrationUpdateBody) updateSecrets(ctx *gin.Context, integrationId int) bool {
 	// Verify IDs are valid for the integration
-	existingSecrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(integrationId)
+	existingSecrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return false
@@ -276,7 +276,7 @@ func (b *integrationUpdateBody) updateSecrets(ctx *gin.Context, integrationId in
 		}
 	}
 
-	if _, err := dbclient.Client.CustomIntegrationSecrets.CreateOrUpdate(integrationId, secrets); err != nil {
+	if _, err := dbclient.Client.CustomIntegrationSecrets.CreateOrUpdate(ctx, integrationId, secrets); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return false
 	}

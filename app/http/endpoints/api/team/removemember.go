@@ -56,9 +56,9 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 	var err error
 	switch entityType {
 	case entityTypeUser:
-		isAdmin, err = dbclient.Client.Permissions.IsAdmin(guildId, snowflake)
+		isAdmin, err = dbclient.Client.Permissions.IsAdmin(ctx, guildId, snowflake)
 	case entityTypeRole:
-		isAdmin, err = dbclient.Client.RolePermissions.IsAdmin(snowflake)
+		isAdmin, err = dbclient.Client.RolePermissions.IsAdmin(ctx, snowflake)
 	}
 
 	if err != nil {
@@ -89,9 +89,9 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 
 	switch entityType {
 	case entityTypeUser:
-		err = dbclient.Client.Permissions.RemoveSupport(guildId, snowflake)
+		err = dbclient.Client.Permissions.RemoveSupport(ctx, guildId, snowflake)
 	case entityTypeRole:
-		err = dbclient.Client.RolePermissions.RemoveSupport(guildId, snowflake)
+		err = dbclient.Client.RolePermissions.RemoveSupport(ctx, guildId, snowflake)
 	}
 
 	if err != nil {
@@ -100,7 +100,7 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 	}
 
 	// Remove on-call role
-	metadata, err := dbclient.Client.GuildMetadata.Get(guildId)
+	metadata, err := dbclient.Client.GuildMetadata.Get(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -131,7 +131,7 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 			}
 		} else if entityType == entityTypeRole {
 			// Recreate role
-			if err := dbclient.Client.GuildMetadata.SetOnCallRole(guildId, nil); err != nil {
+			if err := dbclient.Client.GuildMetadata.SetOnCallRole(ctx, guildId, nil); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -156,7 +156,7 @@ func removeDefaultMember(ctx *gin.Context, guildId, selfId, snowflake uint64, en
 }
 
 func removeTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, entityType entityType) {
-	team, exists, err := dbclient.Client.SupportTeam.GetById(guildId, teamId)
+	team, exists, err := dbclient.Client.SupportTeam.GetById(ctx, guildId, teamId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -170,9 +170,9 @@ func removeTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, e
 	// Remove from DB
 	switch entityType {
 	case entityTypeUser:
-		err = dbclient.Client.SupportTeamMembers.Delete(teamId, snowflake)
+		err = dbclient.Client.SupportTeamMembers.Delete(ctx, teamId, snowflake)
 	case entityTypeRole:
-		err = dbclient.Client.SupportTeamRoles.Delete(teamId, snowflake)
+		err = dbclient.Client.SupportTeamRoles.Delete(ctx, teamId, snowflake)
 	}
 
 	if err != nil {
@@ -210,7 +210,7 @@ func removeTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, e
 			_ = botContext.RemoveGuildMemberRole(context.Background(), guildId, snowflake, *team.OnCallRole)
 		} else if entityType == entityTypeRole {
 			// Recreate role
-			if err := dbclient.Client.SupportTeam.SetOnCallRole(teamId, nil); err != nil {
+			if err := dbclient.Client.SupportTeam.SetOnCallRole(ctx, teamId, nil); err != nil {
 				ctx.JSON(500, utils.ErrorJson(err))
 				return
 			}
@@ -254,11 +254,11 @@ func createOnCallRole(botContext *botcontext.BotContext, guildId uint64, team *d
 	}
 
 	if team == nil {
-		if err := dbclient.Client.GuildMetadata.SetOnCallRole(guildId, &role.Id); err != nil {
+		if err := dbclient.Client.GuildMetadata.SetOnCallRole(context.Background(), guildId, &role.Id); err != nil {
 			return 0, err
 		}
 	} else {
-		if err := dbclient.Client.SupportTeam.SetOnCallRole(team.Id, &role.Id); err != nil {
+		if err := dbclient.Client.SupportTeam.SetOnCallRole(context.Background(), team.Id, &role.Id); err != nil {
 			return 0, err
 		}
 	}

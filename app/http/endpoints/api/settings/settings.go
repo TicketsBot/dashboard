@@ -50,19 +50,19 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// main settings
 	group.Go(func() (err error) {
-		settings.Settings, err = dbclient.Client.Settings.Get(guildId)
+		settings.Settings, err = dbclient.Client.Settings.Get(ctx, guildId)
 		return
 	})
 
 	// claim settings
 	group.Go(func() (err error) {
-		settings.ClaimSettings, err = dbclient.Client.ClaimSettings.Get(guildId)
+		settings.ClaimSettings, err = dbclient.Client.ClaimSettings.Get(ctx, guildId)
 		return
 	})
 
 	// auto close settings
 	group.Go(func() error {
-		tmp, err := dbclient.Client.AutoClose.Get(guildId)
+		tmp, err := dbclient.Client.AutoClose.Get(ctx, guildId)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// ticket permissions
 	group.Go(func() (err error) {
-		settings.TicketPermissions, err = dbclient.Client.TicketPermissions.Get(guildId)
+		settings.TicketPermissions, err = dbclient.Client.TicketPermissions.Get(ctx, guildId)
 		return
 	})
 
@@ -85,7 +85,7 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// welcome message
 	group.Go(func() (err error) {
-		settings.WelcomeMessage, err = dbclient.Client.WelcomeMessages.Get(guildId)
+		settings.WelcomeMessage, err = dbclient.Client.WelcomeMessages.Get(ctx, guildId)
 		if err == nil && settings.WelcomeMessage == "" {
 			settings.WelcomeMessage = "Thank you for contacting support.\nPlease describe your issue and await a response."
 		}
@@ -95,7 +95,7 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// ticket limit
 	group.Go(func() (err error) {
-		settings.TicketLimit, err = dbclient.Client.TicketLimit.Get(guildId)
+		settings.TicketLimit, err = dbclient.Client.TicketLimit.Get(ctx, guildId)
 		if err == nil && settings.TicketLimit == 0 {
 			settings.TicketLimit = 5 // Set default
 		}
@@ -105,43 +105,43 @@ func GetSettingsHandler(ctx *gin.Context) {
 
 	// category
 	group.Go(func() (err error) {
-		settings.Category, err = dbclient.Client.ChannelCategory.Get(guildId)
+		settings.Category, err = dbclient.Client.ChannelCategory.Get(ctx, guildId)
 		return
 	})
 
 	// archive channel
 	group.Go(func() (err error) {
-		settings.ArchiveChannel, err = dbclient.Client.ArchiveChannel.Get(guildId)
+		settings.ArchiveChannel, err = dbclient.Client.ArchiveChannel.Get(ctx, guildId)
 		return
 	})
 
 	// allow users to close
 	group.Go(func() (err error) {
-		settings.UsersCanClose, err = dbclient.Client.UsersCanClose.Get(guildId)
+		settings.UsersCanClose, err = dbclient.Client.UsersCanClose.Get(ctx, guildId)
 		return
 	})
 
 	// naming scheme
 	group.Go(func() (err error) {
-		settings.NamingScheme, err = dbclient.Client.NamingScheme.Get(guildId)
+		settings.NamingScheme, err = dbclient.Client.NamingScheme.Get(ctx, guildId)
 		return
 	})
 
 	// close confirmation
 	group.Go(func() (err error) {
-		settings.CloseConfirmation, err = dbclient.Client.CloseConfirmation.Get(guildId)
+		settings.CloseConfirmation, err = dbclient.Client.CloseConfirmation.Get(ctx, guildId)
 		return
 	})
 
 	// close confirmation
 	group.Go(func() (err error) {
-		settings.FeedbackEnabled, err = dbclient.Client.FeedbackEnabled.Get(guildId)
+		settings.FeedbackEnabled, err = dbclient.Client.FeedbackEnabled.Get(ctx, guildId)
 		return
 	})
 
 	// language
 	group.Go(func() error {
-		locale, err := dbclient.Client.ActiveLanguage.Get(guildId)
+		locale, err := dbclient.Client.ActiveLanguage.Get(ctx, guildId)
 		if err != nil {
 			return err
 		}
@@ -182,7 +182,7 @@ func GetSettingsHandler(ctx *gin.Context) {
 }
 
 func getColourMap(guildId uint64) (ColourMap, error) {
-	raw, err := dbclient.Client.CustomColours.GetAll(guildId)
+	raw, err := dbclient.Client.CustomColours.GetAll(context.Background(), guildId)
 	if err != nil {
 		return nil, err
 	}

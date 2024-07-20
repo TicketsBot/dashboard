@@ -18,7 +18,7 @@ func WhitelabelStatusPost(ctx *gin.Context) {
 	userId := ctx.Keys["userid"].(uint64)
 
 	// Get bot
-	bot, err := database.Client.Whitelabel.GetByUserId(userId)
+	bot, err := database.Client.Whitelabel.GetByUserId(ctx, userId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -56,7 +56,7 @@ func WhitelabelStatusPost(ctx *gin.Context) {
 	}
 
 	// Update in database
-	if err := database.Client.WhitelabelStatuses.Set(bot.BotId, data.Status, int16(data.StatusType)); err != nil {
+	if err := database.Client.WhitelabelStatuses.Set(ctx, bot.BotId, data.Status, int16(data.StatusType)); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

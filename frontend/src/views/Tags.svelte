@@ -1,7 +1,7 @@
 {#if tagCreateModal}
-  <TagEditor on:cancel={() => tagCreateModal = false} on:confirm={createTag}/>
+  <TagEditor {isPremium} on:cancel={() => tagCreateModal = false} on:confirm={createTag}/>
 {:else if tagEditModal}
-  <TagEditor bind:data={editData} on:cancel={cancelEdit} on:confirm={editTag}/>
+  <TagEditor {isPremium} bind:data={editData} on:cancel={cancelEdit} on:confirm={editTag}/>
 {/if}
 
 <div class="parent">
@@ -51,6 +51,7 @@
     export let currentRoute;
     let guildId = currentRoute.namedParams.id;
 
+    let isPremium = false;
     let tags = {};
     let editData;
     let editId;
@@ -164,11 +165,29 @@
         for (const id in tags) {
             tags[id].use_embed = tags[id].embed !== null;
         }
+
+        if (!isPremium) {
+            for (const id in tags) {
+                tag[id].use_guild_commands = false;
+            }
+        }
+    }
+
+    async function loadPremium() {
+        const res = await axios.get(`${API_URL}/api/${guildId}/premium`);
+        if (res.status !== 200) {
+            notifyError(res.data.error);
+            return;
+        }
+
+        isPremium = res.data.premium;
     }
 
     withLoadingScreen(async () => {
         setDefaultHeaders();
-        await loadTags();
+
+        await loadPremium();
+        await loadTags(); // Depends on isPremium
     });
 </script>
 

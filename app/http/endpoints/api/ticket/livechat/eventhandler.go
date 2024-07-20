@@ -68,7 +68,7 @@ func (c *Client) handleAuthEvent(data AuthData) error {
 	}
 
 	// Get the ticket
-	ticket, err := dbclient.Client.Tickets.Get(c.TicketId, c.GuildId)
+	ticket, err := dbclient.Client.Tickets.Get(context.Background(), c.TicketId, c.GuildId)
 	if err != nil {
 		return api.NewErrorWithMessage(http.StatusInternalServerError, err, "Error retrieving ticket data")
 	}
@@ -94,7 +94,7 @@ func (c *Client) handleAuthEvent(data AuthData) error {
 	}
 
 	// Verify the guild is premium
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c.GuildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(context.Background(), c.GuildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		return api.NewErrorWithMessage(http.StatusInternalServerError, err, "Error retrieving premium tier")
 	}

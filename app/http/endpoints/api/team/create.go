@@ -25,7 +25,7 @@ func CreateTeam(ctx *gin.Context) {
 		return
 	}
 
-	id, err := dbclient.Client.SupportTeam.Create(guildId, data.Name)
+	id, err := dbclient.Client.SupportTeam.Create(ctx, guildId, data.Name)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

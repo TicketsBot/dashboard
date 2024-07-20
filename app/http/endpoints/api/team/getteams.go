@@ -10,7 +10,7 @@ import (
 func GetTeams(ctx *gin.Context) {
 	guildId := ctx.Keys["guildid"].(uint64)
 
-	teams, err := dbclient.Client.SupportTeam.Get(guildId)
+	teams, err := dbclient.Client.SupportTeam.Get(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

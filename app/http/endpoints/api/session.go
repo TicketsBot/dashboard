@@ -27,7 +27,7 @@ func SessionHandler(ctx *gin.Context) {
 		return
 	}
 
-	tier, err := rpc.PremiumClient.GetTierByUser(userId, false)
+	tier, err := rpc.PremiumClient.GetTierByUser(ctx, userId, false)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

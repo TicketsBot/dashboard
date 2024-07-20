@@ -24,7 +24,7 @@ func GetIntegrationDetailedHandler(ctx *gin.Context) {
 		return
 	}
 
-	integration, ok, err := dbclient.Client.CustomIntegrations.Get(integrationId)
+	integration, ok, err := dbclient.Client.CustomIntegrations.Get(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -42,7 +42,7 @@ func GetIntegrationDetailedHandler(ctx *gin.Context) {
 	}
 
 	// Get placeholders
-	placeholders, err := dbclient.Client.CustomIntegrationPlaceholders.GetByIntegration(integrationId)
+	placeholders, err := dbclient.Client.CustomIntegrationPlaceholders.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -54,7 +54,7 @@ func GetIntegrationDetailedHandler(ctx *gin.Context) {
 	}
 
 	// Get headers
-	headers, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(integrationId)
+	headers, err := dbclient.Client.CustomIntegrationHeaders.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -66,7 +66,7 @@ func GetIntegrationDetailedHandler(ctx *gin.Context) {
 	}
 
 	// Get secrets
-	secrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(integrationId)
+	secrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

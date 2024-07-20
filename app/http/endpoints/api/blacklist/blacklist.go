@@ -36,7 +36,7 @@ func GetBlacklistHandler(ctx *gin.Context) {
 
 	offset := pageLimit * (page - 1)
 
-	blacklistedUsers, err := database.Client.Blacklist.GetBlacklistedUsers(guildId, pageLimit, offset)
+	blacklistedUsers, err := database.Client.Blacklist.GetBlacklistedUsers(ctx, guildId, pageLimit, offset)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -64,7 +64,7 @@ func GetBlacklistHandler(ctx *gin.Context) {
 		users[i] = userData
 	}
 
-	blacklistedRoles, err := database.Client.RoleBlacklist.GetBlacklistedRoles(guildId)
+	blacklistedRoles, err := database.Client.RoleBlacklist.GetBlacklistedRoles(ctx, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return

@@ -37,13 +37,13 @@ func getDefaultMembers(ctx *gin.Context, guildId uint64) {
 	// get IDs of support users & roles
 	var userIds []uint64
 	group.Go(func() (err error) {
-		userIds, err = dbclient.Client.Permissions.GetSupport(guildId)
+		userIds, err = dbclient.Client.Permissions.GetSupport(ctx, guildId)
 		return
 	})
 
 	var roleIds []uint64
 	group.Go(func() (err error) {
-		roleIds, err = dbclient.Client.RolePermissions.GetSupportRoles(guildId)
+		roleIds, err = dbclient.Client.RolePermissions.GetSupportRoles(ctx, guildId)
 		return
 	})
 
@@ -62,7 +62,7 @@ func getDefaultMembers(ctx *gin.Context, guildId uint64) {
 
 func getTeamMembers(ctx *gin.Context, teamId int, guildId uint64) {
 	// Verify team exists
-	exists, err := dbclient.Client.SupportTeam.Exists(teamId, guildId)
+	exists, err := dbclient.Client.SupportTeam.Exists(ctx, teamId, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -78,13 +78,13 @@ func getTeamMembers(ctx *gin.Context, teamId int, guildId uint64) {
 	// get IDs of support users & roles
 	var userIds []uint64
 	group.Go(func() (err error) {
-		userIds, err = dbclient.Client.SupportTeamMembers.Get(teamId)
+		userIds, err = dbclient.Client.SupportTeamMembers.Get(ctx, teamId)
 		return
 	})
 
 	var roleIds []uint64
 	group.Go(func() (err error) {
-		roleIds, err = dbclient.Client.SupportTeamRoles.Get(teamId)
+		roleIds, err = dbclient.Client.SupportTeamRoles.Get(ctx, teamId)
 		return
 	})
 

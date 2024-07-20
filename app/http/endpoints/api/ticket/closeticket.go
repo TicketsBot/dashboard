@@ -37,7 +37,7 @@ func CloseTicket(ctx *gin.Context) {
 	}
 
 	// Get the ticket struct
-	ticket, err := database.Client.Tickets.Get(ticketId, guildId)
+	ticket, err := database.Client.Tickets.Get(ctx, ticketId, guildId)
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": true,

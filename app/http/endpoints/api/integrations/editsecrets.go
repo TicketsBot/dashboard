@@ -17,7 +17,7 @@ func UpdateIntegrationSecretsHandler(ctx *gin.Context) {
 	}
 
 	// Check integration is active
-	active, err := dbclient.Client.CustomIntegrationGuilds.IsActive(integrationId, guildId)
+	active, err := dbclient.Client.CustomIntegrationGuilds.IsActive(ctx, integrationId, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -34,7 +34,7 @@ func UpdateIntegrationSecretsHandler(ctx *gin.Context) {
 		return
 	}
 	// Check the secret values are valid
-	secrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(integrationId)
+	secrets, err := dbclient.Client.CustomIntegrationSecrets.GetByIntegration(ctx, integrationId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -70,7 +70,7 @@ func UpdateIntegrationSecretsHandler(ctx *gin.Context) {
 		}
 	}
 
-	if err := dbclient.Client.CustomIntegrationSecretValues.UpdateAll(guildId, integrationId, secretMap); err != nil {
+	if err := dbclient.Client.CustomIntegrationSecretValues.UpdateAll(ctx, guildId, integrationId, secretMap); err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
 	}

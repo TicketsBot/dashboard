@@ -39,5 +39,5 @@ func LoadGuilds(accessToken string, userId uint64) error {
 		})
 	}
 
-	return dbclient.Client.UserGuilds.Set(userId, wrappedGuilds)
+	return dbclient.Client.UserGuilds.Set(context.Background(), userId, wrappedGuilds)
 }

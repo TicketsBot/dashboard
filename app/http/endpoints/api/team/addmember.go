@@ -57,9 +57,9 @@ func addDefaultMember(ctx *gin.Context, guildId, snowflake uint64, entityType en
 	var err error
 	switch entityType {
 	case entityTypeUser:
-		err = dbclient.Client.Permissions.AddSupport(guildId, snowflake)
+		err = dbclient.Client.Permissions.AddSupport(ctx, guildId, snowflake)
 	case entityTypeRole:
-		err = dbclient.Client.RolePermissions.AddSupport(guildId, snowflake)
+		err = dbclient.Client.RolePermissions.AddSupport(ctx, guildId, snowflake)
 	}
 
 	if err != nil {
@@ -71,7 +71,7 @@ func addDefaultMember(ctx *gin.Context, guildId, snowflake uint64, entityType en
 }
 
 func addTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, entityType entityType) {
-	exists, err := dbclient.Client.SupportTeam.Exists(teamId, guildId)
+	exists, err := dbclient.Client.SupportTeam.Exists(ctx, teamId, guildId)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))
 		return
@@ -84,9 +84,9 @@ func addTeamMember(ctx *gin.Context, teamId int, guildId, snowflake uint64, enti
 
 	switch entityType {
 	case entityTypeUser:
-		err = dbclient.Client.SupportTeamMembers.Add(teamId, snowflake)
+		err = dbclient.Client.SupportTeamMembers.Add(ctx, teamId, snowflake)
 	case entityTypeRole:
-		err = dbclient.Client.SupportTeamRoles.Add(teamId, snowflake)
+		err = dbclient.Client.SupportTeamRoles.Add(ctx, teamId, snowflake)
 	}
 
 	if err != nil {
