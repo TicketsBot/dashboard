@@ -2,7 +2,7 @@
   <ConfirmationModal icon="fas fa-floppy-disk" on:confirm={() => dispatch("confirm", data)} on:cancel={() => dispatch("cancel", {})}>
     <span slot="title">Tag Editor</span>
     <div slot="body" class="body-wrapper">
-      <div class="row"">
+      <div class="row">
         <Input col4 label="Tag ID" placeholder="docs" bind:value={data.id}
                tooltipText='If the command is "/tag docs", then the ID is "docs"'/>
         <Checkbox col2 label="Create Custom Command Alias" bind:value={data.use_guild_command}

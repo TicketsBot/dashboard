@@ -168,7 +168,7 @@
 
         if (!isPremium) {
             for (const id in tags) {
-                tag[id].use_guild_commands = false;
+                tags[id].use_guild_commands = false;
             }
         }
     }
