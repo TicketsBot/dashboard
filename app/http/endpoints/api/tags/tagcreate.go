@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -59,8 +60,8 @@ func CreateTag(ctx *gin.Context) {
 
 	// TODO: Limit command amount
 	if err := validate.Struct(data); err != nil {
-		validationErrors, ok := err.(validator.ValidationErrors)
-		if !ok {
+		var validationErrors validator.ValidationErrors
+		if ok := errors.As(err, &validationErrors); !ok {
 			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the integration"))
 			return
 		}

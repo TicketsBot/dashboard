@@ -38,9 +38,59 @@ export function colourToInt(colour) {
 }
 
 export function intToColour(i) {
-    return `#${i.toString(16)}`
+    return `#${i.toString(16).padStart(6, '0')}`
 }
 
 export function nullIfBlank(s) {
     return s === '' ? null : s;
+}
+
+export function setBlankStringsToNull(obj) {
+    // Set all blank strings in the object, including nested objects, to null
+    for (const key in obj) {
+        if (obj[key] === "" || obj[key] === "null") {
+            obj[key] = null;
+        } else if (typeof obj[key] === "object") {
+            setBlankStringsToNull(obj[key]);
+        }
+    }
+}
+
+export function removeBlankEmbedFields(obj) {
+    for (const key in obj) {
+        if (obj[key] === null || obj[key] === undefined) {
+            delete obj[key];
+        }
+
+        if (typeof obj[key] === "string" && obj[key] === "") {
+            delete obj[key];
+        }
+
+        if (typeof obj[key] === "object") {
+            removeBlankEmbedFields(obj[key]);
+        }
+
+        if (Array.isArray(obj[key]) && obj[key].length === 0) {
+            delete obj[key];
+        }
+    }
+
+    for (const key in obj) {
+        if (typeof obj[key] === "object" && Object.keys(obj[key]).length === 0) {
+            delete obj[key];
+        }
+    }
+}
+
+export function checkForParamAndRewrite(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get(param) === "true") {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete(param);
+
+        window.history.pushState(null, '', newUrl.toString());
+        return true;
+    }
+
+    return false;
 }

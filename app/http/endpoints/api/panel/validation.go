@@ -10,6 +10,7 @@ import (
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/objects/guild"
@@ -289,13 +290,7 @@ func validateNamingScheme(ctx PanelValidationContext) validation.ValidationFunc 
 
 func validateWelcomeMessage(ctx PanelValidationContext) validation.ValidationFunc {
 	return func() error {
-		wm := ctx.Data.WelcomeMessage
-
-		if wm == nil || wm.Title != nil || wm.Description != nil || len(wm.Fields) > 0 || wm.ImageUrl != nil || wm.ThumbnailUrl != nil {
-			return nil
-		}
-
-		return validation.NewInvalidInputError("Welcome message has no content")
+		return validateEmbed(ctx.Data.WelcomeMessage)
 	}
 }
 
@@ -338,4 +333,12 @@ func validateAccessControlList(ctx PanelValidationContext) validation.Validation
 
 		return nil
 	}
+}
+
+func validateEmbed(e *types.CustomEmbed) error {
+	if e == nil || e.Title != nil || e.Description != nil || len(e.Fields) > 0 || e.ImageUrl != nil || e.ThumbnailUrl != nil {
+		return nil
+	}
+
+	return validation.NewInvalidInputError("Your embed message does not contain any content")
 }

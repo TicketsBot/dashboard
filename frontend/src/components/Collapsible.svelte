@@ -36,7 +36,7 @@
 <svelte:window bind:innerWidth />
 
 <script>
-    import {onMount} from "svelte";
+    import {afterUpdate, onMount} from "svelte";
     import Tooltip from "svelte-tooltip";
     import { createEventDispatcher } from 'svelte';
 
@@ -89,9 +89,6 @@
     }
 
     onMount(() => {
-        // content.addEventListener('DOMNodeInserted', updateIfExpanded);
-        // content.addEventListener('DOMNodeRemoved', updateIfExpanded);
-
         const observer = new MutationObserver(() => {
             updateIfExpanded();
             setTimeout(updateIfExpanded, 300); // TODO: Move with transition height
@@ -101,6 +98,8 @@
 
         if (defaultOpen || forceAlwaysOpen) toggle(true);
     });
+
+    afterUpdate(updateIfExpanded);
 </script>
 
 <style>

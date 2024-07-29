@@ -306,16 +306,7 @@ func UpdatePanel(ctx *gin.Context) {
 			return
 		}
 
-		messageData := multiPanelMessageData{
-			Title:        multiPanel.Title,
-			Content:      multiPanel.Content,
-			Colour:       multiPanel.Colour,
-			ChannelId:    multiPanel.ChannelId,
-			SelectMenu:   multiPanel.SelectMenu,
-			IsPremium:    premiumTier > premium.None,
-			ImageUrl:     multiPanel.ImageUrl,
-			ThumbnailUrl: multiPanel.ThumbnailUrl,
-		}
+		messageData := multiPanelIntoMessageData(multiPanel, premiumTier > premium.None)
 
 		messageId, err := messageData.send(botContext, panels)
 		if err != nil {

@@ -309,6 +309,10 @@
 
         data.emote = data.emote;
 
+        if (!data.colour) {
+            data.colour = 0x2ECC71;
+        }
+
         tempColour = intToColour(data.colour);
     }
 

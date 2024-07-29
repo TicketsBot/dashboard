@@ -17,6 +17,12 @@ func (c Colour) MarshalJSON() ([]byte, error) {
 }
 
 func (c *Colour) UnmarshalJSON(b []byte) error {
+	// Try to parse as int first
+	if parsed, err := strconv.ParseUint(string(b), 10, 32); err == nil {
+		*c = Colour(parsed)
+		return nil
+	}
+
 	if len(b) < 2 {
 		return fmt.Errorf("invalid colour")
 	}

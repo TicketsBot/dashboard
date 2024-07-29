@@ -24,8 +24,6 @@
             selectedRaw = [];
         }
 
-        console.log(selectedRaw)
-
         if (isMulti) {
             selected = selectedRaw.map((panel) => panel.panel_id);
         } else {

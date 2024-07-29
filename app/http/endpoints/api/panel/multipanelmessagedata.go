@@ -13,46 +13,32 @@ import (
 )
 
 type multiPanelMessageData struct {
+	IsPremium bool
+
 	ChannelId uint64
 
-	Title                  string
-	Content                string
-	Colour                 int
-	SelectMenu             bool
-	IsPremium              bool
-	ImageUrl, ThumbnailUrl *string
+	SelectMenu            bool
+	SelectMenuPlaceholder *string
+
+	Embed *embed.Embed
 }
 
 func multiPanelIntoMessageData(panel database.MultiPanel, isPremium bool) multiPanelMessageData {
 	return multiPanelMessageData{
-		ChannelId:    panel.ChannelId,
-		Title:        panel.Title,
-		Content:      panel.Content,
-		Colour:       panel.Colour,
-		SelectMenu:   panel.SelectMenu,
-		IsPremium:    isPremium,
-		ImageUrl:     panel.ImageUrl,
-		ThumbnailUrl: panel.ThumbnailUrl,
+		IsPremium: isPremium,
+
+		ChannelId: panel.ChannelId,
+
+		SelectMenu:            panel.SelectMenu,
+		SelectMenuPlaceholder: panel.SelectMenuPlaceholder,
+		Embed:                 types.NewCustomEmbed(panel.Embed.CustomEmbed, panel.Embed.Fields).IntoDiscordEmbed(),
 	}
 }
 
 func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []database.Panel) (uint64, error) {
-	e := embed.NewEmbed().
-		SetTitle(d.Title).
-		SetDescription(d.Content).
-		SetColor(d.Colour)
-
-	if d.ImageUrl != nil {
-		e.SetImage(*d.ImageUrl)
-	}
-
-	if d.ThumbnailUrl != nil {
-		e.SetThumbnail(*d.ThumbnailUrl)
-	}
-
 	if !d.IsPremium {
 		// TODO: Don't harcode
-		e.SetFooter("Powered by ticketsbot.net", "https://ticketsbot.net/assets/img/logo.png")
+		d.Embed.SetFooter("Powered by ticketsbot.net", "https://ticketsbot.net/assets/img/logo.png")
 	}
 
 	var components []component.Component
@@ -68,13 +54,20 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 			}
 		}
 
+		var placeholder string
+		if d.SelectMenuPlaceholder == nil {
+			placeholder = "Select a topic..."
+		} else {
+			placeholder = *d.SelectMenuPlaceholder
+		}
+
 		components = []component.Component{
 			component.BuildActionRow(
 				component.BuildSelectMenu(
 					component.SelectMenu{
 						CustomId:    "multipanel",
 						Options:     options,
-						Placeholder: "Select a topic...",
+						Placeholder: placeholder,
 						MinValues:   utils.IntPtr(1),
 						MaxValues:   utils.IntPtr(1),
 						Disabled:    false,
@@ -116,7 +109,7 @@ func (d *multiPanelMessageData) send(ctx *botcontext.BotContext, panels []databa
 	}
 
 	data := rest.CreateMessageData{
-		Embeds:     []*embed.Embed{e},
+		Embeds:     []*embed.Embed{d.Embed},
 		Components: components,
 	}
 

@@ -8,35 +8,31 @@ import (
 	"github.com/TicketsBot/GoPanel/rpc"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
 )
 
 type multiPanelCreateData struct {
-	Title        string  `json:"title"`
-	Content      string  `json:"content"`
-	Colour       int32   `json:"colour"`
-	ChannelId    uint64  `json:"channel_id,string"`
-	SelectMenu   bool    `json:"select_menu"`
-	Panels       []int   `json:"panels"`
-	ImageUrl     *string `json:"image_url,omitempty"`
-	ThumbnailUrl *string `json:"thumbnail_url,omitempty"`
+	ChannelId             uint64             `json:"channel_id,string"`
+	SelectMenu            bool               `json:"select_menu"`
+	SelectMenuPlaceholder *string            `json:"select_menu_placeholder,omitempty" validate:"omitempty,max=150"`
+	Panels                []int              `json:"panels"`
+	Embed                 *types.CustomEmbed `json:"embed" validate:"omitempty,dive"`
 }
 
 func (d *multiPanelCreateData) IntoMessageData(isPremium bool) multiPanelMessageData {
 	return multiPanelMessageData{
-		ChannelId:    d.ChannelId,
-		Title:        d.Title,
-		Content:      d.Content,
-		Colour:       int(d.Colour),
-		SelectMenu:   d.SelectMenu,
-		IsPremium:    isPremium,
-		ImageUrl:     d.ImageUrl,
-		ThumbnailUrl: d.ThumbnailUrl,
+		IsPremium:             isPremium,
+		ChannelId:             d.ChannelId,
+		SelectMenu:            d.SelectMenu,
+		SelectMenuPlaceholder: d.SelectMenuPlaceholder,
+		Embed:                 d.Embed.IntoDiscordEmbed(),
 	}
 }
 
@@ -46,6 +42,18 @@ func MultiPanelCreate(ctx *gin.Context) {
 	var data multiPanelCreateData
 	if err := ctx.ShouldBindJSON(&data); err != nil {
 		ctx.JSON(400, utils.ErrorJson(err))
+		return
+	}
+
+	if err := validate.Struct(data); err != nil {
+		var validationErrors validator.ValidationErrors
+		if ok := errors.As(err, &validationErrors); !ok {
+			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+			return
+		}
+
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
+		ctx.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
@@ -86,14 +94,17 @@ func MultiPanelCreate(ctx *gin.Context) {
 		return
 	}
 
+	dbEmbed, dbEmbedFields := data.Embed.IntoDatabaseStruct()
 	multiPanel := database.MultiPanel{
-		MessageId:  messageId,
-		ChannelId:  data.ChannelId,
-		GuildId:    guildId,
-		Title:      data.Title,
-		Content:    data.Content,
-		Colour:     int(data.Colour),
-		SelectMenu: data.SelectMenu,
+		MessageId:             messageId,
+		ChannelId:             data.ChannelId,
+		GuildId:               guildId,
+		SelectMenu:            data.SelectMenu,
+		SelectMenuPlaceholder: data.SelectMenuPlaceholder,
+		Embed: &database.CustomEmbedWithFields{
+			CustomEmbed: dbEmbed,
+			Fields:      dbEmbedFields,
+		},
 	}
 
 	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(ctx, multiPanel)
@@ -123,10 +134,12 @@ func MultiPanelCreate(ctx *gin.Context) {
 }
 
 func (d *multiPanelCreateData) doValidations(guildId uint64) (panels []database.Panel, err error) {
+	if err := validateEmbed(d.Embed); err != nil {
+		return nil, err
+	}
+
 	group, _ := errgroup.WithContext(context.Background())
 
-	group.Go(d.validateTitle)
-	group.Go(d.validateContent)
 	group.Go(d.validateChannel(guildId))
 	group.Go(func() (e error) {
 		panels, e = d.validatePanels(guildId)
@@ -134,26 +147,6 @@ func (d *multiPanelCreateData) doValidations(guildId uint64) (panels []database.
 	})
 
 	err = group.Wait()
-	return
-}
-
-func (d *multiPanelCreateData) validateTitle() (err error) {
-	if len(d.Title) > 255 {
-		err = errors.New("Embed title must be between 1 and 255 characters")
-	} else if len(d.Title) == 0 {
-		d.Title = "Click to open a ticket"
-	}
-
-	return
-}
-
-func (d *multiPanelCreateData) validateContent() (err error) {
-	if len(d.Content) > 4096 {
-		err = errors.New("Embed content must be between 1 and 4096 characters")
-	} else if len(d.Content) == 0 { // Fill default
-		d.Content = "Click on the button corresponding to the type of ticket you wish to open"
-	}
-
 	return
 }
 

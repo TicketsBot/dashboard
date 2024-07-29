@@ -95,14 +95,7 @@ func DeletePanel(ctx *gin.Context) {
 			return
 		}
 
-		messageData := multiPanelMessageData{
-			Title:      multiPanel.Title,
-			Content:    multiPanel.Content,
-			Colour:     multiPanel.Colour,
-			ChannelId:  multiPanel.ChannelId,
-			SelectMenu: multiPanel.SelectMenu,
-			IsPremium:  premiumTier > premium.None,
-		}
+		messageData := multiPanelIntoMessageData(multiPanel, premiumTier > premium.None)
 
 		messageId, err := messageData.send(botContext, panels)
 		if err != nil {

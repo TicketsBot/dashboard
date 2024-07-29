@@ -11,6 +11,7 @@ import (
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
@@ -50,6 +51,18 @@ func MultiPanelUpdate(c *gin.Context) {
 	// check panel is in the same guild
 	if guildId != multiPanel.GuildId {
 		c.JSON(403, utils.ErrorJson(errors.New("Guild ID doesn't match")))
+		return
+	}
+
+	if err := validate.Struct(data); err != nil {
+		var validationErrors validator.ValidationErrors
+		if ok := errors.As(err, &validationErrors); !ok {
+			c.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+			return
+		}
+
+		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
+		c.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
@@ -115,17 +128,18 @@ func MultiPanelUpdate(c *gin.Context) {
 	}
 
 	// update DB
+	dbEmbed, dbEmbedFields := data.Embed.IntoDatabaseStruct()
 	updated := database.MultiPanel{
-		Id:           multiPanel.Id,
-		MessageId:    messageId,
-		ChannelId:    data.ChannelId,
-		GuildId:      guildId,
-		Title:        data.Title,
-		Content:      data.Content,
-		Colour:       int(data.Colour),
-		SelectMenu:   data.SelectMenu,
-		ImageUrl:     data.ImageUrl,
-		ThumbnailUrl: data.ThumbnailUrl,
+		Id:                    multiPanel.Id,
+		MessageId:             messageId,
+		ChannelId:             data.ChannelId,
+		GuildId:               guildId,
+		SelectMenu:            data.SelectMenu,
+		SelectMenuPlaceholder: data.SelectMenuPlaceholder,
+		Embed: &database.CustomEmbedWithFields{
+			CustomEmbed: dbEmbed,
+			Fields:      dbEmbedFields,
+		},
 	}
 
 	if err = dbclient.Client.MultiPanels.Update(c, multiPanel.Id, updated); err != nil {

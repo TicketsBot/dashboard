@@ -15,7 +15,7 @@ import Error404 from './views/Error404.svelte'
 import Transcripts from './views/Transcripts.svelte'
 import TranscriptView from './views/TranscriptView.svelte'
 import Blacklist from './views/Blacklist.svelte'
-import Panels from './views/Panels.svelte'
+import Panels from './views/panels/Panels.svelte'
 import Tags from './views/Tags.svelte'
 import Teams from './views/Teams.svelte'
 import Tickets from './views/Tickets.svelte'
@@ -30,6 +30,10 @@ import IntegrationCreate from "./views/integrations/Create.svelte";
 import IntegrationConfigure from "./views/integrations/Configure.svelte";
 import IntegrationActivate from "./views/integrations/Activate.svelte";
 import IntegrationManage from "./views/integrations/Manage.svelte";
+import CreatePanel from "./views/panels/CreatePanel.svelte";
+import CreateMultiPanel from "./views/panels/CreateMultiPanel.svelte";
+import EditPanel from "./views/panels/EditPanel.svelte";
+import EditMultiPanel from "./views/panels/EditMultiPanel.svelte";
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -77,7 +81,36 @@ export const routes = [
                     }
                 ]
             },
-            {name: 'panels', component: Panels, layout: ManageLayout},
+            {
+                name: 'panels',
+                nestedRoutes: [
+                    {
+                        name: 'index',
+                        component: Panels,
+                        layout: ManageLayout
+                    },
+                    {
+                        name: 'create',
+                        component: CreatePanel,
+                        layout: ManageLayout
+                    },
+                    {
+                        name: 'create-multi',
+                        component: CreateMultiPanel,
+                        layout: ManageLayout
+                    },
+                    {
+                        name: 'edit/:panelid',
+                        component: EditPanel,
+                        layout: ManageLayout
+                    },
+                    {
+                        name: 'edit-multi/:panelid',
+                        component: EditMultiPanel,
+                        layout: ManageLayout
+                    }
+                ]
+            },
             {name: 'blacklist', component: Blacklist, layout: ManageLayout},
             {name: 'tags', component: Tags, layout: ManageLayout},
             {name: 'teams', component: Teams, layout: ManageLayout},
