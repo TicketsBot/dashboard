@@ -107,7 +107,7 @@ func MultiPanelUpdate(c *gin.Context) {
 	cancel()
 
 	// get premium status
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
 		c.JSON(500, utils.ErrorJson(err))
 		return
