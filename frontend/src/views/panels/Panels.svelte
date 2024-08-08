@@ -87,7 +87,7 @@
                         <tbody>
                         {#each multiPanels as panel}
                             <tr>
-                                <td class="max">{panel.title || 'Open a ticket!'}</td>
+                                <td class="max">{panel.embed?.title || 'Open a ticket!'}</td>
                                 <td>
                                     <Button on:click={() => resendMultiPanel(panel.id)}>Resend</Button>
                                 </td>
