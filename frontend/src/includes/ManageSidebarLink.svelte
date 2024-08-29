@@ -38,6 +38,8 @@
 </style>
 
 <script>
+    import {onMount} from "svelte";
+
     export let currentRoute;
     export let title;
     export let icon;
@@ -45,8 +47,20 @@
     export let routePrefix;
     export let newWindow;
 
-    let active = href !== "/" && ((routePrefix || href)?.toLowerCase() === currentRoute.name.toLowerCase() ||
-        currentRoute.name.toLowerCase().startsWith((routePrefix || href).toLowerCase()));
+    function isActive() {
+        return href !== "/" && ((routePrefix || href)?.toLowerCase() === currentRoute.name.toLowerCase() ||
+            currentRoute.name.toLowerCase().startsWith((routePrefix || href).toLowerCase()));
+    }
+
+    let active = isActive();
 
     $: active;
+
+    onMount(() => {
+        active = isActive();
+
+        setTimeout(() => {
+            active = isActive();
+        }, 50);
+    });
 </script>
