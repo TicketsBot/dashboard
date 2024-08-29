@@ -1,6 +1,6 @@
 <section class="sidebar">
     <header>
-        <img src="{getIconUrl()}" class="guild-icon" alt="Guild icon" width="50" height="50"/>
+        <img src="{iconUrl}" class="guild-icon" alt="Guild icon" width="50" height="50"/>
         {guild.name}
     </header>
     <nav>
@@ -14,7 +14,13 @@
             <ManageSidebarLink {currentRoute} title="Transcripts" icon="fa-copy" href="/manage/{guildId}/transcripts" />
 
             {#if isAdmin}
-                <ManageSidebarLink {currentRoute} routePrefix="/manage/{guildId}/panels" title="Ticket Panels" icon="fa-mouse-pointer" href="/manage/{guildId}/panels" />
+                <ManageSidebarLink {currentRoute} routePrefix="/manage/{guildId}/panels" title="Ticket Panels" icon="fa-mouse-pointer" href="/manage/{guildId}/panels">
+
+                    <SubNavigation>
+                        <SubNavigationLink {currentRoute} href="/manage/{guildId}/panels" routePrefix="/manage/{guildId}/panels">blah</SubNavigationLink>
+                        <SubNavigationLink {currentRoute}>blahhh</SubNavigationLink>
+                    </SubNavigation>
+                </ManageSidebarLink>
 
                 <ManageSidebarLink {currentRoute} title="Forms" icon="fa-poll-h" href="/manage/{guildId}/forms" />
                 <ManageSidebarLink {currentRoute} title="Staff Teams" icon="fa-users" href="/manage/{guildId}/teams" />
@@ -97,6 +103,7 @@
     let guildId = currentRoute.namedParams.id;
 
     let guild = {};
+    let iconUrl = "";
 
     async function loadGuild() {
         const res = await axios.get(`${API_URL}/api/${guildId}/guild`);
@@ -131,6 +138,8 @@
     onMount(async () => {
         await withLoadingScreen(async () => {
             await loadGuild();
+
+            iconUrl = getIconUrl();
         })
     });
 </script>
