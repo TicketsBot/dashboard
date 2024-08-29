@@ -14,13 +14,7 @@
             <ManageSidebarLink {currentRoute} title="Transcripts" icon="fa-copy" href="/manage/{guildId}/transcripts" />
 
             {#if isAdmin}
-                <ManageSidebarLink {currentRoute} routePrefix="/manage/{guildId}/panels" title="Ticket Panels" icon="fa-mouse-pointer" href="/manage/{guildId}/panels">
-
-                    <SubNavigation>
-                        <SubNavigationLink {currentRoute} href="/manage/{guildId}/panels" routePrefix="/manage/{guildId}/panels">blah</SubNavigationLink>
-                        <SubNavigationLink {currentRoute}>blahhh</SubNavigationLink>
-                    </SubNavigation>
-                </ManageSidebarLink>
+                <ManageSidebarLink {currentRoute} routePrefix="/manage/{guildId}/panels" title="Ticket Panels" icon="fa-mouse-pointer" href="/manage/{guildId}/panels" />
 
                 <ManageSidebarLink {currentRoute} title="Forms" icon="fa-poll-h" href="/manage/{guildId}/forms" />
                 <ManageSidebarLink {currentRoute} title="Staff Teams" icon="fa-users" href="/manage/{guildId}/teams" />
