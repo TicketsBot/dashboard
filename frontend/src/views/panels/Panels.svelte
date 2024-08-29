@@ -244,7 +244,7 @@
         justify-content: space-between;
     }
 
-    @media only screen and (max-width: 1100px) {
+    @media only screen and (max-width: 1400px) {
         .wrapper {
             flex-direction: column;
         }

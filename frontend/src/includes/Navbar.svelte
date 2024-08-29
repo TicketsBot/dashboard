@@ -83,7 +83,7 @@
         display: none;
     }
 
-    @media only screen and (max-width: 1154px) {
+    @media only screen and (max-width: 800px) {
         .navbar {
             display: flex;
         }

@@ -78,6 +78,12 @@
         width: 40%;
         padding-left: 20px;
     }
+
+    @media (max-width: 800px) {
+        .sidebar {
+            display: none;
+        }
+    }
 </style>
 
 <script>
