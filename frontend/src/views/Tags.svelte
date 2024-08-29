@@ -1,41 +1,37 @@
 {#if tagCreateModal}
-  <TagEditor {isPremium} on:cancel={() => tagCreateModal = false} on:confirm={createTag}/>
+    <TagEditor {isPremium} on:cancel={() => tagCreateModal = false} on:confirm={createTag}/>
 {:else if tagEditModal}
-  <TagEditor {isPremium} bind:data={editData} on:cancel={cancelEdit} on:confirm={editTag}/>
+    <TagEditor {isPremium} bind:data={editData} on:cancel={cancelEdit} on:confirm={editTag}/>
 {/if}
 
-<div class="parent">
-  <div class="content">
-    <div class="main-col">
-      <Card footer footerRight>
+<div class="content">
+    <Card footer footerRight>
         <span slot="title">Tags</span>
         <div slot="body" class="body-wrapper">
-          <table class="nice">
-            <thead>
-            <tr>
-              <th>Tag</th>
-              <th style="text-align: right">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            {#each Object.entries(tags) as [id, tag]}
-              <tr>
-                <td>{id}</td>
-                <td class="actions">
-                  <Button type="button" on:click={() => openEditModal(id)}>Edit</Button>
-                  <Button type="button" danger={true} on:click={() => deleteTag(id)}>Delete</Button>
-                </td>
-              </tr>
-            {/each}
-            </tbody>
-          </table>
+            <table class="nice">
+                <thead>
+                <tr>
+                    <th>Tag</th>
+                    <th style="text-align: right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {#each Object.entries(tags) as [id, tag]}
+                    <tr>
+                        <td>{id}</td>
+                        <td class="actions">
+                            <Button type="button" on:click={() => openEditModal(id)}>Edit</Button>
+                            <Button type="button" danger={true} on:click={() => deleteTag(id)}>Delete</Button>
+                        </td>
+                    </tr>
+                {/each}
+                </tbody>
+            </table>
         </div>
         <div slot="footer">
-          <Button icon="fas fa-plus" on:click={openCreateModal}>Create Tag</Button>
+            <Button icon="fas fa-plus" on:click={openCreateModal}>Create Tag</Button>
         </div>
-      </Card>
-    </div>
-  </div>
+    </Card>
 </div>
 
 <script>
@@ -45,7 +41,6 @@
     import axios from "axios";
     import {API_URL} from "../js/constants";
     import {setDefaultHeaders} from '../includes/Auth.svelte'
-    import {fade} from "svelte/transition";
     import TagEditor from "../components/manage/TagEditor.svelte";
 
     export let currentRoute;
@@ -61,7 +56,7 @@
 
     function openCreateModal(id) {
         tagCreateModal = true;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function openEditModal(id) {
@@ -69,7 +64,7 @@
         editData = tags[id];
         tagEditModal = true;
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function cancelEdit() {
@@ -192,27 +187,10 @@
 </script>
 
 <style>
-    .parent {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
-
     .content {
         display: flex;
-        justify-content: space-between;
-        width: 96%;
+        width: 100%;
         height: 100%;
-        margin-top: 30px;
-    }
-
-    .main-col {
-        display: flex;
-        flex-direction: column;
-        width: 64%;
-        height: 100%;
-        padding-bottom: 4%;
     }
 
     .body-wrapper {

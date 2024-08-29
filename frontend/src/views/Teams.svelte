@@ -1,4 +1,3 @@
-<div class="parent">
   <div class="content">
     <Card footer={false}>
       <span slot="title">Support Teams</span>
@@ -76,7 +75,6 @@
       </div>
     </Card>
   </div>
-</div>
 
 <script>
     import Card from "../components/Card.svelte";
@@ -226,19 +224,10 @@
 </script>
 
 <style>
-    .parent {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
-
     .content {
         display: flex;
-        justify-content: space-between;
-        width: 96%;
+        width: 100%;
         height: 100%;
-        margin-top: 30px;
     }
 
     .body-wrapper {

@@ -1,65 +1,65 @@
-<div class="parent">
-  <div class="content">
+<div class="content">
     <div class="container">
-      <div class="spread">
-        <h4 class="title">My Integrations</h4>
-        <Button icon="fas fa-server" on:click={() => navigateTo(`/manage/${guildId}/integrations/create`)}>Create
-          Integration
-        </Button>
-      </div>
-      <div class="integrations my-integrations">
-        {#each ownedIntegrations as integration}
-          <div class="integration">
-            <Integration owned name={integration.name} {guildId} integrationId={integration.id}
-                         imageUrl={generateProxyUrl(integration)} guildCount={integration.guild_count}>
+        <div class="spread">
+            <h4 class="title">My Integrations</h4>
+            <Button icon="fas fa-server" on:click={() => navigateTo(`/manage/${guildId}/integrations/create`)}>Create
+                Integration
+            </Button>
+        </div>
+        <div class="integrations my-integrations">
+            {#each ownedIntegrations as integration}
+                <div class="integration">
+                    <Integration owned name={integration.name} {guildId} integrationId={integration.id}
+                                 imageUrl={generateProxyUrl(integration)} guildCount={integration.guild_count}>
               <span slot="description">
                 {integration.description}
               </span>
-            </Integration>
-          </div>
-        {/each}
-      </div>
+                    </Integration>
+                </div>
+            {/each}
+        </div>
     </div>
 
     <div>
-      <h4 class="title">Available Integrations</h4>
-      <div class="integrations">
-        <!-- Built in -->
-        {#if page === 1}
-          <div class="integration">
-            <Integration builtIn name="Bloxlink"
-                         imageUrl="https://dbl-static.b-cdn.net/9bbd1f9504ddefc89606b19b290e9a0f.png"
-                         viewLink="https://docs.ticketsbot.net/dashboard/settings/placeholders#bloxlink">
+        <h4 class="title">Available Integrations</h4>
+        <div class="integrations">
+            <!-- Built in -->
+            {#if page === 1}
+                <div class="integration">
+                    <Integration builtIn name="Bloxlink"
+                                 imageUrl="https://dbl-static.b-cdn.net/9bbd1f9504ddefc89606b19b290e9a0f.png"
+                                 viewLink="https://docs.ticketsbot.net/dashboard/settings/placeholders#bloxlink">
           <span slot="description">
             Our Bloxlink integration inserts the Roblox usernames, profile URLs and more of your users into
             ticket welcome messages automatically! This integration is automatically enabled in all servers, press the
             View button below to check out the full list of placeholders you can use!
           </span>
-            </Integration>
-          </div>
-        {/if}
+                    </Integration>
+                </div>
+            {/if}
 
-        {#each availableIntegrations as integration}
-          <div class="integration">
-            <Integration name={integration.name} {guildId} integrationId={integration.id}
-                         imageUrl={generateProxyUrl(integration)} ownerId={integration.owner_id}
-                         added={integration.added} guildCount={integration.guild_count} showAuthor
-                         author={integration.author} on:remove={() => removeIntegration(integration.id)}>
+            {#each availableIntegrations as integration}
+                <div class="integration">
+                    <Integration name={integration.name} {guildId} integrationId={integration.id}
+                                 imageUrl={generateProxyUrl(integration)} ownerId={integration.owner_id}
+                                 added={integration.added} guildCount={integration.guild_count} showAuthor
+                                 author={integration.author} on:remove={() => removeIntegration(integration.id)}>
               <span slot="description">
                 {integration.description}
               </span>
-            </Integration>
-          </div>
-        {/each}
-      </div>
+                    </Integration>
+                </div>
+            {/each}
+        </div>
     </div>
 
     <div class="pagination">
-      <i class="fas fa-chevron-left pagination-chevron" class:disabled-chevron={page === 1} on:click={previousPage}></i>
-      <p>Page {page}</p>
-      <i class="fas fa-chevron-right pagination-chevron" class:disabled-chevron={!hasNextPage} on:click={nextPage}></i>
+        <i class="fas fa-chevron-left pagination-chevron" class:disabled-chevron={page === 1}
+           on:click={previousPage}></i>
+        <p>Page {page}</p>
+        <i class="fas fa-chevron-right pagination-chevron" class:disabled-chevron={!hasNextPage}
+           on:click={nextPage}></i>
     </div>
-  </div>
 </div>
 
 <script>
@@ -161,21 +161,12 @@
 </script>
 
 <style>
-    .parent {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
-
     .content {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        width: 96%;
+        width: 100%;
         height: 100%;
-        margin-top: 30px;
-        padding-bottom: 5vh;
         row-gap: 4vh;
     }
 
@@ -193,7 +184,7 @@
     }
 
     .integration {
-        flex: 0 0 23.5%;
+        flex: 0 0 32%;
     }
 
     .my-integrations {
@@ -231,19 +222,13 @@
         cursor: default !important;
     }
 
-    @media only screen and (max-width: 1180px) {
-        .integration {
-            flex: 0 0 32%;
-        }
-    }
-
-    @media only screen and (max-width: 930px) {
+    @media only screen and (max-width: 1200px) {
         .integration {
             flex: 0 0 49%;
         }
     }
 
-    @media only screen and (max-width: 576px) {
+    @media only screen and (max-width: 850px) {
         .integration {
             flex: 0 0 100%;
         }

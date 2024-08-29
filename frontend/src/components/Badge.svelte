@@ -3,7 +3,7 @@
 </div>
 
 <script>
-  export let colour = '#3472f7';
+  export let colour = '';
 </script>
 
 <style>
@@ -11,7 +11,7 @@
         display: flex;
         align-items: center;
 
-        background-color: var(--badge-background-color, #3472f7);
+        background: var(--badge-background-color, var(--primary));
         border-radius: 2px;
         font-size: 14px;
         padding: 0 4px;

@@ -1,141 +1,141 @@
 {#if blacklistUserModal}
-  <div class="modal" transition:fade>
-    <div class="modal-wrapper">
-      <Card footer footerRight fill={false}>
-        <span slot="title">Blacklist User</span>
+    <div class="modal" transition:fade>
+        <div class="modal-wrapper">
+            <Card footer footerRight fill={false}>
+                <span slot="title">Blacklist User</span>
 
-        <div slot="body" class="modal-inner">
-          <div>
-            <label class="form-label" style="margin-bottom: 0 !important;">Use User ID</label>
-            <Toggle hideLabel
-                    toggledColor="#66bb6a"
-                    untoggledColor="#ccc"
-                    bind:toggled={blacklistById}/>
-          </div>
+                <div slot="body" class="modal-inner">
+                    <div>
+                        <label class="form-label" style="margin-bottom: 0 !important;">Use User ID</label>
+                        <Toggle hideLabel
+                                toggledColor="#66bb6a"
+                                untoggledColor="#ccc"
+                                bind:toggled={blacklistById}/>
+                    </div>
 
-          {#if blacklistById}
-            <Input label="User ID" placeholder="592348585904198711" bind:value={blacklistUserId}/>
-          {:else}
-            <div class="user-select-wrapper">
-              <UserSelect {guildId} label="User" bind:value={blacklistUser} />
-            </div>
-          {/if}
+                    {#if blacklistById}
+                        <Input label="User ID" placeholder="592348585904198711" bind:value={blacklistUserId}/>
+                    {:else}
+                        <div class="user-select-wrapper">
+                            <UserSelect {guildId} label="User" bind:value={blacklistUser}/>
+                        </div>
+                    {/if}
+                </div>
+
+                <div slot="footer" style="gap: 12px">
+                    <Button danger on:click={() => blacklistUserModal = false}>Cancel</Button>
+                    <Button on:click={addUser}>Confirm</Button>
+                </div>
+            </Card>
         </div>
-
-        <div slot="footer" style="gap: 12px">
-          <Button danger on:click={() => blacklistUserModal = false}>Cancel</Button>
-          <Button on:click={addUser}>Confirm</Button>
-        </div>
-      </Card>
     </div>
-  </div>
 
-  <div class="modal-backdrop" transition:fade>
-  </div>
+    <div class="modal-backdrop" transition:fade>
+    </div>
 {:else if blacklistRoleModal}
-  <div class="modal" transition:fade>
-    <div class="modal-wrapper">
-      <Card footer footerRight fill={false}>
-        <span slot="title">Blacklist Role</span>
+    <div class="modal" transition:fade>
+        <div class="modal-wrapper">
+            <Card footer footerRight fill={false}>
+                <span slot="title">Blacklist Role</span>
 
-        <div slot="body" class="modal-inner user-select-wrapper">
-          <RoleSelect {guildId} {roles} label="Role" bind:value={blacklistRole} />
-        </div>
+                <div slot="body" class="modal-inner user-select-wrapper">
+                    <RoleSelect {guildId} {roles} label="Role" bind:value={blacklistRole}/>
+                </div>
 
-        <div slot="footer" style="gap: 12px">
-          <Button danger on:click={() => blacklistRoleModal = false}>Cancel</Button>
-          <Button on:click={addRole}>Confirm</Button>
+                <div slot="footer" style="gap: 12px">
+                    <Button danger on:click={() => blacklistRoleModal = false}>Cancel</Button>
+                    <Button on:click={addRole}>Confirm</Button>
+                </div>
+            </Card>
         </div>
-      </Card>
     </div>
-  </div>
 
-  <div class="modal-backdrop" transition:fade>
-  </div>
+    <div class="modal-backdrop" transition:fade>
+    </div>
 {/if}
 
 {#if data}
-  <div class="parent">
     <div class="content">
-      <div class="main-col">
-        <Card footer={false}>
-          <span slot="title">Blacklist</span>
-          <div slot="body" class="body-wrapper">
-            <div class="row" style="gap: 10px">
-              <Button icon="fas fa-ban" on:click={() => blacklistUserModal = true}>Blacklist New User</Button>
-              <Button icon="fas fa-ban" on:click={() => blacklistRoleModal = true}>Blacklist New Role</Button>
-            </div>
+        <div class="main-col">
+            <Card footer={false}>
+                <span slot="title">Blacklist</span>
+                <div slot="body" class="body-wrapper">
+                    <div class="row" style="gap: 10px">
+                        <Button icon="fas fa-ban" on:click={() => blacklistUserModal = true}>Blacklist New User</Button>
+                        <Button icon="fas fa-ban" on:click={() => blacklistRoleModal = true}>Blacklist New Role</Button>
+                    </div>
 
-            <hr/>
+                    <hr/>
 
-            <div class="tables">
-              <table class="nice">
-                <thead>
-                <tr>
-                  <th class="full-width">Role</th>
-                  <th>Remove</th>
-                </tr>
-                </thead>
-                <tbody>
-                {#each data.roles as roleId}
-                  {@const role = roles.find(role => role.id === roleId)}
-                  <tr>
-                    {#if role === undefined}
-                      <td class="full-width">Unknown ({roleId})</td>
-                    {:else}
-                      <td class="full-width">{role.name}</td>
-                    {/if}
+                    <div class="tables">
+                        <table class="nice">
+                            <thead>
+                            <tr>
+                                <th class="full-width">Role</th>
+                                <th>Remove</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {#each data.roles as roleId}
+                                {@const role = roles.find(role => role.id === roleId)}
+                                <tr>
+                                    {#if role === undefined}
+                                        <td class="full-width">Unknown ({roleId})</td>
+                                    {:else}
+                                        <td class="full-width">{role.name}</td>
+                                    {/if}
 
-                    <td>
-                      <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeRoleBlacklist(roleId, role)}>
-                        Remove
-                      </Button>
-                    </td>
-                  </tr>
-                {/each}
-                </tbody>
-              </table>
+                                    <td>
+                                        <Button type="button" danger icon="fas fa-trash-can"
+                                                on:click={() => removeRoleBlacklist(roleId, role)}>
+                                            Remove
+                                        </Button>
+                                    </td>
+                                </tr>
+                            {/each}
+                            </tbody>
+                        </table>
 
-              <table class="nice">
-                <thead>
-                <tr>
-                  <th class="full-width">User</th>
-                  <th>Remove</th>
-                </tr>
-                </thead>
-                <tbody>
-                {#each data.users as user}
-                  <tr>
-                    {#if user.username !== ''}
-                      <td class="full-width">{user.username} ({user.id})</td>
-                    {:else}
-                      <td class="full-width">Unknown ({user.id})</td>
-                    {/if}
+                        <table class="nice">
+                            <thead>
+                            <tr>
+                                <th class="full-width">User</th>
+                                <th>Remove</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {#each data.users as user}
+                                <tr>
+                                    {#if user.username !== ''}
+                                        <td class="full-width">{user.username} ({user.id})</td>
+                                    {:else}
+                                        <td class="full-width">Unknown ({user.id})</td>
+                                    {/if}
 
-                    <td>
-                      <Button type="button" danger icon="fas fa-trash-can" on:click={() => removeUserBlacklist(user)}>
-                        Remove
-                      </Button>
-                    </td>
-                  </tr>
-                {/each}
-                </tbody>
-              </table>
-            </div>
+                                    <td>
+                                        <Button type="button" danger icon="fas fa-trash-can"
+                                                on:click={() => removeUserBlacklist(user)}>
+                                            Remove
+                                        </Button>
+                                    </td>
+                                </tr>
+                            {/each}
+                            </tbody>
+                        </table>
+                    </div>
 
-            <div class="row nav">
-              <i class="fas fa-chevron-left pagination-chevron" class:disabled-chevron={page <= 1}
-                 on:click={loadPrevious}></i>
-              <span>Page {page}</span>
-              <i class="fas fa-chevron-right pagination-chevron"
-                 class:disabled-chevron={data.users.length < data.page_limit && data.roles.length < data.page_limit}
-                 on:click={loadNext}></i>
-            </div>
-          </div>
-        </Card>
-      </div>
+                    <div class="row nav">
+                        <i class="fas fa-chevron-left pagination-chevron" class:disabled-chevron={page <= 1}
+                           on:click={loadPrevious}></i>
+                        <span>Page {page}</span>
+                        <i class="fas fa-chevron-right pagination-chevron"
+                           class:disabled-chevron={data.users.length < data.page_limit && data.roles.length < data.page_limit}
+                           on:click={loadNext}></i>
+                    </div>
+                </div>
+            </Card>
+        </div>
     </div>
-  </div>
 {/if}
 
 <script>
@@ -296,21 +296,10 @@
 </script>
 
 <style>
-    .parent {
-        display: flex;
-        justify-content: flex-start;
-        padding-left: 2%;
-        width: 100%;
-        height: 100%;
-    }
-
     .content {
         display: flex;
-        justify-content: space-between;
-        width: 60%;
+        width: 100%;
         height: 100%;
-        margin-top: 30px;
-        padding-bottom: 4%;
     }
 
     .main-col {
@@ -359,6 +348,7 @@
         justify-content: center;
         align-items: center;
         gap: 2px;
+        margin-top: 20px;
     }
 
     .pagination-chevron {

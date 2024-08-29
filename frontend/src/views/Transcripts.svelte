@@ -242,9 +242,8 @@
     .col {
         display: flex;
         flex-direction: column;
-        width: 95%;
         height: 100%;
-        margin-top: 30px;
+        width: 100%;
     }
 
     .main-col {

@@ -94,6 +94,7 @@ func StartServer(sm *livechat.SocketManager) {
 	guildAuthApiSupport := apiGroup.Group("/:id", middleware.AuthenticateGuild(permission.Support))
 	guildApiNoAuth := apiGroup.Group("/:id", middleware.ParseGuildId)
 	{
+		guildAuthApiSupport.GET("/guild", api.GuildHandler)
 		guildAuthApiSupport.GET("/channels", api.ChannelsHandler)
 		guildAuthApiSupport.GET("/premium", api.PremiumHandler)
 		guildAuthApiSupport.GET("/user/:user", api.UserHandler)

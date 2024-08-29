@@ -207,7 +207,7 @@
         flex-direction: row;
         height: 100%;
         width: 100%;
-        margin-top: 30px;
+        gap: 2%;
     }
 
     .col {
@@ -219,7 +219,7 @@
 
     .row {
         display: flex;
-        width: 96%;
+        width: 100%;
         margin-bottom: 2%;
     }
 

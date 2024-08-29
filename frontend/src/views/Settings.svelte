@@ -19,8 +19,6 @@
         flex-direction: row;
         height: 100%;
         width: 100%;
-        padding: 0 45px;
-        justify-content: space-between;
     }
 
     .main-col {
@@ -28,7 +26,6 @@
         flex-direction: column;
         height: 100%;
         width: 100%;
-        margin-top: 30px;
     }
 
     .right-col {

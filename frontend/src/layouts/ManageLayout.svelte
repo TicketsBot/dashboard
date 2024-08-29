@@ -5,6 +5,7 @@
     <div class="super-container" class:dropdown={$dropdown}>
         <LoadingScreen/>
         <div class="content-container" class:hide={$loadingScreen}>
+            <ManageSidebar {currentRoute} {permissionLevel} />
             <Route {currentRoute} {params}/>
         </div>
         <NotifyModal/>
@@ -23,8 +24,13 @@
         height: 100%;
     }
 
+    .super-container {
+        padding: 30px;
+    }
+
     .content-container {
         display: flex;
+        gap: 30px;
         width: 100%;
         height: 100%;
     }
@@ -48,6 +54,7 @@
     import {setDefaultHeaders} from '../includes/Auth.svelte'
     import {permissionLevelCache} from '../js/stores';
     import {get} from 'svelte/store';
+    import ManageSidebar from "../includes/ManageSidebar.svelte";
 
     export let currentRoute;
     export let params = {};

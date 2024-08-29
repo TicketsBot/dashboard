@@ -19,12 +19,7 @@
           <NavElement icon="fas fa-mouse-pointer" link="/manage/{guildId}/panels" on:click={closeDropdown}>Ticket Panels</NavElement>
           <NavElement icon="fas fa-poll-h" link="/manage/{guildId}/forms" on:click={closeDropdown}>Forms</NavElement>
           <NavElement icon="fas fa-users" link="/manage/{guildId}/teams" on:click={closeDropdown}>Staff Teams</NavElement>
-          <NavElement icon="fas fa-robot" link="/manage/{guildId}/integrations" on:click={closeDropdown}>
-            <div style="display: flex; gap:4px">
-              Integrations
-              <Badge>New!</Badge>
-            </div>
-          </NavElement>
+          <NavElement icon="fas fa-robot" link="/manage/{guildId}/integrations" on:click={closeDropdown}>Integrations</NavElement>
         {/if}
 
         <NavElement icon="fas fa-ticket-alt" link="/manage/{guildId}/tickets" on:click={closeDropdown}>Tickets</NavElement>
@@ -63,7 +58,7 @@
 
 <style>
     .navbar {
-        display: flex;
+        display: none;
         justify-content: center;
         width: 100%;
         background-color: #272727;
@@ -89,6 +84,10 @@
     }
 
     @media only screen and (max-width: 1154px) {
+        .navbar {
+            display: flex;
+        }
+
         .nav-section {
             display: none;
         }

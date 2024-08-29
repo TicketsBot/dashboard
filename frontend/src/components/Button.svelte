@@ -28,9 +28,10 @@
         text-align: center;
 
         color: white;
-        background-color: #3472f7;
-        border-color: #3472f7;
-        border-width: 2px;
+        background: var(--primary-gradient);
+        border: none;
+        /*border-color: var(--primary);*/
+        /*border-width: 2px;*/
         border-radius: .25rem;
         margin: 0;
 
@@ -39,14 +40,14 @@
         box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
     }
 
-    button:active, button:hover:enabled {
-        background-color: #0062cc;
-        border-color: #0062cc;
-    }
+    /*button:active, button:hover:enabled {*/
+    /*    background-color: #0062cc;*/
+    /*    border-color: #0062cc;*/
+    /*}*/
 
     button:disabled {
-        background-color: #6c757d;
-        border-color: #6c757d;
+        background: #6c757d;
+        border: #6c757d;
         cursor: default;
     }
 
@@ -60,12 +61,12 @@
     }
 
     .danger {
-        background-color: #dc3545 !important;
+        background: #dc3545 !important;
         border-color: #dc3545 !important;
     }
 
     .danger:hover:enabled, .danger:active {
-        background-color: #c32232 !important;
+        background: #c32232 !important;
         border-color: #c32232 !important;
     }
 

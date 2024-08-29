@@ -1,83 +1,84 @@
-<div class="parent">
-  <div class="content">
+<div class="content">
     <Card footer footerRight>
-      <span slot="title">Forms</span>
-      <div slot="body" class="body-wrapper">
-        <div class="section">
-          <h2 class="section-title">Create New Form</h2>
+        <span slot="title">Forms</span>
+        <div slot="body" class="body-wrapper">
+            <div class="section">
+                <h2 class="section-title">Create New Form</h2>
 
-          <form on:submit|preventDefault={createForm}>
-            <div class="row" id="creation-row">
-              <Input placeholder="Form Title" col3={true} bind:value={newTitle}/>
-              <div id="create-button-wrapper">
-                <Button icon="fas fa-paper-plane" fullWidth={windowWidth <= 950}>Create</Button>
-              </div>
+                <form on:submit|preventDefault={createForm}>
+                    <div class="row" id="creation-row">
+                        <Input placeholder="Form Title" col3={true} bind:value={newTitle}/>
+                        <div id="create-button-wrapper">
+                            <Button icon="fas fa-paper-plane" fullWidth={windowWidth <= 950}>Create</Button>
+                        </div>
+                    </div>
+                </form>
             </div>
-          </form>
-        </div>
-        <div class="section">
-          <h2 class="section-title">Manage Forms</h2>
+            <div class="section">
+                <h2 class="section-title">Manage Forms</h2>
 
-          {#if editingTitle && activeFormId !== null}
-            <div class="row form-name-edit-wrapper">
-              <Input col4 label="Form Title" placeholder="Form Title" bind:value={renamedTitle}/>
-              <div class="form-name-save-wrapper">
-                <Button icon="fas fa-floppy-disk" fullWidth={windowWidth <= 950} on:click={updateTitle}>Save</Button>
-              </div>
-            </div>
-          {:else}
-            <div class="row form-select-row">
-              <div class="multiselect-super">
-                <Dropdown col1 bind:value={activeFormId}>
-                  <option value={null}>Select a form...</option>
-                  {#each forms as form}
-                    <option value="{form.form_id}">{form.title}</option>
-                  {/each}
-                </Dropdown>
-              </div>
+                {#if editingTitle && activeFormId !== null}
+                    <div class="row form-name-edit-wrapper">
+                        <Input col4 label="Form Title" placeholder="Form Title" bind:value={renamedTitle}/>
+                        <div class="form-name-save-wrapper">
+                            <Button icon="fas fa-floppy-disk" fullWidth={windowWidth <= 950} on:click={updateTitle}>
+                                Save
+                            </Button>
+                        </div>
+                    </div>
+                {:else}
+                    <div class="row form-select-row">
+                        <div class="multiselect-super">
+                            <Dropdown col1 bind:value={activeFormId}>
+                                <option value={null}>Select a form...</option>
+                                {#each forms as form}
+                                    <option value="{form.form_id}">{form.title}</option>
+                                {/each}
+                            </Dropdown>
+                        </div>
 
-              {#if activeFormId !== null}
-                <Button on:click={() => editingTitle = true}>Rename Form</Button>
-                <Button danger type="button"
-                        on:click={() => deleteForm(activeFormId)}>Delete {activeFormTitle}</Button>
-              {/if}
-            </div>
-          {/if}
+                        {#if activeFormId !== null}
+                            <Button on:click={() => editingTitle = true}>Rename Form</Button>
+                            <Button danger type="button"
+                                    on:click={() => deleteForm(activeFormId)}>Delete {activeFormTitle}</Button>
+                        {/if}
+                    </div>
+                {/if}
 
-          <div class="manage">
-            {#if activeFormId !== null}
-              {#each forms.find(form => form.form_id === activeFormId).inputs as input, i (input)}
-                <div animate:flip="{{duration: 500}}">
-                  <FormInputRow data={input} formId={activeFormId}
-                                withSaveButton={true} withDeleteButton={true} withDirectionButtons={true}
-                                index={i} {formLength}
-                                on:delete={() => deleteInput(activeFormId, input)}
-                                on:move={(e) => changePosition(activeFormId, input, e.detail.direction)}/>
+                <div class="manage">
+                    {#if activeFormId !== null}
+                        {#each forms.find(form => form.form_id === activeFormId).inputs as input, i (input)}
+                            <div animate:flip="{{duration: 500}}">
+                                <FormInputRow data={input} formId={activeFormId}
+                                              withSaveButton={true} withDeleteButton={true} withDirectionButtons={true}
+                                              index={i} {formLength}
+                                              on:delete={() => deleteInput(activeFormId, input)}
+                                              on:move={(e) => changePosition(activeFormId, input, e.detail.direction)}/>
+                            </div>
+                        {/each}
+                    {/if}
+
+                    {#if activeFormId !== null}
+                        <div class="row"
+                             style="justify-content: center; align-items: center; gap: 10px; margin-top: 10px">
+                            <hr class="fill">
+                            <div class="row add-input-container" class:add-input-disabled={formLength >= 5}>
+                                <i class="fas fa-plus"></i>
+                                <a on:click={addInput}>New Field</a>
+                            </div>
+                            <hr class="fill">
+                        </div>
+                    {/if}
                 </div>
-              {/each}
-            {/if}
-
-            {#if activeFormId !== null}
-              <div class="row" style="justify-content: center; align-items: center; gap: 10px; margin-top: 10px">
-                <hr class="fill">
-                <div class="row add-input-container" class:add-input-disabled={formLength >= 5}>
-                  <i class="fas fa-plus"></i>
-                  <a on:click={addInput}>New Field</a>
-                </div>
-                <hr class="fill">
-              </div>
-            {/if}
-          </div>
+            </div>
         </div>
-      </div>
 
-      <div slot="footer">
-        <Button type="submit" icon="fas fa-floppy-disk" disabled={formLength === 0} on:click={saveInputs}>
-          Save
-        </Button>
-      </div>
+        <div slot="footer">
+            <Button type="submit" icon="fas fa-floppy-disk" disabled={formLength === 0} on:click={saveInputs}>
+                Save
+            </Button>
+        </div>
     </Card>
-  </div>
 </div>
 
 <svelte:window bind:innerWidth={windowWidth}/>
@@ -282,20 +283,10 @@
 </script>
 
 <style>
-    .parent {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-    }
-
     .content {
         display: flex;
-        justify-content: space-between;
-        width: 96%;
+        width: 100%;
         height: 100%;
-        margin-top: 30px;
-        margin-bottom: 50px;
     }
 
     .body-wrapper {
@@ -383,7 +374,7 @@
         cursor: pointer;
     }
 
-    .add-input-disabled > *{
+    .add-input-disabled > * {
         cursor: default !important;
         color: #777 !important;
     }
