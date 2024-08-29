@@ -12,6 +12,7 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/chatrelay"
+	"github.com/TicketsBot/common/model"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/common/secureproxy"
 	"github.com/TicketsBot/worker/i18n"
@@ -67,13 +68,12 @@ func main() {
 
 	if !config.Conf.Debug {
 		rpc.PremiumClient = premium.NewPremiumLookupClient(
-			premium.NewPatreonClient(config.Conf.Bot.PremiumLookupProxyUrl, config.Conf.Bot.PremiumLookupProxyKey),
 			redis.Client.Client,
 			cache.Instance.PgCache,
 			database.Client,
 		)
 	} else {
-		c := premium.NewMockLookupClient(premium.Whitelabel, premium.SourcePatreon)
+		c := premium.NewMockLookupClient(premium.Whitelabel, model.EntitlementSourcePatreon)
 		rpc.PremiumClient = &c
 	}
 

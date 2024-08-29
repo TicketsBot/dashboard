@@ -7,10 +7,10 @@ toolchain go1.22.4
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot/archiverclient v0.0.0-20240613013458-accc062facc2
-	github.com/TicketsBot/common v0.0.0-20240710005307-9cc26f78d8e3
-	github.com/TicketsBot/database v0.0.0-20240729222446-2c671b9b9366
+	github.com/TicketsBot/common v0.0.0-20240829163809-6f60869d8941
+	github.com/TicketsBot/database v0.0.0-20240829163737-86b657b7e506
 	github.com/TicketsBot/logarchiver v0.0.0-20220326162808-cdf0310f5e1c
-	github.com/TicketsBot/worker v0.0.0-20240720223640-84817ecc3309
+	github.com/TicketsBot/worker v0.0.0-20240829163848-84556c59ee72
 	github.com/apex/log v1.1.2
 	github.com/getsentry/sentry-go v0.24.0
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
@@ -29,7 +29,7 @@ require (
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/rxdn/gdl v0.0.0-20240708003854-64917d2277cf
+	github.com/rxdn/gdl v0.0.0-20240828205518-51a78bd387cb
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/weppos/publicsuffix-go v0.20.0
@@ -39,7 +39,7 @@ require (
 require (
 	github.com/ClickHouse/ch-go v0.52.1 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.10.0 // indirect
-	github.com/TicketsBot/analytics-client v0.0.0-20240415004242-017c23403af3 // indirect
+	github.com/TicketsBot/analytics-client v0.0.0-20240724103359-30f5dac821e6 // indirect
 	github.com/TicketsBot/ttlcache v1.6.1-0.20200405150101-acc18e37b261 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
