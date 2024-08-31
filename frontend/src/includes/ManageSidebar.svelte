@@ -1,6 +1,6 @@
 <section class="sidebar">
     <header>
-        <img src="{iconUrl}" class="guild-icon" alt="Guild icon" width="50" height="50"/>
+        <img src="{iconUrl}" class="guild-icon" alt="Guild icon" width="50" height="50" on:error={handleIconLoadError} />
         {guild.name}
     </header>
     <nav>
@@ -91,6 +91,7 @@
     import axios from "axios";
     import {API_URL} from "../js/constants";
     import {notifyError, withLoadingScreen} from "../js/util";
+    import {getIconUrl, getDefaultIcon} from "../js/icons";
     import ManageSidebarLink from "./ManageSidebarLink.svelte";
     import SubNavigation from "./SubNavigation.svelte";
     import SubNavigationLink from "./SubNavigationLink.svelte";
@@ -105,6 +106,14 @@
     let guild = {};
     let iconUrl = "";
 
+    let retried = false;
+    function handleIconLoadError(e) {
+        if (retried) return;
+
+        retried = true;
+        iconUrl = getDefaultIcon(guildId);
+    }
+
     async function loadGuild() {
         const res = await axios.get(`${API_URL}/api/${guildId}/guild`);
         if (res.status !== 200) {
@@ -115,31 +124,11 @@
         guild = res.data;
     }
 
-    function isAnimated() {
-        if (guild.icon === undefined || guild.icon === "") {
-            return false;
-        } else {
-            return guild.icon.startsWith('a_')
-        }
-    }
-
-    function getIconUrl() {
-        if (!guild.icon) {
-            return `https://cdn.discordapp.com/embed/avatars/${Number((BigInt(guildId) >> BigInt(22)) % BigInt(6))}.png`
-        }
-
-        if (isAnimated()) {
-            return `https:\/\/cdn.discordapp.com/icons/${guild.id}/${guild.icon}.gif?size=256`
-        } else {
-            return `https:\/\/cdn.discordapp.com/icons/${guild.id}/${guild.icon}.webp?size=256`
-        }
-    }
-
     onMount(async () => {
         await withLoadingScreen(async () => {
             await loadGuild();
 
-            iconUrl = getIconUrl();
+            iconUrl = getIconUrl(guildId, guild.icon);
         })
     });
 </script>
