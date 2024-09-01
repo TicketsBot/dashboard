@@ -26,7 +26,6 @@
     main {
         display: flex;
         flex-direction: column;
-        padding: 2% 10% 4% 10%;
         width: 100%;
         row-gap: 1vh;
     }
