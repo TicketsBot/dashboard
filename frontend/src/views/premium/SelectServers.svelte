@@ -88,7 +88,7 @@
 </style>
 
 <script>
-    import {withLoadingScreen, notifyError, notifySuccess} from '../../js/util';
+    import {withLoadingScreen, notifyError, notifySuccess, errorPage} from '../../js/util';
     import {setDefaultHeaders} from '../../includes/Auth.svelte'
     import Card from "../../components/Card.svelte";
     import {getIconUrl, getDefaultIcon} from "../../js/icons";
@@ -132,7 +132,7 @@
         }
 
         if (res.data.legacy_entitlement === null || res.data.legacy_entitlement.is_legacy) {
-            notifyError('This feature is only available to users with a server-specific premium subscription via Patreon.');
+            errorPage('This feature is only available to users with a server-specific premium subscription via Patreon.');
             return;
         }
 
