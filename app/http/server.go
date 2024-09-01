@@ -7,6 +7,7 @@ import (
 	api_forms "github.com/TicketsBot/GoPanel/app/http/endpoints/api/forms"
 	api_integrations "github.com/TicketsBot/GoPanel/app/http/endpoints/api/integrations"
 	api_panels "github.com/TicketsBot/GoPanel/app/http/endpoints/api/panel"
+	api_premium "github.com/TicketsBot/GoPanel/app/http/endpoints/api/premium"
 	api_settings "github.com/TicketsBot/GoPanel/app/http/endpoints/api/settings"
 	api_override "github.com/TicketsBot/GoPanel/app/http/endpoints/api/staffoverride"
 	api_tags "github.com/TicketsBot/GoPanel/app/http/endpoints/api/tags"
@@ -79,15 +80,23 @@ func StartServer(sm *livechat.SocketManager) {
 	{
 		apiGroup.GET("/session", api.SessionHandler)
 
-		integrationGroup := apiGroup.Group("/integrations")
+		{
+			integrationGroup := apiGroup.Group("/integrations")
 
-		integrationGroup.GET("/self", api_integrations.GetOwnedIntegrationsHandler)
-		integrationGroup.GET("/view/:integrationid", api_integrations.GetIntegrationHandler)
-		integrationGroup.GET("/view/:integrationid/detail", api_integrations.GetIntegrationDetailedHandler)
-		integrationGroup.POST("/:integrationid/public", api_integrations.SetIntegrationPublicHandler)
-		integrationGroup.PATCH("/:integrationid", api_integrations.UpdateIntegrationHandler)
-		integrationGroup.DELETE("/:integrationid", api_integrations.DeleteIntegrationHandler)
-		apiGroup.POST("/integrations", api_integrations.CreateIntegrationHandler)
+			integrationGroup.GET("/self", api_integrations.GetOwnedIntegrationsHandler)
+			integrationGroup.GET("/view/:integrationid", api_integrations.GetIntegrationHandler)
+			integrationGroup.GET("/view/:integrationid/detail", api_integrations.GetIntegrationDetailedHandler)
+			integrationGroup.POST("/:integrationid/public", api_integrations.SetIntegrationPublicHandler)
+			integrationGroup.PATCH("/:integrationid", api_integrations.UpdateIntegrationHandler)
+			integrationGroup.DELETE("/:integrationid", api_integrations.DeleteIntegrationHandler)
+			apiGroup.POST("/integrations", api_integrations.CreateIntegrationHandler)
+		}
+
+		{
+			premiumGroup := apiGroup.Group("/premium/@me")
+			premiumGroup.GET("/entitlements", api_premium.GetEntitlements)
+			premiumGroup.PUT("/active-guilds", api_premium.SetActiveGuilds)
+		}
 	}
 
 	guildAuthApiAdmin := apiGroup.Group("/:id", middleware.AuthenticateGuild(permission.Admin))
