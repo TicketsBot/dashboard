@@ -174,7 +174,7 @@
                 const aLastResponseTime = new Date(a.last_response_time || 0);
                 const bLastResponseTime = new Date(b.last_response_time || 0);
 
-                return bLastResponseTime - aLastResponseTime;
+                return aLastResponseTime - bLastResponseTime;
             });
         }
     }
