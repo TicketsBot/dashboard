@@ -187,7 +187,12 @@
         }
 
         data = res.data;
-        data = data.map(ticket => {
+
+        if (!data.tickets) {
+            data.tickets = [];
+        }
+
+        data.tickets = data.tickets.map(ticket => {
             if (ticket.claimed_by === "null") {
                 ticket.claimed_by = null;
             }
