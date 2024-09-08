@@ -187,6 +187,14 @@
         }
 
         data = res.data;
+        data = data.map(ticket => {
+            if (ticket.claimed_by === "null") {
+                ticket.claimed_by = null;
+            }
+
+            return ticket;
+        })
+
         filterTickets();
     }
 
