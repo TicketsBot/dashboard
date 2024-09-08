@@ -27,8 +27,8 @@
       <div class="author">
         <a href="https://discord.com/users/{author.id}" class="link" style="gap: 4px">
           <img src="https://cdn.discordapp.com/avatars/{author.id}/{author.avatar}.webp" class="author-avatar"
-               alt="Author avatar" on:error={(e) => handleAvatarError(e, author.discriminator)}/>
-          <b>{author.username}#{author.discriminator}</b>
+               alt="Author avatar" on:error={(e) => handleAvatarError(e, author.id)}/>
+          <b>{author.global_name || author.username}</b>
         </a>
       </div>
     {:else if showAuthor}
@@ -73,6 +73,7 @@
     import Badge from "../Badge.svelte";
     import {Navigate} from "svelte-router-spa";
     import {createEventDispatcher} from "svelte";
+    import {getIconUrl} from "../../js/icons";
 
     const dispatch = createEventDispatcher();
 
@@ -98,8 +99,8 @@
         logo.src = "/assets/img/grey.png";
     }
 
-    function handleAvatarError(ev, discriminator) {
-        const src = `https://cdn.discordapp.com/embed/avatars/${(discriminator || 0) % 5}.png`;
+    function handleAvatarError(ev, id) {
+        const src = getIconUrl(id, "");
         if (ev.target.src === src) { // Setting onerror to null does not work with svelte
             return;
         }
