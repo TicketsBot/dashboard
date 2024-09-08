@@ -158,6 +158,7 @@ func StartServer(sm *livechat.SocketManager) {
 		guildAuthApiSupport.GET("/tickets", api_ticket.GetTickets)
 		guildAuthApiSupport.GET("/tickets/:ticketId", api_ticket.GetTicket)
 		guildAuthApiSupport.POST("/tickets/:ticketId", rl(middleware.RateLimitTypeGuild, 5, time.Second*5), api_ticket.SendMessage)
+		guildAuthApiSupport.POST("/tickets/:ticketId/tag", rl(middleware.RateLimitTypeGuild, 5, time.Second*5), api_ticket.SendTag)
 		guildAuthApiSupport.DELETE("/tickets/:ticketId", api_ticket.CloseTicket)
 
 		// Websockets do not support headers: so we must implement authentication over the WS connection

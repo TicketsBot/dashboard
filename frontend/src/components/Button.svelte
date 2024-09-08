@@ -1,4 +1,4 @@
-<button on:click isTrigger="1" class:fullWidth class:danger class:iconOnly {disabled} {type}>
+<button on:click isTrigger="1" class:fullWidth class:danger class:iconOnly class:shadow={!noShadow} {disabled} {type} bind:clientWidth>
   {#if icon !== undefined}
     <i class="{icon}"></i>
   {/if}
@@ -16,6 +16,8 @@
     export let type = "submit";
     export let danger = false;
     export let iconOnly = false;
+    export let noShadow = false;
+    export let clientWidth;
 </script>
 
 <style>
@@ -37,6 +39,9 @@
 
         cursor: pointer;
         transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+    }
+
+    button.shadow {
         box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
     }
 

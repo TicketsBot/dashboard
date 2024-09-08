@@ -9,7 +9,7 @@
       {/if}
     </div>
   {/if}
-  <select id="input" class="form-input" on:change bind:value={value} {disabled}>
+  <select id="input" class="form-input" on:change bind:value={value} {disabled} style="margin: 0">
     <slot />
   </select>
 </div>

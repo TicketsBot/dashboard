@@ -72,7 +72,6 @@
     .card-body {
         display: flex;
         flex: 1;
-        min-height: 75px;
 
         color: white;
         margin: 10px 20px;
