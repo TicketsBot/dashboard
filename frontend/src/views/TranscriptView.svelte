@@ -31,8 +31,6 @@
 </script>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap');
-
     body {
         margin: 0;
         display: flex;
@@ -49,7 +47,8 @@
         overflow-y: scroll;
 
         background-color: #2e3136;
-        font-family: 'Noto Sans', sans-serif !important;
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 400 !important;
         font-size: 16px;
     }
 

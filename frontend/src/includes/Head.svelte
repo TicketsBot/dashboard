@@ -9,19 +9,6 @@
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
-  <!-- Custom CSS -->
-  <!--<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">-->
-
   <!-- Icons -->
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
-
-  <!-- GA -->
-  <script async src='https://www.google-analytics.com/analytics.js'
-          type="80be96f83bbfbba3d4097e23-text/javascript"></script>
-
-  <script type="80be96f83bbfbba3d4097e23-text/javascript">
-      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-      ga('create', 'UA-161945537-1', 'auto');
-      ga('send', 'pageview');
-  </script>
 </svelte:head>
