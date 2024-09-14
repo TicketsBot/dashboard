@@ -6,6 +6,7 @@
         searchable={searchable}
         clearable={isClearable}
         itemId={optionIdentifier}
+        label={labelProperty}
         debounceWait={loadOptionsInterval}
         {loadOptions}
         {placeholder}
@@ -50,6 +51,7 @@
     export let disabled = false;
 
     export let optionIdentifier;
+    export let labelProperty;
     export let nameMapper = (x) => x;
 
     let searchable = isSearchable && selectedValue == undefined;

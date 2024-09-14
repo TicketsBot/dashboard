@@ -3,7 +3,7 @@
 {/if}
 
 <WrappedSelect {placeholder} optionIdentifier="id" items={roles} {disabled}
-               bind:selectedValue={value} nameMapper={labelMapper} on:change />
+               bind:selectedValue={value} nameMapper={labelMapper} labelProperty="name" on:change />
 
 <script>
     import {onMount} from 'svelte'
