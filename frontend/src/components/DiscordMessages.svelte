@@ -321,7 +321,7 @@
         flex-direction: column;
         padding: 10px 10px 10px 5px;
         width: 100%;
-        white-space: pre;
+        white-space: pre-wrap;
     }
 
     .embed > .main > span {
