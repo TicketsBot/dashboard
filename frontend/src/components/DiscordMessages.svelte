@@ -254,7 +254,7 @@
         overflow-y: scroll;
         overflow-wrap: break-word;
 
-        padding: 0 10px;
+        padding: 5px 10px;
     }
 
     .message {
