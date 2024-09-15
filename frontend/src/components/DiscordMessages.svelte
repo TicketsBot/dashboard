@@ -47,7 +47,7 @@
 
                         {#if message.embeds?.length > 0}
                             <div class="embed-wrapper">
-                                {#each message.embeds as embed}
+                                {#each message.embeds.filter(e => 'color' in e) as embed}
                                     <div class="embed">
                                         <div class="colour" style="background-color: #{embed.color.toString(16)}"></div>
                                         <div class="main">
