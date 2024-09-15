@@ -16,8 +16,10 @@ import (
 )
 
 type sendMessageBody struct {
-	MessageType string `json:"type"`
-	Content     string `json:"content"`
+	Message struct {
+		MessageType string `json:"type"`
+		Content     string `json:"content"`
+	} `json:"message"`
 }
 
 func SendMessage(ctx *gin.Context) {
@@ -52,7 +54,7 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	if len(body.Content) == 0 {
+	if len(body.Message.Content) == 0 {
 		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "You must enter a message",
@@ -96,8 +98,8 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	if len(body.Content) > 2000 {
-		body.Content = body.Content[0:1999]
+	if len(body.Message.Content) > 2000 {
+		body.Message.Content = body.Message.Content[0:1999]
 	}
 
 	// Preferably send via a webhook
@@ -126,7 +128,7 @@ func SendMessage(ctx *gin.Context) {
 			}
 
 			webhookData = rest.WebhookBody{
-				Content:   body.Content,
+				Content:   body.Message.Content,
 				Username:  guild.Name,
 				AvatarUrl: guild.IconUrl(),
 			}
@@ -138,7 +140,7 @@ func SendMessage(ctx *gin.Context) {
 			}
 
 			webhookData = rest.WebhookBody{
-				Content:   body.Content,
+				Content:   body.Message.Content,
 				Username:  user.EffectiveName(),
 				AvatarUrl: user.AvatarUrl(256),
 			}
@@ -161,7 +163,7 @@ func SendMessage(ctx *gin.Context) {
 		}
 	}
 
-	message := body.Content
+	message := body.Message.Content
 	if !settings.AnonymiseDashboardResponses {
 		user, err := botContext.GetUser(context.Background(), userId)
 		if err != nil {
