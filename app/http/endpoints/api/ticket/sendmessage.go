@@ -16,7 +16,8 @@ import (
 )
 
 type sendMessageBody struct {
-	Message string `json:"message"`
+	MessageType string `json:"type"`
+	Content     string `json:"content"`
 }
 
 func SendMessage(ctx *gin.Context) {
@@ -51,7 +52,7 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	if len(body.Message) == 0 {
+	if len(body.Content) == 0 {
 		ctx.JSON(400, gin.H{
 			"success": false,
 			"error":   "You must enter a message",
@@ -95,8 +96,8 @@ func SendMessage(ctx *gin.Context) {
 		return
 	}
 
-	if len(body.Message) > 2000 {
-		body.Message = body.Message[0:1999]
+	if len(body.Content) > 2000 {
+		body.Content = body.Content[0:1999]
 	}
 
 	// Preferably send via a webhook
@@ -125,7 +126,7 @@ func SendMessage(ctx *gin.Context) {
 			}
 
 			webhookData = rest.WebhookBody{
-				Content:   body.Message,
+				Content:   body.Content,
 				Username:  guild.Name,
 				AvatarUrl: guild.IconUrl(),
 			}
@@ -137,7 +138,7 @@ func SendMessage(ctx *gin.Context) {
 			}
 
 			webhookData = rest.WebhookBody{
-				Content:   body.Message,
+				Content:   body.Content,
 				Username:  user.EffectiveName(),
 				AvatarUrl: user.AvatarUrl(256),
 			}
@@ -160,7 +161,7 @@ func SendMessage(ctx *gin.Context) {
 		}
 	}
 
-	message := body.Message
+	message := body.Content
 	if !settings.AnonymiseDashboardResponses {
 		user, err := botContext.GetUser(context.Background(), userId)
 		if err != nil {
