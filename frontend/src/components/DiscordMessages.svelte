@@ -212,8 +212,6 @@
 </script>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Catamaran:wght@300;400;500;600;700;800&display=swap');
-
     .discord-container {
         display: flex;
         flex-direction: column;
@@ -224,7 +222,6 @@
         max-height: 100vh;
         margin: 0;
         padding: 0;
-        /*font-family: 'Catamaran', sans-serif !important;*/
         font-family: 'Poppins', sans-serif !important;
     }
 
@@ -257,7 +254,7 @@
         overflow-y: scroll;
         overflow-wrap: break-word;
 
-        padding-left: 10px;
+        padding: 0 10px;
     }
 
     .message {
@@ -324,6 +321,11 @@
         flex-direction: column;
         padding: 10px 10px 10px 5px;
         width: 100%;
+        white-space: pre;
+    }
+
+    .embed > .main > span {
+        font-size: 14px;
     }
 
     .fields {
@@ -331,6 +333,9 @@
         flex-direction: row;
         flex-wrap: wrap;
         gap: 5px;
+    }
+
+    .fields:not(:first-child) {
         margin-top: 10px;
     }
 
