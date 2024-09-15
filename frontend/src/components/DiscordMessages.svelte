@@ -24,14 +24,86 @@
     </div>
 {/if}
 
-<div class="discord-container">
+<section class="discord-container">
     <div class="channel-header">
-        <span id="channel-name">#ticket-{ticketId}</span>
+        <span class="channel-name">#ticket-{ticketId}</span>
     </div>
-    <div id="message-container" bind:this={container}>
+    <div class="message-container" bind:this={container}>
         {#each messages as message}
             <div class="message">
-                <b>{message.author.username}:</b> {message.content}
+                <img class="avatar" src={getAvatarUrl(message.author.id, message.author.avatar)}
+                     on:error={(e) => handleAvatarLoadError(e, message.author.id)} alt="Avatar"/>
+                <div>
+                    <div>
+                        <span class="username">{message.author.global_name || message.author.username}</span>
+                        <span class="timestamp">
+                            {new Date() - new Date(message.timestamp) < 86400000 ? getRelativeTime(new Date(message.timestamp)) : new Date(message.timestamp).toLocaleString()}
+                        </span>
+                    </div>
+                    <div class="content">
+                        {#if message.content?.length > 0}
+                            <span class="plaintext">{message.content}</span>
+                        {/if}
+
+                        {#if message.embeds?.length > 0}
+                            <div class="embed-wrapper">
+                                {#each message.embeds as embed}
+                                    <div class="embed">
+                                        <div class="colour" style="background-color: #{embed.color.toString(16)}"></div>
+                                        <div class="main">
+                                            {#if embed.title}
+                                                <b>{embed.title}</b>
+                                            {/if}
+                                            {#if embed.description}
+                                                <span>{embed.description}</span>
+                                            {/if}
+
+                                            {#if embed.fields && embed.fields.length > 0}
+                                                <div class="fields">
+                                                    {#each embed.fields as field}
+                                                        <div class="field" class:inline={field.inline}>
+                                                            <span class="name">{field.name}</span>
+                                                            <span class="value">{field.value}</span>
+                                                        </div>
+                                                    {/each}
+                                                </div>
+                                            {/if}
+
+                                            {#if embed.image && embed.image.proxy_url}
+                                                <img src={embed.image.proxy_url} alt="Embed Image"/>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
+
+                        {#if message.attachments?.length > 0}
+                            <div class="attachment-wrapper">
+                                {#each message.attachments.filter(a => isImage(a.filename)) as attachment}
+                                    {@const proxyUrl = attachment.proxy_url.replaceAll("\u0026", "&")}
+                                    <img src={proxyUrl} alt="{attachment.filename}"/>
+                                {/each}
+
+                                {#each message.attachments.filter(a => !isImage(a.filename)) as attachment}
+                                    {@const directUrl = attachment.url.replaceAll("\u0026", "&")}
+                                    {@const proxyUrl = attachment.proxy_url.replaceAll("\u0026", "&")}
+
+                                    <div class="other">
+                                        <div class="metadata">
+                                            <span class="name">{attachment.filename}</span>
+                                            <span class="size">{formatFileSize(attachment.size)}</span>
+                                        </div>
+                                        <a href="{isCdnUrl(directUrl) ? directUrl : proxyUrl}" target="_blank"
+                                           download="{attachment.filename}">
+                                            <i class="fa-solid fa-download"></i>
+                                        </a>
+                                    </div>
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
+                </div>
             </div>
         {/each}
     </div>
@@ -47,14 +119,16 @@
             {/if}
         </form>
     </div>
-</div>
+</section>
 
 <script>
-    import {createEventDispatcher} from "svelte";
+    import {createEventDispatcher, onMount} from "svelte";
     import {fade} from "svelte/transition";
     import Button from "./Button.svelte";
     import Card from "./Card.svelte";
     import Dropdown from "./form/Dropdown.svelte";
+    import {getAvatarUrl, getDefaultIcon} from "../js/icons";
+    import {getRelativeTime} from "../js/util";
 
     export let ticketId;
     export let isPremium = false;
@@ -92,6 +166,49 @@
 
         selectedTag = undefined;
     }
+
+    let failed = [];
+
+    function handleAvatarLoadError(e, userId) {
+        if (!failed.includes(userId)) {
+            failed.push(userId);
+            e.target.src = getDefaultIcon(userId);
+        }
+    }
+
+    function isImage(fileName) {
+        const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'gifv', 'webp'];
+        return imageExtensions.includes(fileName.split('.').pop().toLowerCase());
+    }
+
+    function formatFileSize(size) {
+        if (size < 1024) return `${size} B`;
+        if (size < 1024 * 1024) return `${(size / 1024).toFixed(0)} KB`;
+        if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(0)} MB`;
+        else return `${(size / 1024 / 1024 / 1024).toFixed(1)} GB`;
+    }
+
+    function isCdnUrl(url) {
+        const parsed = new URL(url);
+        return parsed.hostname === 'cdn.discordapp.com';
+    }
+
+    onMount(() => {
+        messages = messages.map(message => {
+            // Sort attachments; image first
+            message.attachments = message.attachments.sort((a, b) => {
+                if (isImage(a.filename) && !isImage(b.filename)) {
+                    return -1;
+                } else if (!isImage(a.filename) && isImage(b.filename)) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+
+            return message;
+        })
+    });
 </script>
 
 <style>
@@ -107,7 +224,8 @@
         max-height: 100vh;
         margin: 0;
         padding: 0;
-        font-family: 'Catamaran', sans-serif !important;
+        /*font-family: 'Catamaran', sans-serif !important;*/
+        font-family: 'Poppins', sans-serif !important;
     }
 
     .channel-header {
@@ -123,28 +241,178 @@
         text-align: center;
     }
 
-    #channel-name {
+    .channel-name {
         color: white;
         font-weight: bold;
         padding-left: 20px;
     }
 
-    #message-container {
+    .message-container {
         display: flex;
         flex-direction: column;
         flex: 1;
+        gap: 10px;
 
         position: relative;
         overflow-y: scroll;
         overflow-wrap: break-word;
+
+        padding-left: 10px;
     }
 
     .message {
-        color: white !important;
-        padding-left: 20px;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
     }
 
-    #message-container:last-child {
+    .message:first-child {
+        margin-top: 5px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+    }
+
+    .message > div {
+        display: flex;
+        flex-direction: column;
+        line-height: 16px;
+    }
+
+    .username {
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    .timestamp {
+        font-size: 11px;
+        opacity: 0.6;
+    }
+
+    .plaintext {
+        font-size: 14px;
+    }
+
+    .embed-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-top: 5px;
+    }
+
+    .embed {
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+        width: 100%;
+        min-width: 300px;
+        border-radius: 5px;
+        background-color: #272727;
+    }
+
+    .embed > .colour {
+        width: 4px;
+        border-radius: 5px 0 0 5px;
+    }
+
+    .embed > .main {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 10px 10px 5px;
+        width: 100%;
+    }
+
+    .fields {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .field.inline {
+        flex: 0 0 calc(33.3333% - 5px);
+    }
+
+    .field:not(.inline) {
+        flex-basis: 100%;
+    }
+
+    .field > .name {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .field > .value {
+        font-size: 14px;
+    }
+
+    .embed > .main > img {
+        width: 100%;
+        max-width: 300px;
+        margin-top: 5px;
+        border-radius: 3px;
+    }
+
+    .attachment-wrapper {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+        row-gap: 5px;
+        margin-top: 5px;
+    }
+
+    .attachment-wrapper > img {
+        box-sizing: border-box;
+        width: 40%;
+        min-width: 300px;
+        border-radius: 5px;
+    }
+
+    .attachment-wrapper > .other {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 10px;
+        border-radius: 5px;
+        background-color: #272727;
+    }
+
+    .attachment-wrapper > .other > .metadata {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .attachment-wrapper > .other > .metadata > .name {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .attachment-wrapper > .other > .metadata > .size {
+        font-size: 12px;
+        opacity: 0.6;
+    }
+
+    .attachment-wrapper > .other i {
+        font-size: 24px;
+        color: white;
+        opacity: 0.8;
+        cursor: pointer;
+    }
+
+    .message-container:last-child {
         margin-bottom: 5px;
     }
 

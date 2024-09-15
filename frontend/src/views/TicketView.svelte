@@ -1,31 +1,26 @@
 <div class="parent">
-  <div class="content">
-    <Card footer={false}>
-      <span slot="title">Ticket #{ticketId}</span>
-      <div slot="body" class="body-wrapper">
-        <div class="section">
-          <h2 class="section-title">Close Ticket</h2>
+    <div class="content">
+        <Card footer={false}>
+            <span slot="title">Ticket #{ticketId}</span>
+            <div slot="body" class="body-wrapper">
+                <div class="section">
+                    <h2 class="section-title">Close Ticket</h2>
 
-          <form on:submit|preventDefault={closeTicket}>
-            <div class="row" style="max-height: 63px; align-items: flex-end"> <!-- hacky -->
-              <div class="col-2" style="margin-bottom: 0 !important;">
-                <Input label="Close Reason" placeholder="No reason specified" col1={true} bind:value={closeReason}/>
-              </div>
-              <div class="col-3">
-                <div style="margin-left: 30px; margin-bottom: 0.5em">
-                  <Button danger={true} noShadow icon="fas fa-lock">Close Ticket</Button>
+                    <div class="row" style="gap: 20px">
+                        <Input label="Close Reason" col2 placeholder="No reason specified" bind:value={closeReason}/>
+                        <div style="display: flex; align-items: flex-end; padding-bottom: 8px">
+                            <Button danger={true} noShadow icon="fas fa-lock" col3 on:click={closeTicket}>Close Ticket
+                            </Button>
+                        </div>
+                    </div>
                 </div>
-              </div>
+                <div class="section">
+                    <h2 class="section-title">View Ticket</h2>
+                    <DiscordMessages {ticketId} {isPremium} {tags} {messages} bind:container on:send={sendMessage}/>
+                </div>
             </div>
-          </form>
-        </div>
-        <div class="section">
-          <h2 class="section-title">View Ticket</h2>
-          <DiscordMessages {ticketId} {isPremium} {tags} {messages} bind:container on:send={sendMessage} />
-        </div>
-      </div>
-    </Card>
-  </div>
+        </Card>
+    </div>
 </div>
 
 <script>
@@ -34,7 +29,7 @@
     import Button from "../components/Button.svelte";
     import axios from "axios";
     import {API_URL} from "../js/constants";
-    import {setDefaultHeaders, getToken} from '../includes/Auth.svelte'
+    import {getToken, setDefaultHeaders} from '../includes/Auth.svelte'
     import Input from "../components/form/Input.svelte";
     import {navigateTo} from "svelte-router-spa";
     import DiscordMessages from "../components/DiscordMessages.svelte";

@@ -2,18 +2,18 @@ package api
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"github.com/TicketsBot/GoPanel/botcontext"
-	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/rpc/cache"
+	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
-	cache2 "github.com/rxdn/gdl/cache"
+	"github.com/rxdn/gdl/objects/channel"
+	"github.com/rxdn/gdl/objects/channel/embed"
+	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
 	"regexp"
 	"strconv"
-	"strings"
+	"time"
 )
 
 var MentionRegex, _ = regexp.Compile("<@(\\d+)>")
@@ -41,7 +41,7 @@ func GetTicket(ctx *gin.Context) {
 	}
 
 	// Get the ticket struct
-	ticket, err := database.Client.Tickets.Get(ctx, ticketId, guildId)
+	ticket, err := dbclient.Client.Tickets.Get(ctx, ticketId, guildId)
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"success": true,
@@ -77,50 +77,56 @@ func GetTicket(ctx *gin.Context) {
 		return
 	}
 
-	messagesFormatted := make([]map[string]interface{}, 0)
-	if ticket.ChannelId != nil {
-		// Get messages
-		messages, err := rest.GetChannelMessages(context.Background(), botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
-		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
-			return
-		}
+	if ticket.ChannelId == nil {
+		ctx.JSON(404, gin.H{
+			"success": false,
+			"error":   "Channel ID is nil",
+		})
+		return
+	}
 
-		// Format messages, exclude unneeded data
-		for _, message := range utils.Reverse(messages) {
-			content := message.Content
-
-			// Format mentions properly
-			match := MentionRegex.FindAllStringSubmatch(content, -1)
-			for _, mention := range match {
-				if len(mention) >= 2 {
-					mentionedId, err := strconv.ParseUint(mention[1], 10, 64)
-					if err != nil {
-						continue
-					}
-
-					user, err := cache.Instance.GetUser(context.Background(), mentionedId)
-					if err == nil {
-						content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), fmt.Sprintf("@%s", user.Username))
-					} else if errors.Is(err, cache2.ErrNotFound) {
-						content = strings.ReplaceAll(content, fmt.Sprintf("<@%d>", mentionedId), "@Unknown User")
-					} else {
-						ctx.JSON(500, utils.ErrorJson(err))
-						return
-					}
-				}
-			}
-
-			messagesFormatted = append(messagesFormatted, map[string]interface{}{
-				"author":  message.Author,
-				"content": content,
-			})
-		}
+	messages, err := fetchMessages(botContext, ticket)
+	if err != nil {
+		ctx.JSON(500, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
 	}
 
 	ctx.JSON(200, gin.H{
 		"success":  true,
 		"ticket":   ticket,
-		"messages": messagesFormatted,
+		"messages": messages,
 	})
+}
+
+type StrippedMessage struct {
+	Author      user.User            `json:"author"`
+	Content     string               `json:"content"`
+	Timestamp   time.Time            `json:"timestamp"`
+	Attachments []channel.Attachment `json:"attachments"`
+	Embeds      []embed.Embed        `json:"embeds"`
+}
+
+func fetchMessages(botContext *botcontext.BotContext, ticket database.Ticket) ([]StrippedMessage, error) {
+	// Get messages
+	messages, err := rest.GetChannelMessages(context.Background(), botContext.Token, botContext.RateLimiter, *ticket.ChannelId, rest.GetChannelMessagesData{Limit: 100})
+	if err != nil {
+		return nil, err
+	}
+
+	// Format messages, exclude unneeded data
+	stripped := make([]StrippedMessage, len(messages))
+	for i, message := range utils.Reverse(messages) {
+		stripped[i] = StrippedMessage{
+			Author:      message.Author,
+			Content:     message.Content,
+			Timestamp:   message.Timestamp,
+			Attachments: message.Attachments,
+			Embeds:      message.Embeds,
+		}
+	}
+
+	return stripped, nil
 }
