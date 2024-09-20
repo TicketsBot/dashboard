@@ -141,6 +141,8 @@
     let sendContent = '';
     let selectedTag;
 
+    $: messages, setTimeout(scrollToBottom, 100);
+
     function sendMessage() {
         dispatch('send', {
             type: 'message',
@@ -154,6 +156,12 @@
     function openTagSelector() {
         tagSelectorModal = true;
         window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function scrollToBottom() {
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
     }
 
     function sendTag() {
