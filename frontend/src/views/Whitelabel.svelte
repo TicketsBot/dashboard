@@ -25,7 +25,7 @@
             <Card footer="{false}" fill="{false}">
                 <h4 slot="title">Custom Status</h4>
                 <div slot="body" class="full-width">
-                    <form class="form-wrapper full-width" onsubmit="return false;">
+                    <form class="form-wrapper full-width" on:submit|preventDefault>
                         <div class="row">
                             <Dropdown col3 label="Status Type" bind:value={bot.status_type}>
                                 <option value="0">Playing</option>
@@ -50,7 +50,7 @@
             <Card footer="{false}" fill="{false}">
                 <h4 slot="title">Bot Token</h4>
                 <div slot="body" class="full-width">
-                    <form class="full-width" onsubmit="return false;">
+                    <form class="full-width" on:submit|preventDefault>
                         <label class="form-label">Bot Token</label>
 
                         <input name="token" type="text" bind:value={token} class="form-input full-width"
