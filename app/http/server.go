@@ -33,6 +33,7 @@ func StartServer(logger *zap.Logger, sm *livechat.SocketManager) {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.Logging(logger))
+	router.Use(middleware.ErrorHandler)
 
 	router.RemoteIPHeaders = config.Conf.Server.RealIpHeaders
 	if err := router.SetTrustedProxies(config.Conf.Server.TrustedProxies); err != nil {
@@ -58,7 +59,7 @@ func StartServer(logger *zap.Logger, sm *livechat.SocketManager) {
 		metricRouter := gin.New()
 		metricRouter.Use(gin.Recovery())
 		metricRouter.Use(middleware.Logging(logger))
-		
+
 		monitor.Expose(metricRouter)
 
 		go func() {

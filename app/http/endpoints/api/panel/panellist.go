@@ -2,16 +2,17 @@ package api
 
 import (
 	"context"
+	"github.com/TicketsBot/GoPanel/app"
 	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/GoPanel/utils/types"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
+	"net/http"
 	"strconv"
 )
 
-func ListPanels(ctx *gin.Context) {
+func ListPanels(c *gin.Context) {
 	type panelResponse struct {
 		database.Panel
 		WelcomeMessage               *types.CustomEmbed                `json:"welcome_message"`
@@ -23,23 +24,23 @@ func ListPanels(ctx *gin.Context) {
 		AccessControlList            []database.PanelAccessControlRule `json:"access_control_list"`
 	}
 
-	guildId := ctx.Keys["guildid"].(uint64)
+	guildId := c.Keys["guildid"].(uint64)
 
-	panels, err := dbclient.Client.Panel.GetByGuildWithWelcomeMessage(ctx, guildId)
+	panels, err := dbclient.Client.Panel.GetByGuildWithWelcomeMessage(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	accessControlLists, err := dbclient.Client.PanelAccessControlRules.GetAllForGuild(ctx, guildId)
+	accessControlLists, err := dbclient.Client.PanelAccessControlRules.GetAllForGuild(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	allFields, err := dbclient.Client.EmbedFields.GetAllFieldsForPanels(ctx, guildId)
+	allFields, err := dbclient.Client.EmbedFields.GetAllFieldsForPanels(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -56,7 +57,7 @@ func ListPanels(ctx *gin.Context) {
 			var mentions []string
 
 			// get if we should mention the ticket opener
-			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(ctx, p.PanelId)
+			shouldMention, err := dbclient.Client.PanelUserMention.ShouldMentionUser(c, p.PanelId)
 			if err != nil {
 				return err
 			}
@@ -66,7 +67,7 @@ func ListPanels(ctx *gin.Context) {
 			}
 
 			// get role mentions
-			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(ctx, p.PanelId)
+			roles, err := dbclient.Client.PanelRoleMentions.GetRoles(c, p.PanelId)
 			if err != nil {
 				return err
 			}
@@ -76,7 +77,7 @@ func ListPanels(ctx *gin.Context) {
 				mentions = append(mentions, strconv.FormatUint(roleId, 10))
 			}
 
-			teamIds, err := dbclient.Client.PanelTeams.GetTeamIds(ctx, p.PanelId)
+			teamIds, err := dbclient.Client.PanelTeams.GetTeamIds(c, p.PanelId)
 			if err != nil {
 				return err
 			}
@@ -113,9 +114,9 @@ func ListPanels(ctx *gin.Context) {
 	}
 
 	if err := group.Wait(); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, wrapped)
+	c.JSON(200, wrapped)
 }
