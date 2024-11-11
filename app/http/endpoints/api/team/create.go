@@ -25,6 +25,17 @@ func CreateTeam(ctx *gin.Context) {
 		return
 	}
 
+	_, exists, err := dbclient.Client.SupportTeam.GetByName(ctx, guildId, data.Name)
+	if err != nil {
+		ctx.JSON(500, utils.ErrorJson(err))
+		return
+	}
+
+	if exists {
+		ctx.JSON(400, utils.ErrorStr("Team already exists"))
+		return
+	}
+
 	id, err := dbclient.Client.SupportTeam.Create(ctx, guildId, data.Name)
 	if err != nil {
 		ctx.JSON(500, utils.ErrorJson(err))

@@ -98,10 +98,9 @@ func ListIntegrationsHandler(ctx *gin.Context) {
 		author, ok := authors[integration.OwnerId]
 		if ok {
 			integrations[i].Author = &integrationAuthor{
-				Id:            author.Id,
-				Username:      author.Username,
-				Discriminator: author.Discriminator,
-				Avatar:        author.Avatar,
+				Id:       author.Id,
+				Username: author.Username,
+				Avatar:   author.Avatar,
 			}
 		}
 	}

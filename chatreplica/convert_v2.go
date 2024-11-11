@@ -2,7 +2,7 @@ package chatreplica
 
 import (
 	"fmt"
-	v2 "github.com/TicketsBot/logarchiver/model/v2"
+	v2 "github.com/TicketsBot/logarchiver/pkg/model/v2"
 )
 
 func FromTranscript(transcript v2.Transcript, ticketId int) Payload {

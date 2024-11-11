@@ -8,14 +8,12 @@ import (
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	cache2 "github.com/rxdn/gdl/cache"
-	"github.com/rxdn/gdl/objects/user"
 	"golang.org/x/sync/errgroup"
 )
 
 type userData struct {
-	Id            uint64             `json:"id,string"`
-	Username      string             `json:"username"`
-	Discriminator user.Discriminator `json:"discriminator"`
+	Id       uint64 `json:"id,string"`
+	Username string `json:"username"`
 }
 
 func ListBotStaffHandler(ctx *gin.Context) {
@@ -41,7 +39,6 @@ func ListBotStaffHandler(ctx *gin.Context) {
 			user, err := cache.Instance.GetUser(ctx, userId)
 			if err == nil {
 				data.Username = user.Username
-				data.Discriminator = user.Discriminator
 			} else if errors.Is(err, cache2.ErrNotFound) {
 				data.Username = "Unknown User"
 			} else {

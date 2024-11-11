@@ -20,7 +20,6 @@ import (
 	"github.com/rxdn/gdl/rest/request"
 	"net/http"
 	"net/http/pprof"
-	"time"
 )
 
 func main() {
@@ -47,7 +46,7 @@ func main() {
 	cache.Instance = cache.NewCache()
 
 	fmt.Println("Initialising microservice clients...")
-	utils.ArchiverClient = archiverclient.NewArchiverClientWithTimeout(config.Conf.Bot.ObjectStore, time.Second*15, []byte(config.Conf.Bot.AesKey))
+	utils.ArchiverClient = archiverclient.NewArchiverClient(archiverclient.NewProxyRetriever(config.Conf.Bot.ObjectStore), []byte(config.Conf.Bot.AesKey))
 	utils.SecureProxyClient = secureproxy.NewSecureProxy(config.Conf.SecureProxyUrl)
 
 	utils.LoadEmoji()
