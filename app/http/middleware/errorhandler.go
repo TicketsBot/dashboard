@@ -27,4 +27,10 @@ func ErrorHandler(c *gin.Context) {
 			Error: message,
 		})
 	}
+
+	if c.Writer.Status() >= 500 && len(c.Errors) == 0 {
+		c.JSON(-1, ErrorResponse{
+			Error: "An internal server error occurred",
+		})
+	}
 }
