@@ -23,14 +23,16 @@ import (
 	"github.com/TicketsBot/common/permission"
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"
-	"log"
+	"go.uber.org/zap"
 	"time"
 )
 
-func StartServer(sm *livechat.SocketManager) {
-	log.Println("Starting HTTP server")
+func StartServer(logger *zap.Logger, sm *livechat.SocketManager) {
+	logger.Info("Starting HTTP server")
 
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(middleware.Logging(logger))
 
 	router.RemoteIPHeaders = config.Conf.Server.RealIpHeaders
 	if err := router.SetTrustedProxies(config.Conf.Server.TrustedProxies); err != nil {
@@ -39,10 +41,6 @@ func StartServer(sm *livechat.SocketManager) {
 
 	// Sessions
 	session.Store = session.NewRedisStore()
-
-	router.Use(gin.Recovery())
-	router.Use(middleware.MultiReadBody, middleware.ReadResponse)
-	router.Use(middleware.Logging(middleware.LevelError))
 
 	router.Use(rl(middleware.RateLimitTypeIp, 60, time.Minute))
 	router.Use(rl(middleware.RateLimitTypeIp, 20, time.Second*10))
@@ -57,7 +55,10 @@ func StartServer(sm *livechat.SocketManager) {
 		monitor.UseWithoutExposingEndpoint(router)
 		monitor.SetMetricPath("/metrics")
 
-		metricRouter := gin.Default()
+		metricRouter := gin.New()
+		metricRouter.Use(gin.Recovery())
+		metricRouter.Use(middleware.Logging(logger))
+		
 		monitor.Expose(metricRouter)
 
 		go func() {

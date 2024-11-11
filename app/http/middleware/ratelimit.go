@@ -38,7 +38,6 @@ func CreateRateLimiter(rlType RateLimitType, max int, period time.Duration) gin.
 		res, err := limiter.Allow(redis.DefaultContext(), name, limit)
 		if err != nil {
 			ctx.AbortWithStatusJSON(500, utils.ErrorJson(err))
-			Logging(LevelError)(ctx)
 			return
 		}
 

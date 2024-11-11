@@ -13,11 +13,14 @@ import (
 	"github.com/TicketsBot/archiverclient"
 	"github.com/TicketsBot/common/chatrelay"
 	"github.com/TicketsBot/common/model"
+	"github.com/TicketsBot/common/observability"
 	"github.com/TicketsBot/common/premium"
 	"github.com/TicketsBot/common/secureproxy"
 	"github.com/TicketsBot/worker/i18n"
 	"github.com/getsentry/sentry-go"
 	"github.com/rxdn/gdl/rest/request"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"net/http"
 	"net/http/pprof"
 )
@@ -25,27 +28,53 @@ import (
 func main() {
 	startPprof()
 
-	config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	utils.Must(err)
+	config.Conf = cfg
 
-	sentryOpts := sentry.ClientOptions{
-		Dsn:              config.Conf.SentryDsn,
-		Debug:            config.Conf.Debug,
-		AttachStacktrace: true,
-		EnableTracing:    true,
-		TracesSampleRate: 0.1,
+	if config.Conf.SentryDsn != nil {
+		sentryOpts := sentry.ClientOptions{
+			Dsn:              *config.Conf.SentryDsn,
+			Debug:            config.Conf.Debug,
+			AttachStacktrace: true,
+			EnableTracing:    true,
+			TracesSampleRate: 0.1,
+		}
+
+		if err := sentry.Init(sentryOpts); err != nil {
+			fmt.Printf("Failed to initialise sentry: %s", err.Error())
+		}
 	}
 
-	if err := sentry.Init(sentryOpts); err != nil {
-		fmt.Printf("Error initialising sentry: %s", err.Error())
+	var logger *zap.Logger
+	if config.Conf.JsonLogs {
+		loggerConfig := zap.NewProductionConfig()
+		loggerConfig.Level.SetLevel(config.Conf.LogLevel)
+
+		logger, err = loggerConfig.Build(
+			zap.AddCaller(),
+			zap.AddStacktrace(zap.ErrorLevel),
+			zap.WrapCore(observability.ZapSentryAdapter(observability.EnvironmentProduction)),
+		)
+	} else {
+		loggerConfig := zap.NewDevelopmentConfig()
+		loggerConfig.Level.SetLevel(config.Conf.LogLevel)
+		loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+		logger, err = loggerConfig.Build(zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))
 	}
 
-	fmt.Println("Connecting to database...")
+	if err != nil {
+		panic(fmt.Errorf("failed to initialise zap logger: %w", err))
+	}
+
+	logger.Info("Connecting to database")
 	database.ConnectToDatabase()
 
-	fmt.Println("Connecting to cache...")
+	logger.Info("Connecting to cache")
 	cache.Instance = cache.NewCache()
 
-	fmt.Println("Initialising microservice clients...")
+	logger.Info("Initialising microservice clients")
 	utils.ArchiverClient = archiverclient.NewArchiverClient(archiverclient.NewProxyRetriever(config.Conf.Bot.ObjectStore), []byte(config.Conf.Bot.AesKey))
 	utils.SecureProxyClient = secureproxy.NewSecureProxy(config.Conf.SecureProxyUrl)
 
@@ -57,7 +86,7 @@ func main() {
 		request.RegisterHook(utils.ProxyHook)
 	}
 
-	fmt.Println("Connecting to Redis...")
+	logger.Info("Connecting to Redis")
 	redis.Client = redis.NewRedisClient()
 
 	socketManager := livechat.NewSocketManager()
@@ -76,8 +105,8 @@ func main() {
 		rpc.PremiumClient = &c
 	}
 
-	fmt.Println("Starting server...")
-	app.StartServer(socketManager)
+	logger.Info("Starting server")
+	app.StartServer(logger, socketManager)
 }
 
 func ListenChat(client *redis.RedisClient, sm *livechat.SocketManager) {

@@ -1,87 +1,48 @@
 package middleware
 
 import (
-	"fmt"
-	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"runtime/debug"
-	"strconv"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"time"
 )
 
-type Level uint8
+func Logging(logger *zap.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		path := c.Request.URL.Path
+		raw := c.Request.URL.RawQuery
 
-const (
-	LevelDebug Level = iota
-	LevelInfo
-	LevelWarning
-	LevelError
-	LevelFatal
-)
+		// Process request
+		c.Next()
 
-func (l Level) sentryLevel() sentry.Level {
-	switch l {
-	case LevelDebug:
-		return sentry.LevelDebug
-	case LevelInfo:
-		return sentry.LevelInfo
-	case LevelWarning:
-		return sentry.LevelWarning
-	case LevelError:
-		return sentry.LevelError
-	case LevelFatal:
-		return sentry.LevelFatal
-	default:
-		return sentry.LevelDebug
-	}
-}
+		statusCode := c.Writer.Status()
 
-func Logging(minLevel Level) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Next()
-
-		statusCode := ctx.Writer.Status()
-
-		level := LevelInfo
+		level := zapcore.InfoLevel
 		if statusCode >= 500 {
-			level = LevelError
+			level = zapcore.ErrorLevel
 		} else if statusCode >= 400 {
-			level = LevelWarning
+			level = zapcore.WarnLevel
 		}
 
-		if level < minLevel {
-			return
+		fields := []zap.Field{
+			zap.String("method", c.Request.Method),
+			zap.String("path", path),
+			zap.String("query", raw),
+			zap.Int("status", c.Writer.Status()),
+			zap.String("timestamp", start.String()),
+			zap.Duration("latency", time.Now().Sub(start)),
+			zap.String("client_ip", c.ClientIP()),
 		}
 
-		requestBody, _ := ioutil.ReadAll(ctx.Request.Body)
-
-		var responseBody []byte
-		if statusCode >= 400 && statusCode <= 599 {
-			cw, ok := ctx.Writer.(*CustomWriter)
-			if ok {
-				responseBody = cw.Read()
-			}
+		if guildId, ok := c.Keys["guildid"]; ok {
+			fields = append(fields, zap.Uint64("guild_id", guildId.(uint64)))
 		}
 
-		sentry.CaptureEvent(&sentry.Event{
-			Extra: map[string]interface{}{
-				"status_code":  strconv.Itoa(statusCode),
-				"method":       ctx.Request.Method,
-				"path":         ctx.Request.URL.Path,
-				"query":        ctx.Request.URL.RawQuery,
-				"guild_id":     ctx.Keys["guildid"],
-				"user_id":      ctx.Keys["userid"],
-				"request_body": string(requestBody),
-				"response":     string(responseBody),
-				"stacktrace":   string(debug.Stack()),
-			},
-			Level:   level.sentryLevel(),
-			Message: fmt.Sprintf("HTTP %d on %s %s", statusCode, ctx.Request.Method, ctx.FullPath()),
-			Tags: map[string]string{
-				"status_code": strconv.Itoa(statusCode),
-				"method":      ctx.Request.Method,
-				"path":        ctx.Request.URL.Path,
-			},
-		})
+		if userId, ok := c.Keys["userid"]; ok {
+			fields = append(fields, zap.Uint64("user_id", userId.(uint64)))
+		}
+
+		logger.Log(level, "Incoming HTTP request", fields...)
 	}
 }
