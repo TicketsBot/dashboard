@@ -51,5 +51,5 @@ func ErrorHandler(c *gin.Context) {
 		return
 	}
 
-	c.Writer.Write(cw.buf.Bytes())
+	cw.ResponseWriter.Write(cw.buf.Bytes())
 }
