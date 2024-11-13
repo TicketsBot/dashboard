@@ -37,6 +37,11 @@
     };
 
     onMount(() => {
+        if (!window.localStorage.getItem('user_data') || !window.localStorage.getItem('guilds')) {
+            redirectLogin();
+            return;
+        }
+
         const retrieved = window.localStorage.getItem('user_data');
         if (retrieved) {
             userData = JSON.parse(retrieved);
