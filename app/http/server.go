@@ -80,8 +80,6 @@ func StartServer(logger *zap.Logger, sm *livechat.SocketManager) {
 
 	apiGroup := router.Group("/api", middleware.VerifyXTicketsHeader, middleware.AuthenticateToken, middleware.UpdateLastSeen)
 	{
-		apiGroup.GET("/session", api.SessionHandler)
-
 		{
 			integrationGroup := apiGroup.Group("/integrations")
 
