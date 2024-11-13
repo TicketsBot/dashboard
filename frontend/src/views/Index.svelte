@@ -1,4 +1,4 @@
-<div class="content" transition:fade>
+<div class="content">
   <div class="card-wrapper">
     <Card footer={false} fill={false}>
       <span slot="title">
@@ -34,7 +34,7 @@
     import Card from '../components/Card.svelte'
     import InviteBadge from '../components/InviteBadge.svelte'
     import Button from '../components/Button.svelte'
-    import {permissionLevelCache} from "../js/stores";
+    import {loadingScreen, permissionLevelCache} from "../js/stores";
 
     setDefaultHeaders();
 
@@ -58,7 +58,7 @@
         });
     }
 
-    withLoadingScreen(() => {});
+    loadingScreen.set(false);
 </script>
 
 <style>

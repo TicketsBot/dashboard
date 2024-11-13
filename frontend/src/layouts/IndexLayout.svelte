@@ -3,7 +3,10 @@
 <div class="wrapper">
   <Sidebar {userData} />
   <div class="super-container">
-    <LoadingScreen/>
+    <!-- TODO: Make this better :) -->
+    {#if currentRoute.component !== Index}
+      <LoadingScreen/>
+    {/if}
     <NotifyModal/>
     <div class="content-container" class:hide={$loadingScreen}>
       <Route {currentRoute} {params}/>
@@ -17,12 +20,10 @@
     import Sidebar from '../includes/Sidebar.svelte'
     import LoadingScreen from '../includes/LoadingScreen.svelte'
     import NotifyModal from '../includes/NotifyModal.svelte'
-    import axios from "axios";
-    import {API_URL} from '../js/constants'
-    import {notifyError} from '../js/util'
     import {loadingScreen} from "../js/stores"
     import {redirectLogin, setDefaultHeaders} from '../includes/Auth.svelte'
     import {onMount} from "svelte";
+    import Index from "../views/Index.svelte";
 
     export let currentRoute;
     export let params = {};
