@@ -43,6 +43,10 @@ func Logging(logger *zap.Logger) gin.HandlerFunc {
 			fields = append(fields, zap.Uint64("user_id", userId.(uint64)))
 		}
 
+		if len(c.Errors) > 0 {
+			fields = append(fields, zap.Any("errors", c.Errors.Errors()))
+		}
+
 		logger.Log(level, "Incoming HTTP request", fields...)
 	}
 }
