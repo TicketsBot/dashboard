@@ -36,6 +36,7 @@ func ErrorHandler(c *gin.Context) {
 			message = "An error occurred processing your request"
 		}
 
+		c.Writer = cw.ResponseWriter
 		c.JSON(-1, ErrorResponse{
 			Error: message,
 		})
@@ -44,6 +45,8 @@ func ErrorHandler(c *gin.Context) {
 	}
 
 	if c.Writer.Status() >= 500 {
+		c.Writer = cw.ResponseWriter
+
 		c.JSON(-1, ErrorResponse{
 			Error: "An internal server error occurred",
 		})

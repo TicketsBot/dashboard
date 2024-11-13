@@ -23,6 +23,10 @@
         }
 
         setToken(res.data.token);
+        window.localStorage.setItem('user_data', JSON.stringify(res.data.user_data));
+        if (res.data.guilds) {
+            window.localStorage.setItem('guilds', JSON.stringify(res.data.guilds));
+        }
 
         let path = '/';
 
@@ -33,6 +37,11 @@
                 if (path === '/callback') {
                     path = '/';
                 }
+
+                try {
+                    new URL(path);
+                    path = '/';
+                } catch (e) {}
             }
         } catch (e) {
             console.log(`Error parsing state: ${e}`)

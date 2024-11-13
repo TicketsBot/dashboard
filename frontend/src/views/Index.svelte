@@ -38,27 +38,7 @@
 
     setDefaultHeaders();
 
-    export let guilds = [];
-
-    async function loadData() {
-        const res = await axios.get(`${API_URL}/user/guilds`);
-        if (res.status !== 200) {
-            notifyError(res.data.error);
-            return;
-        }
-
-        guilds = res.data;
-
-        permissionLevelCache.update(cache => {
-            for (const guild of guilds) {
-                cache[guild.id] = {
-                    permission_level: guild.permission_level,
-                    last_updated: new Date(),
-                };
-            }
-            return cache;
-        })
-    }
+    let guilds = window.localStorage.getItem('guilds') ? JSON.parse(window.localStorage.getItem('guilds')) : [];
 
     async function refreshGuilds() {
         await withLoadingScreen(async () => {
@@ -73,13 +53,12 @@
                 return;
             }
 
-            await loadData();
+            guilds = res.data.guilds;
+            window.localStorage.setItem('guilds', JSON.stringify(guilds));
         });
     }
 
-    withLoadingScreen(async () => {
-        await loadData();
-    });
+    withLoadingScreen(() => {});
 </script>
 
 <style>

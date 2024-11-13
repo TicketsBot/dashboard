@@ -141,13 +141,13 @@
     }
 
     async function loadGuilds() {
-        const res = await axios.get(`${API_URL}/user/guilds`)
-        if (res.status !== 200) {
-            notifyError(`Failed to load guilds: ${res.data.error}`)
+        const fromLocalStorage = window.localStorage.getItem('guilds');
+        if (!fromLocalStorage) {
+            notifyError('Failed to load guilds from local storage.');
             return;
         }
 
-        guilds = [...guilds, ...res.data];
+        guilds = [...guilds, ...JSON.parse(fromLocalStorage)];
     }
 
     async function submitServers() {

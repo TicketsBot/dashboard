@@ -1,7 +1,7 @@
 <Head/>
 
 <div class="wrapper">
-  <Sidebar {name} {avatar} {isWhitelabel} {isAdmin} />
+  <Sidebar {userData} />
   <div class="super-container">
     <LoadingScreen/>
     <NotifyModal/>
@@ -22,36 +22,26 @@
     import {notifyError} from '../js/util'
     import {loadingScreen} from "../js/stores"
     import {redirectLogin, setDefaultHeaders} from '../includes/Auth.svelte'
+    import {onMount} from "svelte";
 
     export let currentRoute;
     export let params = {};
 
     setDefaultHeaders()
 
-    let name;
-    let avatar;
+    let userData = {
+        id: 0,
+        username: 'Unknown',
+        avatar: '',
+        admin: false
+    };
 
-    let isWhitelabel = false;
-    let isAdmin = false;
-
-    async function loadData() {
-        const res = await axios.get(`${API_URL}/api/session`);
-        if (res.status !== 200) {
-            if (res.data.auth === true) {
-                redirectLogin();
-            }
-
-            notifyError(res.data.error);
-            return;
+    onMount(() => {
+        const retrieved = window.localStorage.getItem('user_data');
+        if (retrieved) {
+            userData = JSON.parse(retrieved);
         }
-
-        name = res.data.username;
-        avatar = res.data.avatar;
-        isWhitelabel = res.data.whitelabel;
-        isAdmin = res.data.admin;
-    }
-
-    loadData();
+    });
 </script>
 
 <style>

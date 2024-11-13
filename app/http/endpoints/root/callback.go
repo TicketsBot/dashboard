@@ -2,54 +2,53 @@ package root
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/rxdn/gdl/rest"
+	"github.com/rxdn/gdl/rest/request"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
-type (
-	TokenData struct {
-		ClientId     string `qs:"client_id"`
-		ClientSecret string `qs:"client_secret"`
-		GrantType    string `qs:"grant_type"`
-		Code         string `qs:"code"`
-		RedirectUri  string `qs:"redirect_uri"`
-		Scope        string `qs:"scope"`
-	}
-
-	TokenResponse struct {
-		AccessToken  string `json:"access_token"`
-		TokenType    string `json:"token_type"`
-		ExpiresIn    int    `json:"expires_in"`
-		RefreshToken string `json:"refresh_token"`
-		Scope        string `json:"scope"`
-	}
-)
-
-func CallbackHandler(ctx *gin.Context) {
-	code, ok := ctx.GetQuery("code")
+func CallbackHandler(c *gin.Context) {
+	code, ok := c.GetQuery("code")
 	if !ok {
-		ctx.JSON(400, utils.ErrorStr("Discord provided invalid Oauth2 code"))
+		c.JSON(400, utils.ErrorStr("Missing code query parameter"))
 		return
 	}
 
-	res, err := discord.AccessToken(code)
+	res, err := rest.ExchangeCode(c, nil, config.Conf.Oauth.Id, config.Conf.Oauth.Secret, config.Conf.Oauth.RedirectUri, code)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		var oauthError request.OAuthError
+		if errors.As(err, &oauthError) {
+			if oauthError.ErrorCode == "invalid_grant" {
+				c.JSON(400, utils.ErrorStr("Invalid code: try logging in again"))
+				return
+			}
+		}
+
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+		return
+	}
+
+	scopes := strings.Split(res.Scope, " ")
+	if !utils.Contains(scopes, "identify") {
+		c.JSON(400, utils.ErrorStr("Missing identify scope"))
 		return
 	}
 
 	// Get ID + name
 	currentUser, err := rest.GetCurrentUser(context.Background(), fmt.Sprintf("Bearer %s", res.AccessToken), nil)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -62,31 +61,47 @@ func CallbackHandler(ctx *gin.Context) {
 		HasGuilds:    false,
 	}
 
-	if err := utils.LoadGuilds(res.AccessToken, currentUser.Id); err == nil {
+	var guilds []utils.GuildDto
+	if utils.Contains(scopes, "guilds") {
+		guilds, err = utils.LoadGuilds(c, res.AccessToken, currentUser.Id)
+		if err != nil {
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+			return
+		}
+
 		store.HasGuilds = true
-	} else {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userid":    strconv.FormatUint(currentUser.Id, 10),
-		"timestamp": time.Now(),
+		"userid": strconv.FormatUint(currentUser.Id, 10),
+		"sub":    strconv.FormatUint(currentUser.Id, 10),
+		"iat":    time.Now().Unix(),
 	})
 
 	str, err := token.SignedString([]byte(config.Conf.Server.Secret))
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	if err := session.Store.Set(currentUser.Id, store); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	resMap := gin.H{
 		"success": true,
 		"token":   str,
-	})
+		"user_data": gin.H{
+			"id":       strconv.FormatUint(currentUser.Id, 10),
+			"username": currentUser.Username,
+			"avatar":   currentUser.Avatar,
+			"admin":    utils.Contains(config.Conf.Admins, currentUser.Id),
+		},
+	}
+	if len(guilds) > 0 {
+		resMap["guilds"] = guilds
+	}
+
+	c.JSON(http.StatusOK, resMap)
 }

@@ -196,7 +196,6 @@ func StartServer(logger *zap.Logger, sm *livechat.SocketManager) {
 
 	userGroup := router.Group("/user", middleware.AuthenticateToken, middleware.UpdateLastSeen)
 	{
-		userGroup.GET("/guilds", api.GetGuilds)
 		userGroup.POST("/guilds/reload", api.ReloadGuildsHandler)
 		userGroup.GET("/permissionlevel", api.GetPermissionLevel)
 

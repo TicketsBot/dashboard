@@ -1,30 +1,34 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"github.com/TicketsBot/GoPanel/app/http/session"
+	"github.com/TicketsBot/GoPanel/config"
 	"github.com/TicketsBot/GoPanel/redis"
 	wrapper "github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
-	"github.com/TicketsBot/GoPanel/utils/discord"
 	"github.com/gin-gonic/gin"
+	"github.com/rxdn/gdl/rest"
+	"github.com/rxdn/gdl/rest/request"
+	"net/http"
 	"time"
 )
 
-func ReloadGuildsHandler(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
+func ReloadGuildsHandler(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
 
 	key := fmt.Sprintf("tickets:dashboard:guildreload:%d", userId)
 	res, err := redis.Client.SetNX(wrapper.DefaultContext(), key, 1, time.Second*10).Result()
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	if !res {
 		ttl, err := redis.Client.TTL(wrapper.DefaultContext(), key).Result()
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			c.JSON(500, utils.ErrorJson(err))
 			return
 		}
 
@@ -33,19 +37,19 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 			ttl = 0
 		}
 
-		ctx.JSON(429, utils.ErrorStr("You're doing this too quickly: try again in %d seconds", int(ttl.Seconds())))
+		c.JSON(429, utils.ErrorStr("You're doing this too quickly: try again in %d seconds", int(ttl.Seconds())))
 		return
 	}
 
 	store, err := session.Store.Get(userId)
 	if err != nil {
 		if err == session.ErrNoSession {
-			ctx.JSON(401, gin.H{
+			c.JSON(401, gin.H{
 				"success": false,
 				"auth":    true,
 			})
 		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 		}
 
 		return
@@ -53,9 +57,9 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 
 	// What does this do?
 	if store.Expiry > time.Now().Unix() {
-		res, err := discord.RefreshToken(store.RefreshToken)
+		res, err := rest.RefreshToken(c, nil, config.Conf.Oauth.Id, config.Conf.Oauth.Secret, store.RefreshToken)
 		if err != nil { // Tell client to re-authenticate
-			ctx.JSON(200, gin.H{
+			c.JSON(200, gin.H{
 				"success":                 false,
 				"reauthenticate_required": true,
 			})
@@ -67,20 +71,31 @@ func ReloadGuildsHandler(ctx *gin.Context) {
 		store.Expiry = time.Now().Unix() + int64(res.ExpiresIn)
 
 		if err := session.Store.Set(userId, store); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, err)
 			return
 		}
 	}
 
-	if err := utils.LoadGuilds(store.AccessToken, userId); err != nil {
-		// TODO: Log to sentry
-		// Tell client to reauth, needs a 200 or client will display error
-		ctx.JSON(200, gin.H{
-			"success":                 false,
-			"reauthenticate_required": true,
-		})
+	guilds, err := utils.LoadGuilds(c, store.AccessToken, userId)
+	if err != nil {
+		var oauthError request.OAuthError
+		if errors.As(err, &oauthError) {
+			if oauthError.ErrorCode == "invalid_grant" {
+				// Tell client to reauth, needs a 200 or client will display error
+				c.JSON(http.StatusOK, gin.H{
+					"success":                 false,
+					"reauthenticate_required": true,
+				})
+				return
+			}
+		}
+
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	c.JSON(200, gin.H{
+		"success": true,
+		"guilds":  guilds,
+	})
 }

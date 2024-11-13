@@ -18,7 +18,7 @@
           <tbody>
           {#each staff as user}
             <tr>
-              <td>{user.username}#{user.discriminator} ({user.id})</td>
+              <td>{user.username} ({user.id})</td>
               <td>
                 <Button type="button" danger on:click={() => removeStaff(user.id)}>
                   Delete

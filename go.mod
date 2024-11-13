@@ -8,7 +8,7 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/TicketsBot/archiverclient v0.0.0-20241012221057-16a920bfb454
 	github.com/TicketsBot/common v0.0.0-20241104184641-e39c64bdcf3e
-	github.com/TicketsBot/database v0.0.0-20241110235041-04a08e1a42a4
+	github.com/TicketsBot/database v0.0.0-20241113215509-c84281e50a7e
 	github.com/TicketsBot/logarchiver v0.0.0-20241012220745-5f3ba17a5138
 	github.com/TicketsBot/worker v0.0.0-20241110222533-ba74e19de868
 	github.com/apex/log v1.1.2
@@ -29,7 +29,7 @@ require (
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/rxdn/gdl v0.0.0-20241027214923-02dff700595b
+	github.com/rxdn/gdl v0.0.0-20241113224447-d578afa35bd3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/weppos/publicsuffix-go v0.20.0

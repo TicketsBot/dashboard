@@ -1,6 +1,6 @@
 <script context="module">
     import axios from 'axios';
-    import {API_URL, OAUTH} from "../js/constants";
+    import {OAUTH} from "../js/constants";
 
     const _tokenKey = 'token';
 
@@ -31,17 +31,19 @@
         axios.defaults.headers.common['Authorization'] = getToken();
         axios.defaults.headers.common['x-tickets'] = 'true'; // arbitrary header name and value
         axios.defaults.validateStatus = (s) => true;
+
+        addRefreshInterceptor();
     }
 
     function addRefreshInterceptor() {
         axios.interceptors.response.use(async (res) => { // we set validateStatus to false
             if (res.status === 401) {
-                await _refreshToken();
+                redirectLogin();
             }
             return res;
         }, async (err) => {
             if (err.response.status === 401) {
-                await _refreshToken();
+                redirectLogin();
             }
             return err.response;
         });

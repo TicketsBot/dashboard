@@ -1,11 +1,17 @@
 <script>
     import {Navigate} from 'svelte-router-spa'
+    import {getAvatarUrl, getDefaultIcon} from "../js/icons";
 
-    export let name;
-    export let avatar;
+    export let userData;
 
-    export let isWhitelabel = false;
-    export let isAdmin = false;
+    let hasFailed = false;
+    function handleAvatarLoadError(e, userId) {
+        if (!hasFailed) {
+            hasFailed = true;
+            e.target.src = getDefaultIcon(userId);
+        }
+    }
+
 </script>
 
 <div class="sidebar">
@@ -17,22 +23,13 @@
           <span class="sidebar-text">Servers</span>
         </div>
       </Navigate>
-      {#if isWhitelabel}
-        <Navigate to="/whitelabel" styles="sidebar-link">
-          <div class="sidebar-element">
-            <i class="fas fa-edit sidebar-icon"></i>
-            <span class="sidebar-text">Whitelabel</span>
-          </div>
-        </Navigate>
-      {:else}
-        <a href="https://ticketsbot.net/premium" class="sidebar-link">
-          <div class="sidebar-element">
-            <i class="fas fa-edit sidebar-icon"></i>
-            <span class="sidebar-text">Whitelabel</span>
-          </div>
-        </a>
-      {/if}
-      {#if isAdmin}
+      <Navigate to="/whitelabel" styles="sidebar-link">
+        <div class="sidebar-element">
+          <i class="fas fa-edit sidebar-icon"></i>
+          <span class="sidebar-text">Whitelabel</span>
+        </div>
+      </Navigate>
+      {#if userData.admin}
         <Navigate to="/admin/bot-staff" styles="sidebar-link">
           <div class="sidebar-element">
             <i class="fa-solid fa-user-secret sidebar-icon"></i>
@@ -51,10 +48,10 @@
     </div>
     <div class="sidebar-element user-element">
       <a class="sidebar-link">
-        <i id="avatar-sidebar" style="background: url('{avatar}') center center;"></i>
-        {#if name !== undefined}
-          <span class="sidebar-text">{name}</span>
-        {/if}
+        <img class="avatar" src={getAvatarUrl(userData.id, userData.avatar)}
+          on:error={(e) => handleAvatarLoadError(e, userData.id)} alt="Avatar"/>
+
+        <span class="sidebar-text">{userData.username}</span>
       </a>
     </div>
   </div>
@@ -133,7 +130,7 @@
         margin: 0 !important
     }
 
-    #avatar-sidebar {
+    .avatar {
         width: 32px;
         height: 32px;
         display: block;

@@ -23,37 +23,24 @@
     import {loadingScreen} from "../js/stores"
     import {redirectLogin, setDefaultHeaders} from '../includes/Auth.svelte'
     import AdminSidebar from "../includes/AdminSidebar.svelte";
+    import {onMount} from "svelte";
 
     export let currentRoute;
     export let params = {};
 
-    setDefaultHeaders()
+    setDefaultHeaders();
 
-    let name;
-    let avatar;
-
-    let isWhitelabel = false;
-    let isAdmin = false;
-
-    async function loadData() {
-        const res = await axios.get(`${API_URL}/api/session`);
-        if (res.status !== 200) {
-            if (res.data.auth === true) {
-                redirectLogin();
+    onMount(() => {
+        let isAdmin = false;
+        try {
+            const userData = JSON.parse(window.localStorage.getItem('user_data'));
+            isAdmin = userData.admin;
+        } finally {
+            if (!isAdmin) {
+                navigateTo(`/`);
             }
-
-            notifyError(res.data.error);
-            return;
         }
-
-        isAdmin = res.data.admin;
-
-        if (!isAdmin) {
-            navigateTo(`/`);
-        }
-    }
-
-    loadData();
+    });
 </script>
 
 <style>
