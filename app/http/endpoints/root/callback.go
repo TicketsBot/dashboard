@@ -80,12 +80,12 @@ func CallbackHandler(c *gin.Context) {
 
 	str, err := token.SignedString([]byte(config.Conf.Server.Secret))
 	if err != nil {
-		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if err := session.Store.Set(currentUser.Id, store); err != nil {
-		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
