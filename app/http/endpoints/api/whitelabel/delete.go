@@ -1,20 +1,29 @@
 package api
 
 import (
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
+	"github.com/TicketsBot/GoPanel/redis"
+	"github.com/TicketsBot/common/whitelabeldelete"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func WhitelabelDelete(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
+func WhitelabelDelete(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
 
 	// Check if this is a different token
-	if err := database.Client.Whitelabel.Delete(ctx, userId); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+	botId, err := database.Client.Whitelabel.Delete(c, userId)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
+	if botId != nil {
+		// TODO: Kafka
+		go whitelabeldelete.Publish(redis.Client.Client, *botId)
+
+	}
+
+	c.Status(http.StatusNoContent)
 }

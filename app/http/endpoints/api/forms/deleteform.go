@@ -1,41 +1,43 @@
 package forms
 
 import (
+	"github.com/TicketsBot/GoPanel/app"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
-func DeleteForm(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func DeleteForm(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
-	formId, err := strconv.Atoi(ctx.Param("form_id"))
+	formId, err := strconv.Atoi(c.Param("form_id"))
 	if err != nil {
-		ctx.JSON(400, utils.ErrorStr("Invalid form ID"))
+		c.JSON(400, utils.ErrorStr("Invalid form ID"))
 		return
 	}
 
-	form, ok, err := dbclient.Client.Forms.Get(ctx, formId)
+	form, ok, err := dbclient.Client.Forms.Get(c, formId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if !ok {
-		ctx.JSON(404, utils.ErrorStr("Form not found"))
+		c.JSON(404, utils.ErrorStr("Form not found"))
 		return
 	}
 
 	if form.GuildId != guildId {
-		ctx.JSON(403, utils.ErrorStr("Form does not belong to this guild"))
+		c.JSON(403, utils.ErrorStr("Form does not belong to this guild"))
 		return
 	}
 
-	if err := dbclient.Client.Forms.Delete(ctx, formId); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+	if err := dbclient.Client.Forms.Delete(c, formId); err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	c.JSON(200, utils.SuccessResponse)
 }

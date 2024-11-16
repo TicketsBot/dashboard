@@ -18,6 +18,7 @@ import (
 	"github.com/rxdn/gdl/objects/guild/emoji"
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest/request"
+	"net/http"
 	"strconv"
 )
 
@@ -70,14 +71,14 @@ func CreatePanel(c *gin.Context) {
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		c.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	var data panelBody
 
 	if err := c.BindJSON(&data); err != nil {
-		c.JSON(400, utils.ErrorJson(err))
+		c.JSON(400, utils.ErrorStr("Invalid request body"))
 		return
 	}
 
@@ -86,14 +87,14 @@ func CreatePanel(c *gin.Context) {
 	// Check panel quota
 	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c, guildId, false, botContext.Token, botContext.RateLimiter)
 	if err != nil {
-		c.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if premiumTier == premium.None {
 		panels, err := dbclient.Client.Panel.GetByGuild(c, guildId)
 		if err != nil {
-			c.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
@@ -111,13 +112,13 @@ func CreatePanel(c *gin.Context) {
 
 	channels, err := botContext.GetGuildChannels(ctx, guildId)
 	if err != nil {
-		c.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	roles, err := botContext.GetGuildRoles(ctx, guildId)
 	if err != nil {
-		c.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -136,7 +137,7 @@ func CreatePanel(c *gin.Context) {
 		if errors.As(err, &validationError) {
 			c.JSON(400, utils.ErrorStr(validationError.Error()))
 		} else {
-			c.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		}
 
 		return
@@ -157,7 +158,7 @@ func CreatePanel(c *gin.Context) {
 
 	customId, err := utils.RandString(30)
 	if err != nil {
-		c.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -165,11 +166,14 @@ func CreatePanel(c *gin.Context) {
 	msgId, err := messageData.send(botContext)
 	if err != nil {
 		var unwrapped request.RestError
-		if errors.As(err, &unwrapped) && unwrapped.StatusCode == 403 {
-			c.JSON(500, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+		if errors.As(err, &unwrapped) {
+			if unwrapped.StatusCode == http.StatusForbidden {
+				c.JSON(400, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+			} else {
+				c.JSON(400, utils.ErrorStr("Error sending panel message: "+unwrapped.ApiError.Message))
+			}
 		} else {
-			// TODO: Most appropriate error?
-			c.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		}
 
 		return
@@ -196,7 +200,7 @@ func CreatePanel(c *gin.Context) {
 
 		id, err := dbclient.Client.Embeds.CreateWithFields(c, embed, fields)
 		if err != nil {
-			c.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
@@ -256,7 +260,7 @@ func CreatePanel(c *gin.Context) {
 
 	panelId, err := storePanel(c, panel, createOptions)
 	if err != nil {
-		c.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 

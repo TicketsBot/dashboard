@@ -2,13 +2,16 @@ package forms
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/rxdn/gdl/objects/interaction/component"
+	"net/http"
 	"sort"
 	"strconv"
 )
@@ -38,66 +41,66 @@ type (
 
 var validate = validator.New()
 
-func UpdateInputs(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func UpdateInputs(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
-	formId, err := strconv.Atoi(ctx.Param("form_id"))
+	formId, err := strconv.Atoi(c.Param("form_id"))
 	if err != nil {
-		ctx.JSON(400, utils.ErrorStr("Invalid form ID"))
+		c.JSON(400, utils.ErrorStr("Invalid form ID"))
 		return
 	}
 
 	var data updateInputsBody
-	if err := ctx.BindJSON(&data); err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	if err := validate.Struct(data); err != nil {
-		validationErrors, ok := err.(validator.ValidationErrors)
-		if !ok {
-			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the integration"))
+		var validationErrors validator.ValidationErrors
+		if !errors.As(err, &validationErrors) {
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewError(err, "An error occurred while validating the integration"))
 			return
 		}
 
 		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
-		ctx.JSON(400, utils.ErrorStr(formatted))
+		c.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
 	fieldCount := len(data.Create) + len(data.Update)
 	if fieldCount <= 0 || fieldCount > 5 {
-		ctx.JSON(400, utils.ErrorStr("Forms must have between 1 and 5 inputs"))
+		c.JSON(400, utils.ErrorStr("Forms must have between 1 and 5 inputs"))
 		return
 	}
 
 	// Verify form exists and is from the right guild
-	form, ok, err := dbclient.Client.Forms.Get(ctx, formId)
+	form, ok, err := dbclient.Client.Forms.Get(c, formId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if !ok {
-		ctx.JSON(404, utils.ErrorStr("Form not found"))
+		c.JSON(404, utils.ErrorStr("Form not found"))
 		return
 	}
 
 	if form.GuildId != guildId {
-		ctx.JSON(403, utils.ErrorStr("Form does not belong to this guild"))
+		c.JSON(403, utils.ErrorStr("Form does not belong to this guild"))
 		return
 	}
 
-	existingInputs, err := dbclient.Client.FormInput.GetInputs(ctx, formId)
+	existingInputs, err := dbclient.Client.FormInput.GetInputs(c, formId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// Verify that the UPDATE inputs exist
 	for _, input := range data.Update {
 		if !utils.ExistsMap(existingInputs, input.Id, idMapper) {
-			ctx.JSON(400, utils.ErrorStr("Input (to be updated) not found"))
+			c.JSON(400, utils.ErrorStr("Input (to be updated) not found"))
 			return
 		}
 	}
@@ -105,7 +108,7 @@ func UpdateInputs(ctx *gin.Context) {
 	// Verify that the DELETE inputs exist
 	for _, id := range data.Delete {
 		if !utils.ExistsMap(existingInputs, id, idMapper) {
-			ctx.JSON(400, utils.ErrorStr("Input (to be deleted) not found"))
+			c.JSON(400, utils.ErrorStr("Input (to be deleted) not found"))
 			return
 		}
 	}
@@ -113,7 +116,7 @@ func UpdateInputs(ctx *gin.Context) {
 	// Ensure no overlap between DELETE and UPDATE
 	for _, id := range data.Delete {
 		if utils.ExistsMap(data.Update, id, idMapperBody) {
-			ctx.JSON(400, utils.ErrorStr("Delete and update overlap"))
+			c.JSON(400, utils.ErrorStr("Delete and update overlap"))
 			return
 		}
 	}
@@ -128,29 +131,29 @@ func UpdateInputs(ctx *gin.Context) {
 
 	// Now verify that the contents match exactly
 	if len(remainingExisting) != len(data.Update) {
-		ctx.JSON(400, utils.ErrorStr("All inputs must be included in the update array"))
+		c.JSON(400, utils.ErrorStr("All inputs must be included in the update array"))
 		return
 	}
 
 	for _, input := range data.Update {
 		if !utils.Exists(remainingExisting, input.Id) {
-			ctx.JSON(400, utils.ErrorStr("All inputs must be included in the update array"))
+			c.JSON(400, utils.ErrorStr("All inputs must be included in the update array"))
 			return
 		}
 	}
 
 	// Verify that the positions are unique, and are in ascending order
 	if !arePositionsCorrect(data) {
-		ctx.JSON(400, utils.ErrorStr("Positions must be unique and in ascending order"))
+		c.JSON(400, utils.ErrorStr("Positions must be unique and in ascending order"))
 		return
 	}
 
-	if err := saveInputs(ctx, formId, data, existingInputs); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+	if err := saveInputs(c, formId, data, existingInputs); err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.Status(204)
+	c.Status(204)
 }
 
 func idMapper(input database.FormInput) int {

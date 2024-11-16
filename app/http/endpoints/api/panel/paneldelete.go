@@ -1,8 +1,8 @@
 package api
 
 import (
-	"context"
 	"errors"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -11,74 +11,75 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
+	"net/http"
 	"strconv"
 )
 
-func DeletePanel(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func DeletePanel(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	panelId, err := strconv.Atoi(ctx.Param("panelid"))
+	panelId, err := strconv.Atoi(c.Param("panelid"))
 	if err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+		c.JSON(400, utils.ErrorStr("Missing panel ID"))
 		return
 	}
 
-	panel, err := database.Client.Panel.GetById(ctx, panelId)
+	panel, err := database.Client.Panel.GetById(c, panelId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if panel.PanelId == 0 {
-		ctx.JSON(404, utils.ErrorStr("Panel not found"))
+		c.JSON(404, utils.ErrorStr("Panel not found"))
 		return
 	}
 
 	// verify panel belongs to guild
 	if panel.GuildId != guildId {
-		ctx.JSON(403, utils.ErrorStr("Guild ID doesn't match"))
+		c.JSON(403, utils.ErrorStr("Guild ID doesn't match"))
 		return
 	}
 
 	// Get any multi panels this panel is part of to use later
-	multiPanels, err := database.Client.MultiPanelTargets.GetMultiPanels(ctx, panelId)
+	multiPanels, err := database.Client.MultiPanelTargets.GetMultiPanels(c, panelId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// Delete welcome message embed
 	if panel.WelcomeMessageEmbed != nil {
-		if err := database.Client.Embeds.Delete(ctx, *panel.WelcomeMessageEmbed); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+		if err := database.Client.Embeds.Delete(c, *panel.WelcomeMessageEmbed); err != nil {
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 	}
 
-	if err := database.Client.Panel.Delete(ctx, panelId); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+	if err := database.Client.Panel.Delete(c, panelId); err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	// TODO: Use proper context
-	if err := rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
+	// TODO: Set timeout on context
+	if err := rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
 		var unwrapped request.RestError
 		if !errors.As(err, &unwrapped) || unwrapped.StatusCode != 404 {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 	}
 
 	// Get premium tier
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -89,9 +90,9 @@ func DeletePanel(ctx *gin.Context) {
 			break
 		}
 
-		panels, err := database.Client.MultiPanelTargets.GetPanels(ctx, multiPanel.Id)
+		panels, err := database.Client.MultiPanelTargets.GetPanels(c, multiPanel.Id)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
@@ -99,19 +100,19 @@ func DeletePanel(ctx *gin.Context) {
 
 		messageId, err := messageData.send(botContext, panels)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
-		if err := database.Client.MultiPanels.UpdateMessageId(ctx, multiPanel.Id, messageId); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+		if err := database.Client.MultiPanels.UpdateMessageId(c, multiPanel.Id, messageId); err != nil {
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
 		// Delete old panel
 		// TODO: Use proper context
-		_ = rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
+		_ = rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	c.JSON(200, utils.SuccessResponse)
 }

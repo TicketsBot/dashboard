@@ -2,55 +2,48 @@ package api
 
 import (
 	"context"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
+	"net/http"
 )
 
 type whitelabelResponse struct {
-	Id        uint64 `json:"id,string"`
-	PublicKey string `json:"public_key"`
-	Username  string `json:"username"`
+	Id       uint64 `json:"id,string"`
+	Username string `json:"username"`
 	statusUpdateBody
 }
 
-func WhitelabelGet(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
+func WhitelabelGet(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
 
 	// Check if this is a different token
-	bot, err := database.Client.Whitelabel.GetByUserId(ctx, userId)
+	bot, err := database.Client.Whitelabel.GetByUserId(c, userId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if bot.BotId == 0 {
-		ctx.JSON(404, utils.ErrorStr("No bot found"))
-		return
-	}
-
-	// Get public key
-	publicKey, err := database.Client.WhitelabelKeys.Get(ctx, bot.BotId)
-	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(404, utils.ErrorStr("No bot found"))
 		return
 	}
 
 	// Get status
-	status, statusType, _, err := database.Client.WhitelabelStatuses.Get(ctx, bot.BotId)
+	status, statusType, _, err := database.Client.WhitelabelStatuses.Get(c, bot.BotId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	username := getBotUsername(context.Background(), bot.Token)
+	username := getBotUsername(c, bot.Token)
 
-	ctx.JSON(200, whitelabelResponse{
-		Id:        bot.BotId,
-		PublicKey: publicKey,
-		Username:  username,
+	c.JSON(200, whitelabelResponse{
+		Id:       bot.BotId,
+		Username: username,
 		statusUpdateBody: statusUpdateBody{ // Zero values if no status is fine
 			Status:     status,
 			StatusType: user.ActivityType(statusType),

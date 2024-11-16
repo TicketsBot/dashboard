@@ -1,10 +1,11 @@
 package forms
 
 import (
+	"github.com/TicketsBot/GoPanel/app"
 	dbclient "github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/database"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type embeddedForm struct {
@@ -12,18 +13,18 @@ type embeddedForm struct {
 	Inputs []database.FormInput `json:"inputs"`
 }
 
-func GetForms(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func GetForms(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
-	forms, err := dbclient.Client.Forms.GetForms(ctx, guildId)
+	forms, err := dbclient.Client.Forms.GetForms(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	inputs, err := dbclient.Client.FormInput.GetInputsForGuild(ctx, guildId)
+	inputs, err := dbclient.Client.FormInput.GetInputsForGuild(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -40,5 +41,5 @@ func GetForms(ctx *gin.Context) {
 		}
 	}
 
-	ctx.JSON(200, data)
+	c.JSON(200, data)
 }

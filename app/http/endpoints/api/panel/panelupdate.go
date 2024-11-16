@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/app/http/validation"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
@@ -16,68 +17,69 @@ import (
 	"github.com/rxdn/gdl/objects/interaction/component"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
+	"net/http"
 	"strconv"
 )
 
-func UpdatePanel(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func UpdatePanel(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	var data panelBody
-	if err := ctx.BindJSON(&data); err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+	if err := c.BindJSON(&data); err != nil {
+		c.JSON(400, utils.ErrorStr("Invalid request body"))
 		return
 	}
 
-	panelId, err := strconv.Atoi(ctx.Param("panelid"))
+	panelId, err := strconv.Atoi(c.Param("panelid"))
 	if err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+		c.JSON(400, utils.ErrorStr("Missing panel ID"))
 		return
 	}
 
 	// get existing
-	existing, err := dbclient.Client.Panel.GetById(ctx, panelId)
+	existing, err := dbclient.Client.Panel.GetById(c, panelId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// check guild ID matches
 	if existing.GuildId != guildId {
-		ctx.JSON(400, utils.ErrorStr("Guild ID does not match"))
+		c.JSON(400, utils.ErrorStr("Guild ID does not match"))
 		return
 	}
 
 	if existing.ForceDisabled {
-		ctx.JSON(400, utils.ErrorStr("This panel is disabled and cannot be modified: please reactivate premium to re-enable it"))
+		c.JSON(400, utils.ErrorStr("This panel is disabled and cannot be modified: please reactivate premium to re-enable it"))
 		return
 	}
 
 	// Apply defaults
 	ApplyPanelDefaults(&data)
 
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// TODO: Use proper context
 	channels, err := botContext.GetGuildChannels(context.Background(), guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// TODO: Use proper context
 	roles, err := botContext.GetGuildRoles(context.Background(), guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		c.JSON(500, utils.ErrorJson(err))
 		return
 	}
 
@@ -94,9 +96,9 @@ func UpdatePanel(ctx *gin.Context) {
 	if err := ValidatePanelBody(validationContext); err != nil {
 		var validationError *validation.InvalidInputError
 		if errors.As(err, &validationError) {
-			ctx.JSON(400, utils.ErrorStr(validationError.Error()))
+			c.JSON(400, utils.ErrorStr(validationError.Error()))
 		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		}
 
 		return
@@ -104,14 +106,14 @@ func UpdatePanel(ctx *gin.Context) {
 
 	// Do tag validation
 	if err := validate.Struct(data); err != nil {
-		validationErrors, ok := err.(validator.ValidationErrors)
-		if !ok {
-			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+		var validationErrors validator.ValidationErrors
+		if !errors.As(err, &validationErrors) {
+			c.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
 			return
 		}
 
 		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
-		ctx.JSON(400, utils.ErrorStr(formatted))
+		c.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
@@ -146,7 +148,7 @@ func UpdatePanel(ctx *gin.Context) {
 	if shouldUpdateMessage {
 		// delete old message, ignoring error
 		// TODO: Use proper context
-		_ = rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
+		_ = rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, existing.ChannelId, existing.MessageId)
 
 		messageData := data.IntoPanelMessageData(existing.CustomId, premiumTier > premium.None)
 		newMessageId, err = messageData.send(botContext)
@@ -154,16 +156,17 @@ func UpdatePanel(ctx *gin.Context) {
 			var unwrapped request.RestError
 			if errors.As(err, &unwrapped) {
 				if unwrapped.StatusCode == 403 {
-					ctx.JSON(403, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+					c.JSON(403, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
 					return
 				} else if unwrapped.StatusCode == 404 {
 					// Swallow error
 					// TODO: Make channel_id column nullable, and set to null
 				} else {
-					ctx.JSON(500, utils.ErrorJson(err))
+					_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+					return
 				}
 			} else {
-				ctx.JSON(500, utils.ErrorJson(err))
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 				return
 			}
 		}
@@ -173,8 +176,8 @@ func UpdatePanel(ctx *gin.Context) {
 	var welcomeMessageEmbed *int
 	if data.WelcomeMessage == nil {
 		if existing.WelcomeMessageEmbed != nil { // If welcome message wasn't null, but now is, delete the embed
-			if err := dbclient.Client.Embeds.Delete(ctx, *existing.WelcomeMessageEmbed); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
+			if err := dbclient.Client.Embeds.Delete(c, *existing.WelcomeMessageEmbed); err != nil {
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 				return
 			}
 		} // else, welcomeMessageEmbed will be nil
@@ -184,9 +187,9 @@ func UpdatePanel(ctx *gin.Context) {
 			embed, fields := data.WelcomeMessage.IntoDatabaseStruct()
 			embed.GuildId = guildId
 
-			id, err := dbclient.Client.Embeds.CreateWithFields(ctx, embed, fields)
+			id, err := dbclient.Client.Embeds.CreateWithFields(c, embed, fields)
 			if err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 				return
 			}
 
@@ -198,8 +201,8 @@ func UpdatePanel(ctx *gin.Context) {
 			embed.Id = *existing.WelcomeMessageEmbed
 			embed.GuildId = guildId
 
-			if err := dbclient.Client.Embeds.UpdateWithFields(ctx, embed, fields); err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
+			if err := dbclient.Client.Embeds.UpdateWithFields(c, embed, fields); err != nil {
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 				return
 			}
 		}
@@ -243,7 +246,7 @@ func UpdatePanel(ctx *gin.Context) {
 		} else {
 			roleId, err := strconv.ParseUint(mention, 10, 64)
 			if err != nil {
-				ctx.JSON(500, utils.ErrorJson(err))
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 				return
 			}
 
@@ -253,25 +256,25 @@ func UpdatePanel(ctx *gin.Context) {
 		}
 	}
 
-	err = dbclient.Client.Panel.BeginFunc(ctx, func(tx pgx.Tx) error {
-		if err := dbclient.Client.Panel.UpdateWithTx(ctx, tx, panel); err != nil {
+	err = dbclient.Client.Panel.BeginFunc(c, func(tx pgx.Tx) error {
+		if err := dbclient.Client.Panel.UpdateWithTx(c, tx, panel); err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelUserMention.SetWithTx(ctx, tx, panel.PanelId, shouldMentionUser); err != nil {
+		if err := dbclient.Client.PanelUserMention.SetWithTx(c, tx, panel.PanelId, shouldMentionUser); err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(ctx, tx, panel.PanelId, roleMentions); err != nil {
+		if err := dbclient.Client.PanelRoleMentions.ReplaceWithTx(c, tx, panel.PanelId, roleMentions); err != nil {
 			return err
 		}
 
 		// We are safe to insert, team IDs already validated
-		if err := dbclient.Client.PanelTeams.ReplaceWithTx(ctx, tx, panel.PanelId, data.Teams); err != nil {
+		if err := dbclient.Client.PanelTeams.ReplaceWithTx(c, tx, panel.PanelId, data.Teams); err != nil {
 			return err
 		}
 
-		if err := dbclient.Client.PanelAccessControlRules.ReplaceWithTx(ctx, tx, panel.PanelId, data.AccessControlList); err != nil {
+		if err := dbclient.Client.PanelAccessControlRules.ReplaceWithTx(c, tx, panel.PanelId, data.AccessControlList); err != nil {
 			return err
 		}
 
@@ -279,7 +282,7 @@ func UpdatePanel(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -288,9 +291,9 @@ func UpdatePanel(ctx *gin.Context) {
 
 	// check if this will break a multi-panel;
 	// first, get any multipanels this panel belongs to
-	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(ctx, existing.PanelId)
+	multiPanels, err := dbclient.Client.MultiPanelTargets.GetMultiPanels(c, existing.PanelId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -300,9 +303,9 @@ func UpdatePanel(ctx *gin.Context) {
 			break
 		}
 
-		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(ctx, multiPanel.Id)
+		panels, err := dbclient.Client.MultiPanelTargets.GetPanels(c, multiPanel.Id)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
@@ -310,19 +313,29 @@ func UpdatePanel(ctx *gin.Context) {
 
 		messageId, err := messageData.send(botContext, panels)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			var unwrapped request.RestError
+			if errors.As(err, &unwrapped) {
+				if unwrapped.StatusCode == http.StatusForbidden {
+					c.JSON(400, utils.ErrorStr("I do not have permission to send messages in the specified channel"))
+				} else {
+					c.JSON(400, utils.ErrorStr("Error sending panel message: "+unwrapped.ApiError.Message))
+				}
+			} else {
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+			}
+
 			return
 		}
 
-		if err := dbclient.Client.MultiPanels.UpdateMessageId(ctx, multiPanel.Id, messageId); err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+		if err := dbclient.Client.MultiPanels.UpdateMessageId(c, multiPanel.Id, messageId); err != nil {
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
 		// Delete old panel
 		// TODO: Use proper context
-		_ = rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
+		_ = rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	c.JSON(200, utils.SuccessResponse)
 }

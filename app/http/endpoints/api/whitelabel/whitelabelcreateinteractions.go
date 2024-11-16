@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
@@ -11,6 +12,7 @@ import (
 	"github.com/TicketsBot/worker/bot/command/manager"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
+	"net/http"
 	"time"
 )
 
@@ -19,33 +21,33 @@ func GetWhitelabelCreateInteractions() func(*gin.Context) {
 	cm := new(manager.CommandManager)
 	cm.RegisterCommands()
 
-	return func(ctx *gin.Context) {
-		userId := ctx.Keys["userid"].(uint64)
+	return func(c *gin.Context) {
+		userId := c.Keys["userid"].(uint64)
 
 		// Get bot
-		bot, err := database.Client.Whitelabel.GetByUserId(ctx, userId)
+		bot, err := database.Client.Whitelabel.GetByUserId(c, userId)
 		if err != nil {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
 
 		// Ensure bot exists
 		if bot.BotId == 0 {
-			ctx.JSON(404, utils.ErrorStr("No bot found"))
+			c.JSON(404, utils.ErrorStr("No bot found"))
 			return
 		}
 
 		if err := createInteractions(cm, bot.BotId, bot.Token); err != nil {
 			if errors.Is(err, ErrInteractionCreateCooldown) {
-				ctx.JSON(400, utils.ErrorJson(err))
+				c.JSON(http.StatusTooManyRequests, utils.ErrorJson(err))
 			} else {
-				ctx.JSON(500, utils.ErrorJson(err))
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			}
 
 			return
 		}
 
-		ctx.JSON(200, utils.SuccessResponse)
+		c.JSON(200, utils.SuccessResponse)
 	}
 }
 

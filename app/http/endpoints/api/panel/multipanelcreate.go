@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc"
@@ -16,6 +17,7 @@ import (
 	"github.com/rxdn/gdl/objects/channel"
 	"github.com/rxdn/gdl/rest/request"
 	"golang.org/x/sync/errgroup"
+	"net/http"
 )
 
 type multiPanelCreateData struct {
@@ -36,48 +38,45 @@ func (d *multiPanelCreateData) IntoMessageData(isPremium bool) multiPanelMessage
 	}
 }
 
-func MultiPanelCreate(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func MultiPanelCreate(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
 	var data multiPanelCreateData
-	if err := ctx.ShouldBindJSON(&data); err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	if err := validate.Struct(data); err != nil {
 		var validationErrors validator.ValidationErrors
 		if ok := errors.As(err, &validationErrors); !ok {
-			ctx.JSON(500, utils.ErrorStr("An error occurred while validating the panel"))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewError(err, "An error occurred while validating the panel"))
 			return
 		}
 
 		formatted := "Your input contained the following errors:\n" + utils.FormatValidationErrors(validationErrors)
-		ctx.JSON(400, utils.ErrorStr(formatted))
+		c.JSON(400, utils.ErrorStr(formatted))
 		return
 	}
 
 	// validate body & get sub-panels
 	panels, err := data.doValidations(guildId)
 	if err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+		c.JSON(400, utils.ErrorJson(err))
 		return
 	}
 
 	// get bot context
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// get premium status
-	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(ctx, guildId, true, botContext.Token, botContext.RateLimiter)
+	premiumTier, err := rpc.PremiumClient.GetTierByGuildId(c, guildId, true, botContext.Token, botContext.RateLimiter)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -86,9 +85,9 @@ func MultiPanelCreate(ctx *gin.Context) {
 	if err != nil {
 		var unwrapped request.RestError
 		if errors.As(err, &unwrapped); unwrapped.StatusCode == 403 {
-			ctx.JSON(500, utils.ErrorJson(errors.New("I do not have permission to send messages in the provided channel")))
+			c.JSON(http.StatusBadRequest, utils.ErrorJson(errors.New("I do not have permission to send messages in the provided channel")))
 		} else {
-			ctx.JSON(500, utils.ErrorJson(err))
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		}
 
 		return
@@ -107,9 +106,9 @@ func MultiPanelCreate(ctx *gin.Context) {
 		},
 	}
 
-	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(ctx, multiPanel)
+	multiPanel.Id, err = dbclient.Client.MultiPanels.Create(c, multiPanel)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -118,16 +117,16 @@ func MultiPanelCreate(ctx *gin.Context) {
 		panel := panel
 
 		group.Go(func() error {
-			return dbclient.Client.MultiPanelTargets.Insert(ctx, multiPanel.Id, panel.PanelId)
+			return dbclient.Client.MultiPanelTargets.Insert(c, multiPanel.Id, panel.PanelId)
 		})
 	}
 
 	if err := group.Wait(); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	c.JSON(200, gin.H{
 		"success": true,
 		"data":    multiPanel,
 	})

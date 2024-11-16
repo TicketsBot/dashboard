@@ -1,21 +1,22 @@
 package api
 
 import (
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/database"
-	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
-func WhitelabelGetErrors(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
+func WhitelabelGetErrors(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
 
-	errors, err := database.Client.WhitelabelErrors.GetRecent(ctx, userId, 10)
+	errors, err := database.Client.WhitelabelErrors.GetRecent(c, userId, 10)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	c.JSON(200, gin.H{
 		"success": true,
 		"errors":  errors,
 	})

@@ -1,61 +1,70 @@
 package api
 
 import (
-	"context"
 	"errors"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
+	"net/http"
 	"strconv"
 )
 
-func MultiPanelDelete(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
+func MultiPanelDelete(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
 
-	multiPanelId, err := strconv.Atoi(ctx.Param("panelid"))
+	multiPanelId, err := strconv.Atoi(c.Param("panelid"))
 	if err != nil {
-		ctx.JSON(400, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// get bot context
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	panel, ok, err := dbclient.Client.MultiPanels.Get(ctx, multiPanelId)
+	panel, ok, err := dbclient.Client.MultiPanels.Get(c, multiPanelId)
 	if !ok {
-		ctx.JSON(404, utils.ErrorStr("No panel with matching ID found"))
+		c.JSON(404, utils.ErrorStr("No panel with matching ID found"))
 		return
 	}
 
 	if panel.GuildId != guildId {
-		ctx.JSON(403, utils.ErrorStr("Guild ID doesn't match"))
+		c.JSON(403, utils.ErrorStr("Guild ID doesn't match"))
 		return
 	}
 
-	var unwrapped request.RestError
 	// TODO: Use proper context
-	if err := rest.DeleteMessage(context.Background(), botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil && !(errors.As(err, &unwrapped) && unwrapped.IsClientError()) {
-		ctx.JSON(500, utils.ErrorJson(err))
-		return
+	if err := rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, panel.ChannelId, panel.MessageId); err != nil {
+		var unwrapped request.RestError
+		if errors.As(err, &unwrapped) {
+			// Swallow 403 / 404
+			if unwrapped.StatusCode != http.StatusForbidden && unwrapped.StatusCode != http.StatusNotFound {
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+				return
+			}
+		} else {
+			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+			return
+		}
 	}
 
-	success, err := dbclient.Client.MultiPanels.Delete(ctx, guildId, multiPanelId)
+	success, err := dbclient.Client.MultiPanels.Delete(c, guildId, multiPanelId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if !success {
-		ctx.JSON(404, utils.ErrorJson(errors.New("No panel with matching ID found")))
+		c.JSON(404, utils.ErrorJson(errors.New("No panel with matching ID found")))
 		return
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	c.JSON(200, utils.SuccessResponse)
 }
