@@ -78,11 +78,6 @@ func WhitelabelPost() func(*gin.Context) {
 			return
 		}
 
-		if err := dbclient.Client.WhitelabelKeys.Set(c, bot.Id, bot.VerifyKey); err != nil {
-			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
-			return
-		}
-
 		// Set intents
 		var currentFlags application.Flag = 0
 		if bot.Flags != nil {
