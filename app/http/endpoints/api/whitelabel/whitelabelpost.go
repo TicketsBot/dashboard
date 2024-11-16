@@ -101,7 +101,7 @@ func WhitelabelPost() func(*gin.Context) {
 
 		if _, err := rest.EditCurrentApplication(context.Background(), data.Token, nil, editData); err != nil {
 			// TODO: Use a transaction
-			if err := dbclient.Client.Whitelabel.Delete(c, bot.Id); err != nil {
+			if _, err := dbclient.Client.Whitelabel.Delete(c, bot.Id); err != nil {
 				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 				return
 			}
