@@ -100,8 +100,12 @@ func DeletePanel(c *gin.Context) {
 
 		messageId, err := messageData.send(botContext, panels)
 		if err != nil {
-			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
-			return
+			var unwrapped request.RestError
+			if !errors.As(err, &unwrapped) || !unwrapped.IsClientError() {
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+				return
+			}
+			// TODO: nil message ID?
 		}
 
 		if err := database.Client.MultiPanels.UpdateMessageId(c, multiPanel.Id, messageId); err != nil {
