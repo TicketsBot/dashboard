@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/botcontext"
 	dbclient "github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/utils"
@@ -11,6 +12,7 @@ import (
 	"github.com/rxdn/gdl/objects/channel/embed"
 	"github.com/rxdn/gdl/objects/user"
 	"github.com/rxdn/gdl/rest"
+	"net/http"
 	"regexp"
 	"strconv"
 	"time"
@@ -18,83 +20,63 @@ import (
 
 var MentionRegex, _ = regexp.Compile("<@(\\d+)>")
 
-func GetTicket(ctx *gin.Context) {
-	guildId := ctx.Keys["guildid"].(uint64)
-	userId := ctx.Keys["userid"].(uint64)
+func GetTicket(c *gin.Context) {
+	guildId := c.Keys["guildid"].(uint64)
+	userId := c.Keys["userid"].(uint64)
 
 	botContext, err := botcontext.ContextForGuild(guildId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
+	ticketId, err := strconv.Atoi(c.Param("ticketId"))
 	if err != nil {
-		ctx.JSON(400, gin.H{
-			"success": true,
-			"error":   "Invalid ticket ID",
-		})
+		c.JSON(http.StatusBadRequest, utils.ErrorStr("Invalid ticket ID"))
 		return
 	}
 
 	// Get the ticket struct
-	ticket, err := dbclient.Client.Tickets.Get(ctx, ticketId, guildId)
+	ticket, err := dbclient.Client.Tickets.Get(c, ticketId, guildId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": true,
-			"error":   err.Error(),
-		})
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	if ticket.GuildId != guildId {
-		ctx.JSON(403, gin.H{
-			"success": false,
-			"error":   "Guild ID doesn't match",
-		})
+		c.JSON(http.StatusForbidden, utils.ErrorStr("Ticket does not belong to guild"))
 		return
 	}
 
 	if !ticket.Open {
-		ctx.JSON(404, gin.H{
-			"success": false,
-			"error":   "Ticket does not exist",
-		})
+		c.JSON(http.StatusNotFound, utils.ErrorStr("Ticket is closed"))
 		return
 	}
 
-	hasPermission, requestErr := utils.HasPermissionToViewTicket(context.Background(), guildId, userId, ticket)
+	hasPermission, requestErr := utils.HasPermissionToViewTicket(c, guildId, userId, ticket)
 	if requestErr != nil {
-		ctx.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
+		// TODO
+		c.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
 		return
 	}
 
 	if !hasPermission {
-		ctx.JSON(403, utils.ErrorStr("You do not have permission to view this ticket"))
+		c.JSON(http.StatusForbidden, utils.ErrorStr("You do not have permission to view this ticket"))
 		return
 	}
 
 	if ticket.ChannelId == nil {
-		ctx.JSON(404, gin.H{
-			"success": false,
-			"error":   "Channel ID is nil",
-		})
+		c.JSON(http.StatusNotFound, utils.ErrorStr("Ticket channel not found"))
 		return
 	}
 
 	messages, err := fetchMessages(botContext, ticket)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": false,
-			"error":   err.Error(),
-		})
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	c.JSON(200, gin.H{
 		"success":  true,
 		"ticket":   ticket,
 		"messages": messages,

@@ -1,29 +1,30 @@
 package api
 
 import (
-	"context"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
-func GetPermissionLevel(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
+func GetPermissionLevel(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
 
-	guildId, err := strconv.ParseUint(ctx.Query("guild"), 10, 64)
+	guildId, err := strconv.ParseUint(c.Query("guild"), 10, 64)
 	if err != nil {
-		ctx.JSON(400, utils.ErrorStr("Invalid guild ID"))
+		c.JSON(400, utils.ErrorStr("Invalid guild ID"))
 		return
 	}
 
 	// TODO: Use proper context
-	permissionLevel, err := utils.GetPermissionLevel(context.Background(), guildId, userId)
+	permissionLevel, err := utils.GetPermissionLevel(c, guildId, userId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, gin.H{
+	c.JSON(200, gin.H{
 		"success":          true,
 		"permission_level": permissionLevel,
 	})

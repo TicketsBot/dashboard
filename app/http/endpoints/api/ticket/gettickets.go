@@ -1,11 +1,12 @@
 package api
 
 import (
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/rpc/cache"
-	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/rxdn/gdl/objects/user"
+	"net/http"
 	"time"
 )
 
@@ -28,19 +29,19 @@ type (
 	}
 )
 
-func GetTickets(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
-	guildId := ctx.Keys["guildid"].(uint64)
+func GetTickets(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
+	guildId := c.Keys["guildid"].(uint64)
 
-	tickets, err := database.Client.Tickets.GetGuildOpenTicketsWithMetadata(ctx, guildId)
+	tickets, err := database.Client.Tickets.GetGuildOpenTicketsWithMetadata(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	panels, err := database.Client.Panel.GetByGuild(ctx, guildId)
+	panels, err := database.Client.Panel.GetByGuild(c, guildId)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -59,9 +60,9 @@ func GetTickets(ctx *gin.Context) {
 		}
 	}
 
-	users, err := cache.Instance.GetUsers(ctx, userIds)
+	users, err := cache.Instance.GetUsers(c, userIds)
 	if err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
@@ -78,7 +79,7 @@ func GetTickets(ctx *gin.Context) {
 		}
 	}
 
-	ctx.JSON(200, listTicketsResponse{
+	c.JSON(200, listTicketsResponse{
 		Tickets:       data,
 		PanelTitles:   panelTitles,
 		ResolvedUsers: users,

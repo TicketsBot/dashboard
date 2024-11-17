@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
+	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/database"
 	"github.com/TicketsBot/GoPanel/redis"
 	"github.com/TicketsBot/GoPanel/utils"
 	"github.com/TicketsBot/common/closerelay"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
@@ -14,55 +16,44 @@ type closeBody struct {
 	Reason string `json:"reason"`
 }
 
-func CloseTicket(ctx *gin.Context) {
-	userId := ctx.Keys["userid"].(uint64)
-	guildId := ctx.Keys["guildid"].(uint64)
+func CloseTicket(c *gin.Context) {
+	userId := c.Keys["userid"].(uint64)
+	guildId := c.Keys["guildid"].(uint64)
 
-	ticketId, err := strconv.Atoi(ctx.Param("ticketId"))
+	ticketId, err := strconv.Atoi(c.Param("ticketId"))
 	if err != nil {
-		ctx.JSON(400, gin.H{
-			"success": true,
-			"error":   "Invalid ticket ID",
-		})
+		c.JSON(http.StatusBadRequest, utils.ErrorStr("Invalid ticket ID"))
 		return
 	}
 
 	var body closeBody
-	if err := ctx.BindJSON(&body); err != nil {
-		ctx.JSON(400, gin.H{
-			"success": false,
-			"error":   "Missing reason",
-		})
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(400, utils.ErrorStr("Invalid request body"))
 		return
 	}
 
 	// Get the ticket struct
-	ticket, err := database.Client.Tickets.Get(ctx, ticketId, guildId)
+	ticket, err := database.Client.Tickets.Get(c, ticketId, guildId)
 	if err != nil {
-		ctx.JSON(500, gin.H{
-			"success": true,
-			"error":   err.Error(),
-		})
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
 	// Verify the ticket exists
 	if ticket.UserId == 0 {
-		ctx.JSON(404, gin.H{
-			"success": false,
-			"error":   "Ticket does not exist",
-		})
+		c.JSON(http.StatusNotFound, utils.ErrorStr("Ticket not found"))
 		return
 	}
 
 	hasPermission, requestErr := utils.HasPermissionToViewTicket(context.Background(), guildId, userId, ticket)
 	if requestErr != nil {
-		ctx.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
+		// TODO
+		c.JSON(requestErr.StatusCode, utils.ErrorJson(requestErr))
 		return
 	}
 
 	if !hasPermission {
-		ctx.JSON(403, utils.ErrorStr("You do not have permission to close this ticket"))
+		c.JSON(http.StatusForbidden, utils.ErrorStr("You do not have permission to close this ticket"))
 		return
 	}
 
@@ -74,9 +65,9 @@ func CloseTicket(ctx *gin.Context) {
 	}
 
 	if err := closerelay.Publish(redis.Client.Client, data); err != nil {
-		ctx.JSON(500, utils.ErrorJson(err))
+		_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 		return
 	}
 
-	ctx.JSON(200, utils.SuccessResponse)
+	c.JSON(200, utils.SuccessResponse)
 }
