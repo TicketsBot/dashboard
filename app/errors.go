@@ -1,10 +1,15 @@
 package app
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"github.com/rxdn/gdl/rest/request"
+)
 
 type ApiError struct {
 	InternalError   error
 	ExternalMessage string
+	stacktrace      error
 }
 
 var _ error = (*ApiError)(nil)
@@ -21,7 +26,13 @@ func NewServerError(internalError error) *ApiError {
 }
 
 func (e *ApiError) Error() string {
-	return fmt.Sprintf("internal error: %v, external message: %s", e.InternalError, e.ExternalMessage)
+	var restError request.RestError
+	if errors.As(e.InternalError, &restError) {
+		return fmt.Sprintf("internal error: %v, external message: %s, rest error: Discord returned HTTP %d: %s",
+			e.InternalError, e.ExternalMessage, restError.StatusCode, restError.ApiError.Message)
+	} else {
+		return fmt.Sprintf("internal error: %v, external message: %s", e.InternalError, e.ExternalMessage)
+	}
 }
 
 func (e *ApiError) Unwrap() error {

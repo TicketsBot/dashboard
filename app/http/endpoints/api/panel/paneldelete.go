@@ -97,7 +97,6 @@ func DeletePanel(c *gin.Context) {
 		}
 
 		messageData := multiPanelIntoMessageData(multiPanel, premiumTier > premium.None)
-
 		messageId, err := messageData.send(botContext, panels)
 		if err != nil {
 			var unwrapped request.RestError
@@ -106,16 +105,16 @@ func DeletePanel(c *gin.Context) {
 				return
 			}
 			// TODO: nil message ID?
-		}
+		} else {
+			if err := database.Client.MultiPanels.UpdateMessageId(c, multiPanel.Id, messageId); err != nil {
+				_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
+				return
+			}
 
-		if err := database.Client.MultiPanels.UpdateMessageId(c, multiPanel.Id, messageId); err != nil {
-			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
-			return
+			// Delete old panel
+			// TODO: Use proper context
+			_ = rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 		}
-
-		// Delete old panel
-		// TODO: Use proper context
-		_ = rest.DeleteMessage(c, botContext.Token, botContext.RateLimiter, multiPanel.ChannelId, multiPanel.MessageId)
 	}
 
 	c.JSON(200, utils.SuccessResponse)
