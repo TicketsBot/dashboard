@@ -22,6 +22,11 @@ func NewError(internalError error, externalMessage string) *ApiError {
 }
 
 func NewServerError(internalError error) *ApiError {
+	var restError request.RestError
+	if errors.As(internalError, &restError) {
+		return NewError(internalError, restError.Error())
+	}
+
 	return NewError(internalError, "An internal server error occurred")
 }
 

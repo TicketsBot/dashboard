@@ -1,6 +1,6 @@
 module github.com/TicketsBot/GoPanel
 
-go 1.22
+go 1.22.0
 
 toolchain go1.22.4
 
@@ -29,11 +29,11 @@ require (
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/rxdn/gdl v0.0.0-20241113224447-d578afa35bd3
+	github.com/rxdn/gdl v0.0.0-20241201120412-8fd61c53dd96
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/weppos/publicsuffix-go v0.20.0
-	golang.org/x/sync v0.8.0
+	golang.org/x/sync v0.9.0
 )
 
 require (
@@ -119,7 +119,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
+	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/term v0.25.0 // indirect
