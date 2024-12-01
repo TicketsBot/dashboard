@@ -68,6 +68,14 @@
                         <option value={form.form_id}>{form.title}</option>
                     {/each}
                 </Dropdown>
+                <Dropdown col3 label="Awaiting Response Category" premiumBadge={true} bind:value={data.pending_category} disabled={!isPremium}>
+                    <option value="">Disabled</option>
+                    {#each channels as channel}
+                        {#if channel.type === 4}
+                            <option value={channel.id}>{channel.name}</option>
+                        {/if}
+                    {/each}
+                </Dropdown>
             </div>
         </div>
     </Collapsible>
@@ -138,7 +146,6 @@
                 </div>
             </div>
 
-
             <div class="row">
                 <Input col2={true} label="Large Image URL" badge="Optional" bind:value={data.image_url} placeholder="https://example.com/image.png" />
                 <Input col2={true} label="Small Image URL" badge="Optional" bind:value={data.thumbnail_url} placeholder="https://example.com/image.png" />
@@ -175,7 +182,7 @@
     import Colour from "../form/Colour.svelte";
     import ChannelDropdown from "../ChannelDropdown.svelte";
 
-    import {createEventDispatcher, onMount} from 'svelte';
+    import {onMount} from 'svelte';
     import {colourToInt, intToColour} from "../../js/util";
     import CategoryDropdown from "../CategoryDropdown.svelte";
     import EmojiInput from "../form/EmojiInput.svelte";
@@ -190,8 +197,6 @@
     export let guildId;
     export let seedDefault = true;
 
-    const dispatch = createEventDispatcher();
-
     let tempColour = '#2ECC71';
 
     export let data = {};
@@ -202,9 +207,6 @@
     export let teams = [];
     export let forms = [];
     export let isPremium = false;
-
-    let advancedSettings = false;
-    let overflowShow = false;
 
     let teamsWithDefault = [];
     let mentionItems = [];
@@ -247,17 +249,6 @@
             return role.name;
         } else {
             return `@${role.name}`;
-        }
-    }
-
-    function toggleAdvancedSettings() {
-        advancedSettings = !advancedSettings;
-        if (advancedSettings) {
-            setTimeout(() => {
-                overflowShow = true;
-            }, 300);
-        } else {
-            overflowShow = false;
         }
     }
 
@@ -305,6 +296,10 @@
             $: data.mentions
                 .map((id) => mentionItems.find((role) => role.id === id))
                 .forEach((mention) => selectedMentions.push(mention));
+        }
+
+        if (!data.pending_category) {
+            data.pending_category = "";
         }
 
         data.emote = data.emote;

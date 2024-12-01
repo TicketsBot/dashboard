@@ -73,6 +73,7 @@ func panelValidators() []validation.Validator[PanelValidationContext] {
 		validateNamingScheme,
 		validateWelcomeMessage,
 		validateAccessControlList,
+		validatePendingCategory,
 	}
 }
 
@@ -235,6 +236,26 @@ func validateFormId(ctx PanelValidationContext) validation.ValidationFunc {
 // Check premium on the worker side to maintain settings if user unsubscribes and later resubscribes
 func validateExitSurveyFormId(ctx PanelValidationContext) validation.ValidationFunc {
 	return validatedNullableFormId(ctx.GuildId, ctx.Data.ExitSurveyFormId)
+}
+
+func validatePendingCategory(ctx PanelValidationContext) validation.ValidationFunc {
+	return func() error {
+		if ctx.Data.PendingCategory == nil {
+			return nil
+		}
+
+		if !ctx.IsPremium {
+			return validation.NewInvalidInputError("Awaiting response category is a premium feature")
+		}
+
+		for _, ch := range ctx.Channels {
+			if ch.Id == *ctx.Data.PendingCategory && ch.Type == channel.ChannelTypeGuildCategory {
+				return nil
+			}
+		}
+
+		return validation.NewInvalidInputError("Invalid awaiting response category")
+	}
 }
 
 func validateTeams(ctx PanelValidationContext) validation.ValidationFunc {
