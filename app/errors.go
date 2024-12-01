@@ -9,7 +9,6 @@ import (
 type ApiError struct {
 	InternalError   error
 	ExternalMessage string
-	stacktrace      error
 }
 
 var _ error = (*ApiError)(nil)
