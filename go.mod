@@ -12,6 +12,7 @@ require (
 	github.com/TicketsBot/logarchiver v0.0.0-20241012220745-5f3ba17a5138
 	github.com/TicketsBot/worker v0.0.0-20241110222533-ba74e19de868
 	github.com/apex/log v1.1.2
+	github.com/caarlos0/env/v11 v11.2.2
 	github.com/getsentry/sentry-go v0.24.0
 	github.com/gin-gonic/contrib v0.0.0-20191209060500-d6e26eeaa607
 	github.com/gin-gonic/gin v1.9.1
@@ -25,7 +26,6 @@ require (
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgtype v1.14.0
 	github.com/jackc/pgx/v4 v4.18.3
-	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
@@ -33,6 +33,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	github.com/weppos/publicsuffix-go v0.20.0
+	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.9.0
 )
 
@@ -49,7 +50,6 @@ require (
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/caarlos0/env v3.5.0+incompatible // indirect
 	github.com/caarlos0/env/v10 v10.0.0 // indirect
-	github.com/caarlos0/env/v11 v11.2.2 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -96,6 +96,7 @@ require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c // indirect
 	github.com/paulmach/orb v0.9.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
@@ -116,7 +117,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
