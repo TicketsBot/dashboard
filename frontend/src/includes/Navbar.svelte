@@ -8,6 +8,11 @@
         <!-- on:click required to close dropdown again -->
 
         {#if isAdmin}
+          {#if ENABLE_EXPORT}
+            <NavElement icon="fas fa-file-export" link="/manage{guildId}/export" on:click={closeDropdown}>Data Export
+            </NavElement>
+          {/if}
+
           <NavElement icon="fas fa-cogs" link="/manage/{guildId}/settings" on:click={closeDropdown}>Settings
           </NavElement>
         {/if}
@@ -39,7 +44,7 @@
 
 <script>
     import NavElement from "../components/NavElement.svelte";
-    import Badge from "../components/Badge.svelte";
+    import {ENABLE_EXPORT} from "../js/constants";
 
     export let guildId;
     export let dropdown;

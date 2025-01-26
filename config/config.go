@@ -56,6 +56,10 @@ type Config struct {
 		Uri string `env:"URI,required"`
 	} `envPrefix:"CACHE_"`
 	SecureProxyUrl string `env:"SECURE_PROXY_URL"`
+	Export         struct {
+		Enabled    bool   `env:"ENABLED"`
+		PrivateKey string `env:"PRIVATE_KEY"`
+	} `envPrefix:"EXPORT_"`
 }
 
 // TODO: Don't use a global variable

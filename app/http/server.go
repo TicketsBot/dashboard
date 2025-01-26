@@ -116,6 +116,11 @@ func StartServer(logger *zap.Logger, sm *livechat.SocketManager) {
 			api.SearchMembers,
 		)
 
+		if config.Conf.Server {
+			guildAuthApiAdmin.GET("/export", rl(middleware.RateLimitTypeGuild, 1, time.Minute),
+				api.ExportHandler)
+		}
+
 		// Must be readable to load transcripts page
 		guildAuthApiSupport.GET("/settings", api_settings.GetSettingsHandler)
 		guildAuthApiAdmin.POST("/settings", api_settings.UpdateSettingsHandler)

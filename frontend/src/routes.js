@@ -35,6 +35,7 @@ import CreateMultiPanel from "./views/panels/CreateMultiPanel.svelte";
 import EditPanel from "./views/panels/EditPanel.svelte";
 import EditMultiPanel from "./views/panels/EditMultiPanel.svelte";
 import SelectServers from "./views/premium/SelectServers.svelte";
+import Export from "./views/Export.svelte";
 
 export const routes = [
     {name: '/', component: Index, layout: IndexLayout},
@@ -60,6 +61,7 @@ export const routes = [
         name: 'manage/:id',
         nestedRoutes: [
             {name: 'index', component: Error404, layout: ErrorLayout},
+            {name: 'export', component: Export, layout: ManageLayout},
             {name: 'settings', component: Settings, layout: ManageLayout},
             {name: 'appearance', component: Appearance, layout: ManageLayout},
             {

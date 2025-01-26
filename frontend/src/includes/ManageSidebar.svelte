@@ -8,6 +8,10 @@
             <ManageSidebarLink {currentRoute} title="← Back to servers" href="/" />
 
             {#if isAdmin}
+                {#if ENABLE_EXPORT}
+                    <ManageSidebarLink {currentRoute} title="Data Export" icon="fa-file-export" href="/manage/{guildId}/export" />
+                {/if}
+
                 <ManageSidebarLink {currentRoute} title="Settings" icon="fa-cogs" href="/manage/{guildId}/settings" />
             {/if}
 
@@ -93,8 +97,7 @@
     import {notifyError, withLoadingScreen} from "../js/util";
     import {getIconUrl, getDefaultIcon} from "../js/icons";
     import ManageSidebarLink from "./ManageSidebarLink.svelte";
-    import SubNavigation from "./SubNavigation.svelte";
-    import SubNavigationLink from "./SubNavigationLink.svelte";
+    import {ENABLE_EXPORT} from "../js/constants";
 
     export let currentRoute;
     export let permissionLevel;

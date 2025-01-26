@@ -5,3 +5,5 @@ export const OAUTH = {
     clientId: env.CLIENT_ID || "700742994386747404",
     redirectUri: env.REDIRECT_URI || "http://localhost:5000/callback"
 }
+
+export const ENABLE_EXPORT = env.ENABLE_EXPORT || false;
