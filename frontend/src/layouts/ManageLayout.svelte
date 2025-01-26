@@ -1,4 +1,5 @@
 <Head/>
+<SunsetBanner />
 
 <div class="wrapper">
     <Navbar {guildId} {permissionLevel} {dropdown} />
@@ -55,6 +56,7 @@
     import {permissionLevelCache} from '../js/stores';
     import {get} from 'svelte/store';
     import ManageSidebar from "../includes/ManageSidebar.svelte";
+    import SunsetBanner from "../includes/SunsetBanner.svelte";
 
     export let currentRoute;
     export let params = {};

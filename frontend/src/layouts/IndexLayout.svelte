@@ -1,4 +1,5 @@
 <Head/>
+<SunsetBanner />
 
 <div class="wrapper">
   <Sidebar {userData} />
@@ -24,6 +25,7 @@
     import {redirectLogin, setDefaultHeaders} from '../includes/Auth.svelte'
     import {onMount} from "svelte";
     import Index from "../views/Index.svelte";
+    import SunsetBanner from "../includes/SunsetBanner.svelte";
 
     export let currentRoute;
     export let params = {};
@@ -52,13 +54,14 @@
 
 <style>
     body {
+        display: flex;
+        flex-direction: column;
         padding: 0 !important;
     }
 
     .wrapper {
         display: flex;
         width: 100%;
-        height: 100%;
         margin: 0 !important;
         padding: 0 !important;
     }

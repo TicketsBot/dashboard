@@ -1,4 +1,5 @@
 <Head/>
+<SunsetBanner />
 
 <NotifyModal/>
 <Route {currentRoute} {params}/>
@@ -11,6 +12,8 @@
 </style>
 
 <script>
+    import SunsetBanner from "../includes/SunsetBanner.svelte";
+
     export let currentRoute;
     export let params = {};
 
