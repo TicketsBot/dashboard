@@ -26,6 +26,8 @@
         window.localStorage.setItem('user_data', JSON.stringify(res.data.user_data));
         if (res.data.guilds) {
             window.localStorage.setItem('guilds', JSON.stringify(res.data.guilds));
+        } else {
+            window.localStorage.setItem('guilds', JSON.stringify([]));
         }
 
         let path = '/';
