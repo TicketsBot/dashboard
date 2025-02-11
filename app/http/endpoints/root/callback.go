@@ -4,6 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/TicketsBot/GoPanel/app"
 	"github.com/TicketsBot/GoPanel/app/http/session"
 	"github.com/TicketsBot/GoPanel/config"
@@ -12,10 +17,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/rxdn/gdl/rest"
 	"github.com/rxdn/gdl/rest/request"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func CallbackHandler(c *gin.Context) {
@@ -98,9 +99,10 @@ func CallbackHandler(c *gin.Context) {
 			"avatar":   currentUser.Avatar,
 			"admin":    utils.Contains(config.Conf.Admins, currentUser.Id),
 		},
+		"guilds": guilds,
 	}
-	if len(guilds) > 0 {
-		resMap["guilds"] = guilds
+	if guilds == nil {
+		resMap["guilds"] = []utils.GuildDto{}
 	}
 
 	c.JSON(http.StatusOK, resMap)
