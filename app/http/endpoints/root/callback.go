@@ -62,7 +62,7 @@ func CallbackHandler(c *gin.Context) {
 		HasGuilds:    false,
 	}
 
-	var guilds []utils.GuildDto
+	guilds := make([]utils.GuildDto, 0)
 	if utils.Contains(scopes, "guilds") {
 		guilds, err = utils.LoadGuilds(c, res.AccessToken, currentUser.Id)
 		if err != nil {
@@ -100,9 +100,6 @@ func CallbackHandler(c *gin.Context) {
 			"admin":    utils.Contains(config.Conf.Admins, currentUser.Id),
 		},
 		"guilds": guilds,
-	}
-	if guilds == nil {
-		resMap["guilds"] = []utils.GuildDto{}
 	}
 
 	c.JSON(http.StatusOK, resMap)
