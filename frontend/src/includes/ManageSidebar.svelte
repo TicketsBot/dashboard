@@ -26,6 +26,12 @@
             <ManageSidebarLink {currentRoute} title="Tags" icon="fa-tags" href="/manage/{guildId}/tags" />
         </ul>
     </nav>
+    <nav>
+        <hr/>
+        <ul class="nav-list">
+            <ManageSidebarLink {currentRoute} title="Data Export" icon="fa-file-export" href="https://export.ticketsbot.net" newWindow />
+        </ul>
+    </nav>
     <nav class="bottom">
         <hr/>
         <ul class="nav-list">
